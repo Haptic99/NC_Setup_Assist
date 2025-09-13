@@ -1,0 +1,16 @@
+﻿<UserControl x:Class="NC_Setup_Assist.Views.MainMenuView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:NC_Setup_Assist.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Button Content="Neues Projekt" Command="{Binding CreateNewProjectCommand}" Width="200" Margin="5"/>
+            <Button Content="Projekte verwalten" Command="{Binding ManageProjectsCommand}" Width="200" Margin="5"/>
+            <Button Content="Einstellungen" Command="{Binding OpenSettingsCommand}" Width="200" Margin="5"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

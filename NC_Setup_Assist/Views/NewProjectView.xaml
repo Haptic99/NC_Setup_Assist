@@ -1,0 +1,40 @@
+﻿<UserControl x:Class="NC_Setup_Assist.Views.NewProjectView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:NC_Setup_Assist.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="500">
+    <Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
+            <TextBlock Text="Neues Projekt erstellen" FontSize="20" FontWeight="Bold" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+
+            <TextBlock Text="NC-Programmdatei:" Margin="0,0,0,5"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0" Text="{Binding NcFilePath, Mode=OneWay}" IsReadOnly="True" VerticalContentAlignment="Center"/>
+                <Button Grid.Column="1" Content="..." Command="{Binding SelectNcFileCommand}" Width="40" Margin="5,0,0,0"/>
+            </Grid>
+
+            <TextBlock Text="Bauteilbezeichnung:" Margin="0,10,0,5"/>
+            <TextBox Text="{Binding BauteilBezeichnung, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <TextBlock Text="Standort:" Margin="0,10,0,5"/>
+            <ComboBox ItemsSource="{Binding Standorte}"
+                      SelectedItem="{Binding SelectedStandort}"
+                      DisplayMemberPath="Name"/>
+
+            <TextBlock Text="Maschine:" Margin="0,10,0,5"/>
+            <ComboBox ItemsSource="{Binding Maschinen}"
+                      SelectedItem="{Binding SelectedMaschine}"
+                      DisplayMemberPath="Name"/>
+
+            <Button Content="Analyse starten" Command="{Binding StartAnalysisCommand}" Margin="0,30,0,0" Height="30" FontWeight="Bold"/>
+            <Button Content="Abbrechen" Command="{Binding Path=DataContext.NavigateBackCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Margin="0,10,0,0"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

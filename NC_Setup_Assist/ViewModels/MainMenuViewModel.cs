@@ -17,7 +17,7 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void CreateNewProject()
         {
-            MessageBox.Show("Funktion 'Neues Projekt' wird noch implementiert.");
+            _mainViewModel.NavigateTo(new NewProjectViewModel(_mainViewModel));
         }
 
         [RelayCommand]

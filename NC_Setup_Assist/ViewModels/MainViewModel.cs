@@ -34,7 +34,7 @@ namespace NC_Setup_Assist.ViewModels
 
         // Command für den Zurück-Button
         [RelayCommand(CanExecute = nameof(CanNavigateBack))]
-        private void NavigateBack()
+        public void NavigateBack()
         {
             if (_navigationHistory.Any())
             {

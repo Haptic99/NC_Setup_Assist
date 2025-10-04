@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:NC_Setup_Assist.Views"
              xmlns:viewmodels="clr-namespace:NC_Setup_Assist.ViewModels"
              xmlns:models="clr-namespace:NC_Setup_Assist.Models"
+             xmlns:System="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              HorizontalAlignment="Center" VerticalAlignment="Center">

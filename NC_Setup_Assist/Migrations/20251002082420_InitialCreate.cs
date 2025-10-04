@@ -1,12 +1,11 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace NC_Setup_Assist.Migrations
 {
     /// <inheritdoc />
-    public partial class Initialize : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -125,21 +124,19 @@ namespace NC_Setup_Assist.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "NCProgramme",
+                name: "Projekte",
                 columns: table => new
                 {
-                    NCProgrammID = table.Column<int>(type: "INTEGER", nullable: false)
+                    ProjektID = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    ZeichnungsNummer = table.Column<string>(type: "TEXT", nullable: false),
-                    Bezeichnung = table.Column<string>(type: "TEXT", nullable: false),
-                    DateiPfad = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
                     MaschineID = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_NCProgramme", x => x.NCProgrammID);
+                    table.PrimaryKey("PK_Projekte", x => x.ProjektID);
                     table.ForeignKey(
-                        name: "FK_NCProgramme_Maschinen_MaschineID",
+                        name: "FK_Projekte_Maschinen_MaschineID",
                         column: x => x.MaschineID,
                         principalTable: "Maschinen",
                         principalColumn: "MaschineID",
@@ -174,23 +171,31 @@ namespace NC_Setup_Assist.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Projekte",
+                name: "NCProgramme",
                 columns: table => new
                 {
-                    ProjektID = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AnalyseDatum = table.Column<DateTime>(type: "TEXT", nullable: false),
                     NCProgrammID = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ZeichnungsNummer = table.Column<string>(type: "TEXT", nullable: false),
+                    Bezeichnung = table.Column<string>(type: "TEXT", nullable: false),
+                    DateiPfad = table.Column<string>(type: "TEXT", nullable: false),
+                    MaschineID = table.Column<int>(type: "INTEGER", nullable: false),
+                    ProjektID = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Projekte", x => x.ProjektID);
+                    table.PrimaryKey("PK_NCProgramme", x => x.NCProgrammID);
                     table.ForeignKey(
-                        name: "FK_Projekte_NCProgramme_NCProgrammID",
-                        column: x => x.NCProgrammID,
-                        principalTable: "NCProgramme",
-                        principalColumn: "NCProgrammID",
+                        name: "FK_NCProgramme_Maschinen_MaschineID",
+                        column: x => x.MaschineID,
+                        principalTable: "Maschinen",
+                        principalColumn: "MaschineID",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_NCProgramme_Projekte_ProjektID",
+                        column: x => x.ProjektID,
+                        principalTable: "Projekte",
+                        principalColumn: "ProjektID");
                 });
 
             migrationBuilder.CreateTable(
@@ -199,10 +204,13 @@ namespace NC_Setup_Assist.Migrations
                 {
                     WerkzeugEinsatzID = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    RevolverStation = table.Column<int>(type: "INTEGER", nullable: false),
-                    KorrekturNummer = table.Column<int>(type: "INTEGER", nullable: false),
+                    Reihenfolge = table.Column<int>(type: "INTEGER", nullable: false),
+                    Anzahl = table.Column<int>(type: "INTEGER", nullable: false),
+                    RevolverStation = table.Column<string>(type: "TEXT", nullable: true),
+                    KorrekturNummer = table.Column<string>(type: "TEXT", nullable: true),
+                    Kommentar = table.Column<string>(type: "TEXT", nullable: true),
                     NCProgrammID = table.Column<int>(type: "INTEGER", nullable: false),
-                    WerkzeugID = table.Column<int>(type: "INTEGER", nullable: false)
+                    WerkzeugID = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -217,8 +225,7 @@ namespace NC_Setup_Assist.Migrations
                         name: "FK_WerkzeugEinsaetze_Werkzeuge_WerkzeugID",
                         column: x => x.WerkzeugID,
                         principalTable: "Werkzeuge",
-                        principalColumn: "WerkzeugID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "WerkzeugID");
                 });
 
             migrationBuilder.CreateIndex(
@@ -232,9 +239,14 @@ namespace NC_Setup_Assist.Migrations
                 column: "MaschineID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Projekte_NCProgrammID",
+                name: "IX_NCProgramme_ProjektID",
+                table: "NCProgramme",
+                column: "ProjektID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Projekte_MaschineID",
                 table: "Projekte",
-                column: "NCProgrammID");
+                column: "MaschineID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_StandardWerkzeugZuweisungen_MaschineID",
@@ -276,9 +288,6 @@ namespace NC_Setup_Assist.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Projekte");
-
-            migrationBuilder.DropTable(
                 name: "StandardWerkzeugZuweisungen");
 
             migrationBuilder.DropTable(
@@ -291,16 +300,19 @@ namespace NC_Setup_Assist.Migrations
                 name: "Werkzeuge");
 
             migrationBuilder.DropTable(
-                name: "Maschinen");
+                name: "Projekte");
 
             migrationBuilder.DropTable(
                 name: "WerkzeugUnterkategorien");
 
             migrationBuilder.DropTable(
-                name: "Standorte");
+                name: "Maschinen");
 
             migrationBuilder.DropTable(
                 name: "WerkzeugKategorien");
+
+            migrationBuilder.DropTable(
+                name: "Standorte");
 
             migrationBuilder.DropTable(
                 name: "Firmen");

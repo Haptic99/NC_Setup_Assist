@@ -29,6 +29,10 @@
         <DataTemplate DataType="{x:Type viewmodels:NewProjectViewModel}">
             <views:NewProjectView/>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewmodels:AnalysisViewModel}">
+            <views:AnalysisView/>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>

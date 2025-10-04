@@ -1,14 +1,12 @@
-﻿// NC_Setup_Assist/ViewModels/NewProjectViewModel.cs
-
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
-using System;
+using NC_Setup_Assist.Services;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
 
@@ -18,118 +16,139 @@ namespace NC_Setup_Assist.ViewModels
     {
         private readonly MainViewModel _mainViewModel;
 
-        // Listen für die ComboBoxen
-        public ObservableCollection<Standort> Standorte { get; } = new();
-        public ObservableCollection<Maschine> Maschinen { get; } = new();
-
-        // Ausgewählte Elemente und Eingabefelder
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(StartAnalysisCommand))]
-        private Standort? _selectedStandort;
-
-        [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(StartAnalysisCommand))]
-        private Maschine? _selectedMaschine;
-
-        [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(StartAnalysisCommand))]
         private string? _ncFilePath;
 
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(StartAnalysisCommand))]
-        private string? _bauteilBezeichnung;
+        private string? _projectName;
+
+        // --- NEUE EIGENSCHAFTEN ---
+        public ObservableCollection<Firma> Firmen { get; } = new();
+        public ObservableCollection<Maschine> Maschinen { get; } = new();
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(CreateProjectCommand))]
+        private Firma? _selectedFirma;
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(CreateProjectCommand))]
+        private Maschine? _selectedMaschine;
 
 
         public NewProjectViewModel(MainViewModel mainViewModel)
         {
             _mainViewModel = mainViewModel;
-            LoadStandorte();
+            LoadFirmen(); // Lädt die Firmenliste beim Start
         }
 
-        private void LoadStandorte()
+        // --- NEUE METHODE: Wird aufgerufen, wenn sich die Auswahl der Firma ändert ---
+        partial void OnSelectedFirmaChanged(Firma? value)
         {
-            Standorte.Clear();
-            using var context = new NcSetupContext();
-            var standorteFromDb = context.Standorte.ToList();
-            foreach (var standort in standorteFromDb)
-            {
-                Standorte.Add(standort);
-            }
-        }
-
-        // Wird aufgerufen, wenn sich der Standort ändert
-        partial void OnSelectedStandortChanged(Standort? value)
-        {
-            Maschinen.Clear();
-            SelectedMaschine = null;
-            if (value != null)
-            {
-                using var context = new NcSetupContext();
-                var maschinenFromDb = context.Maschinen
-                                            .Where(m => m.StandortID == value.StandortID)
-                                            .ToList();
-                foreach (var maschine in maschinenFromDb)
-                {
-                    Maschinen.Add(maschine);
-                }
-            }
+            LoadMaschinen(value);
         }
 
         [RelayCommand]
-        private void SelectNcFile()
+        private void BrowseNcFile()
         {
-            var openFileDialog = new OpenFileDialog
+            OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "NC Files (*.nc;*.min)|*.nc;*.min|All files (*.*)|*.*",
+                Filter = "NC-Programme (*.nc;*.NC)|*.nc;*.NC|Alle Dateien (*.*)|*.*",
                 Title = "NC-Programm auswählen"
             };
 
             if (openFileDialog.ShowDialog() == true)
             {
                 NcFilePath = openFileDialog.FileName;
+                // Extrahiert den Dateinamen ohne Erweiterung als Projektnamen-Vorschlag
+                ProjectName = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
             }
         }
 
-        [RelayCommand(CanExecute = nameof(CanStartAnalysis))]
-        private void StartAnalysis()
+        private bool CanCreateProject()
         {
-            // --- HIER WIRD SPÄTER DIE PARSER-LOGIK AUFGERUFEN ---
-
-            // 1. Neues NCProgramm-Objekt erstellen und speichern
-            var newNcProgram = new NCProgramm
-            {
-                DateiPfad = NcFilePath!,
-                Bezeichnung = BauteilBezeichnung!,
-                MaschineID = SelectedMaschine!.MaschineID,
-                ZeichnungsNummer = "N/A" // Vorerst Platzhalter
-            };
-
-            using (var context = new NcSetupContext())
-            {
-                context.Maschinen.Attach(SelectedMaschine);
-                context.NCProgramme.Add(newNcProgram);
-                context.SaveChanges();
-
-                // 2. Neues Projekt-Objekt erstellen und speichern
-                var newProject = new Projekt
-                {
-                    AnalyseDatum = DateTime.Now,
-                    NCProgrammID = newNcProgram.NCProgrammID
-                };
-                context.Projekte.Add(newProject);
-                context.SaveChanges();
-            }
-
-            // 3. Zur Analyse-Ansicht navigieren (diese erstellen wir im nächsten Schritt)
-            MessageBox.Show($"Projekt für '{newNcProgram.Bezeichnung}' wurde erstellt!\nNächster Schritt: Navigation zur Analyse-Ansicht.", "Erfolg");
-            // _mainViewModel.NavigateTo(new AnalysisViewModel(newNcProgram)); // <-- Dies wird das endgültige Ziel sein
-        }
-
-        private bool CanStartAnalysis()
-        {
+            // Ein Projekt kann nur erstellt werden, wenn alle Felder ausgefüllt sind
             return !string.IsNullOrWhiteSpace(NcFilePath) &&
-                   !string.IsNullOrWhiteSpace(BauteilBezeichnung) &&
+                   !string.IsNullOrWhiteSpace(ProjectName) &&
+                   SelectedFirma != null &&
                    SelectedMaschine != null;
+        }
+
+        [RelayCommand(CanExecute = nameof(CanCreateProject))]
+        private void CreateProject()
+        {
+            if (string.IsNullOrWhiteSpace(NcFilePath) ||
+                string.IsNullOrWhiteSpace(ProjectName) ||
+                SelectedFirma == null ||
+                SelectedMaschine == null)
+            {
+                MessageBox.Show("Bitte füllen Sie alle Felder aus.", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var parser = new NcCodeParserService();
+            var werkzeugEinsaetze = parser.Parse(NcFilePath);
+
+            using var context = new NcSetupContext();
+
+            // Das neue Projekt wird mit der ID der ausgewählten Maschine erstellt
+            var neuesProjekt = new Projekt
+            {
+                Name = ProjectName,
+                MaschineID = SelectedMaschine.MaschineID // Korrigierte Zuweisung
+            };
+            context.Projekte.Add(neuesProjekt);
+            context.SaveChanges(); // Speichern, um die neue ProjektID zu erhalten
+
+            // Jetzt das NCProgramm erstellen und mit dem Projekt verknüpfen
+            var neuesProgramm = new NCProgramm
+            {
+                // ZeichnungsNummer ist in Modell nicht nullable — also befüllen, z.B. mit dem Projektnamen oder Dateiname
+                ZeichnungsNummer = ProjectName ?? Path.GetFileNameWithoutExtension(NcFilePath),
+                Bezeichnung = Path.GetFileName(NcFilePath),
+                DateiPfad = NcFilePath,
+                MaschineID = SelectedMaschine.MaschineID // MaschineID zuweisen
+            };
+            context.NCProgramme.Add(neuesProgramm);
+            context.SaveChanges(); // Speichern, um die neue NCProgrammID zu erhalten
+
+            // Werkzeugeinsätze dem neuen Programm zuweisen
+            foreach (var einsatz in werkzeugEinsaetze)
+            {
+                einsatz.NCProgrammID = neuesProgramm.NCProgrammID;
+                context.WerkzeugEinsaetze.Add(einsatz);
+            }
+            context.SaveChanges();
+
+            _mainViewModel.NavigateTo(new AnalysisViewModel(neuesProgramm, _mainViewModel));
+        }
+
+        // --- NEUE METHODEN ZUM LADEN VON DATEN ---
+        private void LoadFirmen()
+        {
+            Firmen.Clear();
+            using var context = new NcSetupContext();
+            var firmenFromDb = context.Firmen
+                                      .Include(f => f.Standorte)
+                                      .ThenInclude(s => s.Maschinen)
+                                      .ToList();
+            foreach (var firma in firmenFromDb)
+            {
+                Firmen.Add(firma);
+            }
+        }
+
+        private void LoadMaschinen(Firma? firma)
+        {
+            Maschinen.Clear();
+            SelectedMaschine = null; // Auswahl zurücksetzen
+            if (firma != null)
+            {
+                var maschinen = firma.Standorte.SelectMany(s => s.Maschinen).ToList();
+                foreach (var maschine in maschinen)
+                {
+                    Maschinen.Add(maschine);
+                }
+            }
         }
     }
 }

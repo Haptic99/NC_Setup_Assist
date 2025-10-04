@@ -5,36 +5,42 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:NC_Setup_Assist.Views"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="500">
-    <Grid>
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
-            <TextBlock Text="Neues Projekt erstellen" FontSize="20" FontWeight="Bold" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+             d:DesignHeight="450" d:DesignWidth="800"
+             HorizontalAlignment="Center" VerticalAlignment="Center">
+    <StackPanel Width="400">
+        <TextBlock Text="Neues Projekt erstellen" FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
 
-            <TextBlock Text="NC-Programmdatei:" Margin="0,0,0,5"/>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" Text="{Binding NcFilePath, Mode=OneWay}" IsReadOnly="True" VerticalContentAlignment="Center"/>
-                <Button Grid.Column="1" Content="..." Command="{Binding SelectNcFileCommand}" Width="40" Margin="5,0,0,0"/>
-            </Grid>
+        <TextBlock Text="NC-Programm Datei:" Margin="0,0,0,10"/>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" Text="{Binding NcFilePath, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" IsReadOnly="True" Margin="0,0,5,0"/>
+            <Button Grid.Column="1" Content="..." Command="{Binding BrowseNcFileCommand}" Width="30"/>
+        </Grid>
 
-            <TextBlock Text="Bauteilbezeichnung:" Margin="0,10,0,5"/>
-            <TextBox Text="{Binding BauteilBezeichnung, UpdateSourceTrigger=PropertyChanged}"/>
+        <TextBlock Text="Projektname:" Margin="0,10,0,10"/>
+        <TextBox Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}"/>
 
-            <TextBlock Text="Standort:" Margin="0,10,0,5"/>
-            <ComboBox ItemsSource="{Binding Standorte}"
-                      SelectedItem="{Binding SelectedStandort}"
-                      DisplayMemberPath="Name"/>
+        <TextBlock Text="Firma:" Margin="0,10,0,5"/>
+        <ComboBox ItemsSource="{Binding Firmen}"
+                  SelectedItem="{Binding SelectedFirma, Mode=TwoWay}"
+                  DisplayMemberPath="Name"
+                  Margin="0,0,0,10"
+                  ToolTip="Wählen Sie eine Firma aus."/>
 
-            <TextBlock Text="Maschine:" Margin="0,10,0,5"/>
-            <ComboBox ItemsSource="{Binding Maschinen}"
-                      SelectedItem="{Binding SelectedMaschine}"
-                      DisplayMemberPath="Name"/>
+        <TextBlock Text="Maschine:" Margin="0,0,0,5"/>
+        <ComboBox ItemsSource="{Binding Maschinen}"
+                  SelectedItem="{Binding SelectedMaschine, Mode=TwoWay}"
+                  DisplayMemberPath="Name"
+                  Margin="0,0,0,20"
+                  ToolTip="Wählen Sie eine Maschine aus"/>
 
-            <Button Content="Analyse starten" Command="{Binding StartAnalysisCommand}" Margin="0,30,0,0" Height="30" FontWeight="Bold"/>
-            <Button Content="Abbrechen" Command="{Binding Path=DataContext.NavigateBackCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Margin="0,10,0,0"/>
-        </StackPanel>
-    </Grid>
+
+        <Button Content="Projekt erstellen" 
+                Command="{Binding CreateProjectCommand}" 
+                HorizontalAlignment="Right" 
+                Padding="10,5"/>
+    </StackPanel>
 </UserControl>

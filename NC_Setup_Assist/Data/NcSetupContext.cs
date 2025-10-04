@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Models;
-using System; // Hinzufügen
+using System;
 using System.Diagnostics;
-using System.IO; // Hinzufügen
+using System.IO;
 
 namespace NC_Setup_Assist.Data
 {

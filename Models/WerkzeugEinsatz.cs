@@ -1,4 +1,4 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NC_Setup_Assist.Models
@@ -11,26 +11,29 @@ namespace NC_Setup_Assist.Models
         public int Reihenfolge { get; set; }
 
         /// <summary>
-        /// NEU: ZÃ¤hlt, wie oft dieses Werkzeug nacheinander aufgerufen wurde.
+        /// Zählt, wie oft dieses Werkzeug nacheinander aufgerufen wurde.
         /// </summary>
         public int Anzahl { get; set; }
 
-        public string? RevolverStation { get; set; }
+        public int RevolverStation { get; set; }
 
-        public string? KorrekturNummer { get; set; }
-
-        // --- NEUE EIGENSCHAFT HINZUGEFÃœGT ---
         /// <summary>
-        /// Ein optionaler Kommentar, z.B. fÃ¼r Spindeldrehzahl-Anpassungen.
+        /// Korrekturnummer kann fehlen (z.B. bei reinen Kommentar-Einträgen).
+        /// </summary>
+        public int? KorrekturNummer { get; set; }
+
+        /// <summary>
+        /// Ein optionaler Kommentar, z.B. für Spindeldrehzahl-Anpassungen.
         /// </summary>
         public string? Kommentar { get; set; }
-        // ------------------------------------
 
         public int NCProgrammID { get; set; }
+
         [ForeignKey("NCProgrammID")]
-        public NCProgramm ZugehoerigesProgramm { get; set; } = null!;
+        public NCProgramm? ZugehoerigesProgramm { get; set; }
 
         public int? WerkzeugID { get; set; }
+
         [ForeignKey("WerkzeugID")]
         public Werkzeug? ZugehoerigesWerkzeug { get; set; }
     }

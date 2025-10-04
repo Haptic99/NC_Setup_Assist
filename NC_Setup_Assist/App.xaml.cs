@@ -239,6 +239,27 @@ namespace NC_Setup_Assist
                     context.Werkzeuge.AddRange(werkzeuge);
                     context.SaveChanges();
                 }
+
+                // Fülle die Firma/Standorte/Maschinen, falls sie noch leer sind
+                if (context.Firmen.Any() == false)
+                {
+                    // 1. Firma erstellen
+                    var firma = new Firma { Name = "Musterfirma GmbH" };
+                    context.Firmen.Add(firma);
+
+                    // 2. Standorte erstellen
+                    var standort1 = new Standort { Name = "STB Maschinenbau AG", PLZ = "9032", Stadt = "Engelburg", Strasse = "Breitschachenstrasse", Hausnummer = "56", ZugehoerigeFirma = firma };
+                    var standort2 = new Standort { Name = "Gebrüder Egli Maschinen AG", PLZ = "9512", Stadt = "Rossrüti", Strasse = "Konstanzerstrasse", Hausnummer = "14", ZugehoerigeFirma = firma };
+                    context.Standorte.AddRange(standort1, standort2);
+
+                    // 3. Maschinen erstellen und zuweisen
+                    var maschine1 = new Maschine { Name = "Okuma ES-L8", Hersteller = MaschinenTyp.Okuma, ZugehoerigerStandort = standort1 };
+                    var maschine2 = new Maschine { Name = "Okuma LU-15", Hersteller = MaschinenTyp.Okuma, ZugehoerigerStandort = standort1 };
+                    var maschine3 = new Maschine { Name = "Kern", Hersteller = MaschinenTyp.DMT, ZugehoerigerStandort = standort2 };
+                    context.Maschinen.AddRange(maschine1, maschine2, maschine3);
+
+                    context.SaveChanges();
+                }
             }
         }
     }

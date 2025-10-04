@@ -15,7 +15,7 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void AddMachine()
         {
-            MessageBox.Show("Funktion 'Maschine hinzufügen' wird noch implementiert.");
+            _mainViewModel.NavigateTo(new AddMachineViewModel(_mainViewModel));
         }
 
         [RelayCommand]

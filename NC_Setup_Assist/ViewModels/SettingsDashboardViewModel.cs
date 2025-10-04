@@ -17,5 +17,11 @@ namespace NC_Setup_Assist.ViewModels
         {
             _mainViewModel.NavigateTo(new ToolManagementViewModel());
         }
+
+        [RelayCommand]
+        private void OpenMachineManagement()
+        {
+            _mainViewModel.NavigateTo(new MachineManagementViewModel(_mainViewModel));
+        }
     }
 }

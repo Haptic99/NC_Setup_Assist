@@ -9,7 +9,7 @@
     <Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
             <Button Content="Werkzeuge Verwalten" Command="{Binding OpenToolManagementCommand}" Width="200" Margin="5"/>
-            <Button Content="Maschinen Verwalten (demnächst)" Width="200" Margin="5" IsEnabled="False"/>
+            <Button Content="Maschinen Verwalten" Command="{Binding OpenMachineManagementCommand}" Width="200" Margin="5"/>
         </StackPanel>
     </Grid>
-</UserControl>  
+</UserControl>

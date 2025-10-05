@@ -10,6 +10,7 @@
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
             <Button Content="Maschine hinzufügen" Command="{Binding AddMachineCommand}" Width="200" Margin="5"/>
             <Button Content="Bestehende Maschinen Verwalten" Command="{Binding ManageExistingMachinesCommand}" Width="200" Margin="5"/>
+            <Button Content="Hersteller verwalten" Command="{Binding ManageHerstellerCommand}" Width="200" Margin="5"/>
         </StackPanel>
     </Grid>
 </UserControl>

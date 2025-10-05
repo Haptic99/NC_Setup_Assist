@@ -10,19 +10,14 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              HorizontalAlignment="Center" VerticalAlignment="Center">
-    <UserControl.Resources>
-        <ObjectDataProvider MethodName="GetValues" ObjectType="{x:Type System:Enum}" x:Key="MaschinenTypEnumValues">
-            <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="models:MaschinenTyp"/>
-            </ObjectDataProvider.MethodParameters>
-        </ObjectDataProvider>
-    </UserControl.Resources>
+
     <StackPanel Width="400">
         <TextBlock Text="Neue Maschine hinzufügen" FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
 
         <TextBlock Text="Hersteller:" Margin="0,10,0,5"/>
-        <ComboBox ItemsSource="{Binding Source={StaticResource MaschinenTypEnumValues}}"
-                  SelectedItem="{Binding NewMachine.Hersteller}"
+        <ComboBox ItemsSource="{Binding Hersteller}"
+                  SelectedItem="{Binding SelectedHersteller}"
+                  DisplayMemberPath="Name"
                   Margin="0,0,0,10"
                   ToolTip="Wählen Sie den Hersteller aus."/>
 

@@ -240,6 +240,21 @@ namespace NC_Setup_Assist
                     context.SaveChanges();
                 }
 
+
+                // Fülle die Hersteller, falls sie noch leer sind
+                if (context.Hersteller.Any() == false)
+                {
+                    var hersteller = new List<Hersteller>
+                    {
+                        new Hersteller { Name = "Okuma" },
+                        new Hersteller { Name = "DMT" },
+                        new Hersteller { Name = "Mazak" },
+                        new Hersteller { Name = "DMG Mori" }
+                    };
+                    context.Hersteller.AddRange(hersteller);
+                    context.SaveChanges();
+                }
+
                 // Fülle die Firma/Standorte/Maschinen, falls sie noch leer sind
                 if (context.Firmen.Any() == false)
                 {
@@ -253,9 +268,12 @@ namespace NC_Setup_Assist
                     context.Standorte.AddRange(standort1, standort2);
 
                     // 3. Maschinen erstellen und zuweisen
-                    var maschine1 = new Maschine { Name = "Okuma ES-L8", Hersteller = MaschinenTyp.Okuma, ZugehoerigerStandort = standort1 };
-                    var maschine2 = new Maschine { Name = "Okuma LU-15", Hersteller = MaschinenTyp.Okuma, ZugehoerigerStandort = standort1 };
-                    var maschine3 = new Maschine { Name = "Kern", Hersteller = MaschinenTyp.DMT, ZugehoerigerStandort = standort2 };
+                    var okumaHersteller = context.Hersteller.SingleOrDefault(h => h.Name == "Okuma");
+                    var dmtHersteller = context.Hersteller.SingleOrDefault(h => h.Name == "DMT");
+
+                    var maschine1 = new Maschine { Name = "Okuma ES-L8", Hersteller = okumaHersteller, ZugehoerigerStandort = standort1 };
+                    var maschine2 = new Maschine { Name = "Okuma LU-15", Hersteller = okumaHersteller, ZugehoerigerStandort = standort1 };
+                    var maschine3 = new Maschine { Name = "Kern", Hersteller = dmtHersteller, ZugehoerigerStandort = standort2 };
                     context.Maschinen.AddRange(maschine1, maschine2, maschine3);
 
                     context.SaveChanges();

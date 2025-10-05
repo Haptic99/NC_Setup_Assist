@@ -19,6 +19,7 @@ namespace NC_Setup_Assist.Data
         public DbSet<WerkzeugEinsatz> WerkzeugEinsaetze { get; set; }
         public DbSet<WerkzeugKategorie> WerkzeugKategorien { get; set; }
         public DbSet<WerkzeugUnterkategorie> WerkzeugUnterkategorien { get; set; }
+        public DbSet<Hersteller> Hersteller { get; set; }
 
 
         // Diese Methode konfiguriert die Verbindung zur Datenbank.

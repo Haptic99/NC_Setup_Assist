@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Input;
+﻿// NC_Setup_Assist/ViewModels/MachineManagementViewModel.cs
+using CommunityToolkit.Mvvm.Input;
 using System.Windows;
 
 namespace NC_Setup_Assist.ViewModels
@@ -22,6 +23,12 @@ namespace NC_Setup_Assist.ViewModels
         private void ManageExistingMachines()
         {
             MessageBox.Show("Funktion 'Bestehende Maschinen verwalten' wird noch implementiert.");
+        }
+
+        [RelayCommand] // NEU
+        private void ManageHersteller()
+        {
+            _mainViewModel.NavigateTo(new HerstellerManagementViewModel());
         }
     }
 }

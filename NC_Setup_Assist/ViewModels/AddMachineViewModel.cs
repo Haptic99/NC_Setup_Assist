@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// NC_Setup_Assist/ViewModels/AddMachineViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
@@ -19,12 +20,17 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private Standort? _selectedStandort;
 
+        [ObservableProperty] // NEU
+        private Hersteller? _selectedHersteller;
+
         public ObservableCollection<Standort> Standorte { get; } = new();
+        public ObservableCollection<Hersteller> Hersteller { get; } = new(); // NEU
 
         public AddMachineViewModel(MainViewModel mainViewModel)
         {
             _mainViewModel = mainViewModel;
             LoadStandorte();
+            LoadHersteller(); // NEU
         }
 
         private void LoadStandorte()
@@ -38,6 +44,17 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
+        private void LoadHersteller() // NEU
+        {
+            Hersteller.Clear();
+            using var context = new NcSetupContext();
+            var herstellerFromDb = context.Hersteller.ToList();
+            foreach (var hersteller in herstellerFromDb)
+            {
+                Hersteller.Add(hersteller);
+            }
+        }
+
         partial void OnSelectedStandortChanged(Standort? value)
         {
             if (value != null)
@@ -46,10 +63,18 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
+        partial void OnSelectedHerstellerChanged(Hersteller? value) // NEU
+        {
+            if (value != null)
+            {
+                NewMachine.HerstellerID = value.HerstellerID;
+            }
+        }
+
         [RelayCommand]
         private void SaveMachine()
         {
-            if (string.IsNullOrWhiteSpace(NewMachine.Name) || SelectedStandort == null)
+            if (string.IsNullOrWhiteSpace(NewMachine.Name) || SelectedStandort == null || SelectedHersteller == null) // NEU
             {
                 MessageBox.Show("Bitte füllen Sie alle erforderlichen Felder aus.", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;

@@ -1,22 +1,19 @@
-﻿using System.Collections.Generic;
+﻿// NC_Setup_Assist/Models/Maschine.cs
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NC_Setup_Assist.Models
 {
-    public enum MaschinenTyp
-    {
-        Okuma,
-        DMT
-    }
-
-
     public class Maschine
     {
         [Key]
         public int MaschineID { get; set; }
 
-        public MaschinenTyp Hersteller { get; set; }
+        public int HerstellerID { get; set; } // NEU
+
+        [ForeignKey("HerstellerID")] // NEU
+        public Hersteller Hersteller { get; set; } = null!; // NEU
 
         public string Name { get; set; } = null!;
 

@@ -1,0 +1,33 @@
+﻿<UserControl x:Class="NC_Setup_Assist.Views.HerstellerManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:NC_Setup_Assist.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Hersteller verwalten" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
+
+        <ListView Grid.Row="1" ItemsSource="{Binding Hersteller}" SelectedItem="{Binding SelectedHersteller}" Margin="0,0,0,10">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding HerstellerID}" Width="50"/>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="200"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal">
+            <TextBox Text="{Binding NewHerstellerName, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="0,0,10,0"/>
+            <Button Content="Hinzufügen" Command="{Binding AddHerstellerCommand}" Width="100" Margin="0,0,10,0"/>
+            <Button Content="Löschen" Command="{Binding DeleteHerstellerCommand}" Width="100"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

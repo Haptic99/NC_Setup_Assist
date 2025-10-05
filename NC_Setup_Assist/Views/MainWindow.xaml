@@ -43,6 +43,10 @@
         <DataTemplate DataType="{x:Type viewmodels:AddMachineViewModel}">
             <views:AddMachineView/>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewmodels:HerstellerManagementViewModel}">
+            <views:HerstellerManagementView/>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>

@@ -24,6 +24,19 @@ namespace NC_Setup_Assist.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Hersteller",
+                columns: table => new
+                {
+                    HerstellerID = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Hersteller", x => x.HerstellerID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "WerkzeugKategorien",
                 columns: table => new
                 {
@@ -86,7 +99,7 @@ namespace NC_Setup_Assist.Migrations
                 {
                     MaschineID = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Hersteller = table.Column<int>(type: "INTEGER", nullable: false),
+                    HerstellerID = table.Column<int>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Seriennummer = table.Column<string>(type: "TEXT", nullable: true),
                     StandortID = table.Column<int>(type: "INTEGER", nullable: false)
@@ -94,6 +107,12 @@ namespace NC_Setup_Assist.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Maschinen", x => x.MaschineID);
+                    table.ForeignKey(
+                        name: "FK_Maschinen_Hersteller_HerstellerID",
+                        column: x => x.HerstellerID,
+                        principalTable: "Hersteller",
+                        principalColumn: "HerstellerID",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Maschinen_Standorte_StandortID",
                         column: x => x.StandortID,
@@ -229,6 +248,11 @@ namespace NC_Setup_Assist.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Maschinen_HerstellerID",
+                table: "Maschinen",
+                column: "HerstellerID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Maschinen_StandortID",
                 table: "Maschinen",
                 column: "StandortID");
@@ -310,6 +334,9 @@ namespace NC_Setup_Assist.Migrations
 
             migrationBuilder.DropTable(
                 name: "WerkzeugKategorien");
+
+            migrationBuilder.DropTable(
+                name: "Hersteller");
 
             migrationBuilder.DropTable(
                 name: "Standorte");

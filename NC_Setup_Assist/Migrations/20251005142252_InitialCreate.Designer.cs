@@ -10,7 +10,7 @@ using NC_Setup_Assist.Data;
 namespace NC_Setup_Assist.Migrations
 {
     [DbContext(typeof(NcSetupContext))]
-    [Migration("20251002082420_InitialCreate")]
+    [Migration("20251005142252_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -34,13 +34,28 @@ namespace NC_Setup_Assist.Migrations
                     b.ToTable("Firmen");
                 });
 
+            modelBuilder.Entity("NC_Setup_Assist.Models.Hersteller", b =>
+                {
+                    b.Property<int>("HerstellerID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("HerstellerID");
+
+                    b.ToTable("Hersteller");
+                });
+
             modelBuilder.Entity("NC_Setup_Assist.Models.Maschine", b =>
                 {
                     b.Property<int>("MaschineID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Hersteller")
+                    b.Property<int>("HerstellerID")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
@@ -54,6 +69,8 @@ namespace NC_Setup_Assist.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("MaschineID");
+
+                    b.HasIndex("HerstellerID");
 
                     b.HasIndex("StandortID");
 
@@ -269,11 +286,19 @@ namespace NC_Setup_Assist.Migrations
 
             modelBuilder.Entity("NC_Setup_Assist.Models.Maschine", b =>
                 {
+                    b.HasOne("NC_Setup_Assist.Models.Hersteller", "Hersteller")
+                        .WithMany("Maschinen")
+                        .HasForeignKey("HerstellerID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("NC_Setup_Assist.Models.Standort", "ZugehoerigerStandort")
                         .WithMany("Maschinen")
                         .HasForeignKey("StandortID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Hersteller");
 
                     b.Navigation("ZugehoerigerStandort");
                 });
@@ -376,6 +401,11 @@ namespace NC_Setup_Assist.Migrations
             modelBuilder.Entity("NC_Setup_Assist.Models.Firma", b =>
                 {
                     b.Navigation("Standorte");
+                });
+
+            modelBuilder.Entity("NC_Setup_Assist.Models.Hersteller", b =>
+                {
+                    b.Navigation("Maschinen");
                 });
 
             modelBuilder.Entity("NC_Setup_Assist.Models.Maschine", b =>

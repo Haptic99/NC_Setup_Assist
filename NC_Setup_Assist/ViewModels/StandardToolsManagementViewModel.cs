@@ -179,7 +179,6 @@ namespace NC_Setup_Assist.ViewModels
             }
 
             context.SaveChanges();
-            MessageBox.Show("Standardwerkzeuge erfolgreich gespeichert.", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
             _mainViewModel.NavigateBack();
         }
 

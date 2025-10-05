@@ -10,7 +10,7 @@ using NC_Setup_Assist.Data;
 namespace NC_Setup_Assist.Migrations
 {
     [DbContext(typeof(NcSetupContext))]
-    [Migration("20251005142252_InitialCreate")]
+    [Migration("20251005145621_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -53,6 +53,9 @@ namespace NC_Setup_Assist.Migrations
                 {
                     b.Property<int>("MaschineID")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AnzahlStationen")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("HerstellerID")

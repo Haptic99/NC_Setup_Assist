@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -22,8 +23,12 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private string? _newHerstellerName;
 
-        public HerstellerManagementViewModel()
+        // --- NEU: Callback, um den Aufrufer über Änderungen zu informieren ---
+        private readonly Action? _onDataChangedCallback;
+
+        public HerstellerManagementViewModel(Action? onDataChangedCallback = null)
         {
+            _onDataChangedCallback = onDataChangedCallback;
             LoadHersteller();
         }
 
@@ -56,6 +61,9 @@ namespace NC_Setup_Assist.ViewModels
 
             NewHerstellerName = string.Empty;
             LoadHersteller();
+
+            // --- NEU: Aufrufer benachrichtigen ---
+            _onDataChangedCallback?.Invoke();
         }
 
         [RelayCommand]
@@ -82,6 +90,9 @@ namespace NC_Setup_Assist.ViewModels
                     }
                 }
                 LoadHersteller();
+
+                // --- NEU: Aufrufer benachrichtigen ---
+                _onDataChangedCallback?.Invoke();
             }
         }
     }

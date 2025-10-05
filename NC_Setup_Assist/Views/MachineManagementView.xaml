@@ -4,13 +4,91 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:NC_Setup_Assist.Views"
+             xmlns:conv="clr-namespace:NC_Setup_Assist.Converters"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Button Content="Maschine hinzufügen" Command="{Binding AddMachineCommand}" Width="200" Margin="5"/>
-            <Button Content="Bestehende Maschinen Verwalten" Command="{Binding ManageExistingMachinesCommand}" Width="200" Margin="5"/>
-            <Button Content="Hersteller verwalten" Command="{Binding ManageHerstellerCommand}" Width="200" Margin="5"/>
+    <UserControl.Resources>
+        <conv:BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Column="0" Margin="0,0,10,0"
+                   Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
+                <Button Content="Neu" Command="{Binding NewMachineCommand}" Width="100" Margin="0,0,5,0"/>
+                <Button Content="Löschen" Command="{Binding DeleteMachineCommand}" Width="100"/>
+            </StackPanel>
+
+            <ListView ItemsSource="{Binding Maschinen}"
+                      SelectedItem="{Binding SelectedMaschine, Mode=TwoWay}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseDoubleClick">
+                        <i:InvokeCommandAction Command="{Binding EditMachineCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150"/>
+                        <GridViewColumn Header="Hersteller" DisplayMemberBinding="{Binding Hersteller.Name}" Width="120"/>
+                        <GridViewColumn Header="Standort" DisplayMemberBinding="{Binding ZugehoerigerStandort.Name}" Width="150"/>
+                        <GridViewColumn Header="Stationen" DisplayMemberBinding="{Binding AnzahlStationen}" Width="70"/>
+                        <GridViewColumn Header="Seriennummer" DisplayMemberBinding="{Binding Seriennummer}" Width="120"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </DockPanel>
+
+        <StackPanel Grid.Column="1"
+                    Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
+            <TextBlock Text="Maschine bearbeiten" FontWeight="Bold" Margin="0,0,0,10" FontSize="16"/>
+
+            <TextBlock Text="Maschinenname:"/>
+            <TextBox Text="{Binding EditingMaschine.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+
+            <TextBlock Text="Seriennummer:"/>
+            <TextBox Text="{Binding EditingMaschine.Seriennummer, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+
+            <TextBlock Text="Anzahl Stationen:"/>
+            <TextBox Text="{Binding EditingMaschine.AnzahlStationen, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+
+            <TextBlock Text="Hersteller:"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0" ItemsSource="{Binding Hersteller}"
+                          SelectedItem="{Binding EditingMaschine.Hersteller}"
+                          DisplayMemberPath="Name"
+                          Margin="0,0,5,5"/>
+                <Button Grid.Column="1" Content="+" 
+                        Command="{Binding AddHerstellerCommand}" 
+                        Width="30" Height="22" VerticalAlignment="Top"
+                        ToolTip="Neuen Hersteller hinzufügen"/>
+            </Grid>
+
+            <TextBlock Text="Standort:"/>
+            <ComboBox ItemsSource="{Binding Standorte}"
+                      SelectedItem="{Binding EditingMaschine.ZugehoerigerStandort}"
+                      DisplayMemberPath="Name"
+                      Margin="0,0,0,10"/>
+
+            <TextBlock Text="Standardwerkzeuge:" FontStyle="Italic" Margin="0,10,0,10"/>
+            <Border Background="LightGray" Padding="10" MinHeight="100">
+                <TextBlock Text="Die Verwaltung der Standardwerkzeuge wird in einem zukünftigen Schritt hier implementiert." TextWrapping="Wrap" VerticalAlignment="Center"/>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button Content="Speichern" Command="{Binding SaveMachineCommand}" Width="100" Margin="0,0,5,0" IsDefault="True"/>
+                <Button Content="Abbrechen" Command="{Binding CancelCommand}" Width="100" IsCancel="True"/>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </UserControl>

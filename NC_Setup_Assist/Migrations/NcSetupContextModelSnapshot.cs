@@ -52,6 +52,9 @@ namespace NC_Setup_Assist.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("AnzahlStationen")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("HerstellerID")
                         .HasColumnType("INTEGER");
 

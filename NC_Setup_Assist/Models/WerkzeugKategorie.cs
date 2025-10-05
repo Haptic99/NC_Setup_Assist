@@ -9,6 +9,6 @@ namespace NC_Setup_Assist.Models
         [Key]
         public int WerkzeugKategorieID { get; set; }
         public string Name { get; set; } = null!;
-        public ICollection<WerkzeugUnterkategorie> Unterkategorien { get; set; } = null!;
+        public ICollection<WerkzeugUnterkategorie> Unterkategorien { get; set; } = new List<WerkzeugUnterkategorie>();
     }
 }

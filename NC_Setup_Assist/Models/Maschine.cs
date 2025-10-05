@@ -19,11 +19,14 @@ namespace NC_Setup_Assist.Models
 
         public string? Seriennummer { get; set; }
 
+        // --- NEUE EIGENSCHAFT ---
+        public int AnzahlStationen { get; set; }
+
         public int StandortID { get; set; }
 
         [ForeignKey("StandortID")]
         public Standort ZugehoerigerStandort { get; set; } = null!;
 
-        public ICollection<StandardWerkzeugZuweisung> StandardWerkzeuge { get; set; } = null!;
+        public ICollection<StandardWerkzeugZuweisung> StandardWerkzeuge { get; set; } = new List<StandardWerkzeugZuweisung>();
     }
 }

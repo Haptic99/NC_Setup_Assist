@@ -102,6 +102,7 @@ namespace NC_Setup_Assist.Migrations
                     HerstellerID = table.Column<int>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Seriennummer = table.Column<string>(type: "TEXT", nullable: true),
+                    AnzahlStationen = table.Column<int>(type: "INTEGER", nullable: false),
                     StandortID = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>

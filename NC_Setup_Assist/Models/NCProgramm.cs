@@ -7,7 +7,7 @@ namespace NC_Setup_Assist.Models
     public class NCProgramm
     {
         [Key]
-        public int NCProgrammID {  get; set; }
+        public int NCProgrammID { get; set; }
 
         public string ZeichnungsNummer { get; set; } = null!;
 
@@ -20,7 +20,7 @@ namespace NC_Setup_Assist.Models
         [ForeignKey("MaschineID")]
         public Maschine ZugehoerigeMaschine { get; set; } = null!;
 
-        public ICollection<WerkzeugEinsatz> WerkzeugEinsaetze { get; set; } = null!;
+        public ICollection<WerkzeugEinsatz> WerkzeugEinsaetze { get; set; } = new List<WerkzeugEinsatz>();
 
     }
 }

@@ -89,6 +89,7 @@ namespace NC_Setup_Assist.ViewModels
             IsInEditMode = true;
         }
 
+
         [RelayCommand]
         private void SaveMachine()
         {
@@ -157,6 +158,16 @@ namespace NC_Setup_Assist.ViewModels
                     context.SaveChanges();
                 }
                 LoadData();
+            }
+        }
+
+        [RelayCommand]
+        private void ManageStandardTools()
+        {
+            if (EditingMaschine != null)
+            {
+                // Navigiere zur neuen Ansicht und übergib die aktuell bearbeitete Maschine
+                _mainViewModel.NavigateTo(new StandardToolsManagementViewModel(_mainViewModel, EditingMaschine));
             }
         }
 

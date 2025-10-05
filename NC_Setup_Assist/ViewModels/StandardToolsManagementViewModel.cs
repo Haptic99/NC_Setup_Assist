@@ -80,8 +80,16 @@ namespace NC_Setup_Assist.ViewModels
 
             for (int i = 1; i <= anzahlStationen; i++)
             {
+                // Finde die gespeicherte Zuweisung für die aktuelle Station
                 var assignment = standardTools.FirstOrDefault(t => t.RevolverStation == i);
-                ToolAssignments.Add(new StandardToolAssignmentViewModel(i, AllTools, assignment?.ZugehoerigesWerkzeug));
+
+                // Finde das Werkzeug-Objekt aus der Hauptliste "AllTools" anhand der ID
+                var assignedTool = assignment != null
+                    ? AllTools.FirstOrDefault(t => t.WerkzeugID == assignment.WerkzeugID)
+                    : null;
+
+                // Erstelle die Zeile mit der korrekten Werkzeug-Instanz
+                ToolAssignments.Add(new StandardToolAssignmentViewModel(i, AllTools, assignedTool));
             }
         }
 

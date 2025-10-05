@@ -55,9 +55,6 @@
             <TextBlock Text="Seriennummer:"/>
             <TextBox Text="{Binding EditingMaschine.Seriennummer, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
 
-            <TextBlock Text="Anzahl Stationen:"/>
-            <TextBox Text="{Binding EditingMaschine.AnzahlStationen, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
-
             <TextBlock Text="Hersteller:"/>
             <Grid>
                 <Grid.ColumnDefinitions>

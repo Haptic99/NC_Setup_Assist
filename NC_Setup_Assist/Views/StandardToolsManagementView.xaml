@@ -5,55 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:NC_Setup_Assist.Views"
              xmlns:vm="clr-namespace:NC_Setup_Assist.ViewModels"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="800">
-    <UserControl.Resources>
-        <Style x:Key="ComboBoxWithSearchStyle" TargetType="{x:Type ComboBox}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ComboBox}">
-                        <Grid>
-                            <ToggleButton x:Name="ToggleButton"
-                                          Grid.Column="2"
-                                          Focusable="false"
-                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                          ClickMode="Press">
-                                <ContentPresenter HorizontalAlignment="Left"
-                                                  VerticalAlignment="Center"
-                                                  SnapsToDevicePixels="True"
-                                                  Content="{TemplateBinding SelectionBoxItem}"
-                                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                                  ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
-                            </ToggleButton>
-                            <Popup x:Name="Popup"
-                                   Placement="Bottom"
-                                   IsOpen="{TemplateBinding IsDropDownOpen}"
-                                   AllowsTransparency="True"
-                                   Focusable="False"
-                                   PopupAnimation="Slide">
-                                <Grid x:Name="DropDown"
-                                      SnapsToDevicePixels="True"
-                                      MinWidth="{TemplateBinding ActualWidth}"
-                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                    <Border x:Name="DropDownBorder"
-                                            Background="White"
-                                            BorderThickness="1"
-                                            BorderBrush="Black"/>
-                                    <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
-                                        <StackPanel>
-                                            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="5"
-                                                     ToolTip="Hier suchen..."/>
-                                            <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
-                                        </StackPanel>
-                                    </ScrollViewer>
-                                </Grid>
-                            </Popup>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </UserControl.Resources>
 
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -85,21 +39,28 @@
                     </Style.Triggers>
                 </Style>
             </ListView.ItemContainerStyle>
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Station" DisplayMemberBinding="{Binding Station}" Width="80"/>
-                    <GridViewColumn Header="Werkzeug" Width="500">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <ComboBox ItemsSource="{Binding FilteredToolsView}"
-                                          SelectedItem="{Binding SelectedWerkzeug}"
-                                          DisplayMemberPath="Name"
-                                          Style="{StaticResource ComboBoxWithSearchStyle}"/>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                </GridView>
-            </ListView.View>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <i:Interaction.Behaviors>
+                            <i:EventTriggerBehavior EventName="MouseDoubleClick">
+                                <i:InvokeCommandAction Command="{Binding DataContext.ChooseToolCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}"/>
+                            </i:EventTriggerBehavior>
+                        </i:Interaction.Behaviors>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="{Binding Station}" Grid.Column="0"/>
+
+                        <TextBlock Text="{Binding SelectedWerkzeug.Name}" Grid.Column="1"/>
+
+                        <TextBlock Text="{Binding SelectedWerkzeug.Unterkategorie.Name}" Grid.Column="2"/>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
         </ListView>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">

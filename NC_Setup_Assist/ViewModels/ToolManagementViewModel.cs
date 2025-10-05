@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// NC_Setup_Assist/ViewModels/ToolManagementViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
@@ -9,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace NC_Setup_Assist.ViewModels
 {
@@ -37,6 +39,12 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private string? _searchTerm;
 
+        // --- NEU: Für den Auswahlmodus ---
+        private readonly Action<Werkzeug>? _onToolSelectedCallback;
+        [ObservableProperty]
+        private bool _isSelectionMode;
+
+
         public ToolManagementViewModel()
         {
             FilteredWerkzeuge = new ObservableCollection<Werkzeug>();
@@ -48,6 +56,13 @@ namespace NC_Setup_Assist.ViewModels
                 LoadKategorien();
                 LoadTools();
             }
+        }
+
+        // --- NEU: Konstruktor für den Auswahlmodus ---
+        public ToolManagementViewModel(Action<Werkzeug> onToolSelectedCallback) : this()
+        {
+            _onToolSelectedCallback = onToolSelectedCallback;
+            IsSelectionMode = true;
         }
 
         #region Lade- und Filter-Logik
@@ -149,7 +164,13 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void EditTool()
         {
-            if (SelectedTool != null)
+            if (SelectedTool == null) return;
+
+            if (IsSelectionMode)
+            {
+                _onToolSelectedCallback?.Invoke(SelectedTool);
+            }
+            else
             {
                 EditingTool = new Werkzeug
                 {

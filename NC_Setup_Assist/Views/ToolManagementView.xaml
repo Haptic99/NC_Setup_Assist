@@ -44,32 +44,32 @@
             </ListView>
         </DockPanel>
 
+        <Grid Grid.Column="1" Visibility="{Binding IsSelectionMode, Converter={StaticResource InverseBoolToVis}}">
+            <StackPanel Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Werkzeug Details" FontWeight="Bold" Margin="0,0,0,10"/>
+                <TextBlock Text="Name:"/>
+                <TextBox Text="{Binding EditingTool.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+                <TextBlock Text="Kategorie:"/>
+                <ComboBox Margin="0,0,0,5"
+                          ItemsSource="{Binding Kategorien}"
+                          SelectedItem="{Binding SelectedKategorie}"
+                          DisplayMemberPath="Name"/>
+                <TextBlock Text="Unterkategorie / Typ:"/>
+                <ComboBox Margin="0,0,0,5"
+                          ItemsSource="{Binding Unterkategorien}"
+                          SelectedItem="{Binding EditingTool.Unterkategorie}"
+                          DisplayMemberPath="Name"/>
+                <TextBlock Text="Beschreibung:"/>
+                <TextBox Text="{Binding EditingTool.Beschreibung, UpdateSourceTrigger=PropertyChanged}" Height="80" TextWrapping="Wrap" Margin="0,0,0,10" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                <Button Content="Speichern" Command="{Binding SaveToolCommand}" Margin="0,5,0,0"/>
+                <Button Content="Abbrechen" Command="{Binding CancelCommand}" Margin="0,5,0,0"/>
+            </StackPanel>
 
-        <StackPanel Grid.Column="1"
-                    Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
-            <TextBlock Text="Werkzeug Details" FontWeight="Bold" Margin="0,0,0,10"/>
-            <TextBlock Text="Name:"/>
-            <TextBox Text="{Binding EditingTool.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
-            <TextBlock Text="Kategorie:"/>
-            <ComboBox Margin="0,0,0,5"
-                      ItemsSource="{Binding Kategorien}"
-                      SelectedItem="{Binding SelectedKategorie}"
-                      DisplayMemberPath="Name"/>
-            <TextBlock Text="Unterkategorie / Typ:"/>
-            <ComboBox Margin="0,0,0,5"
-                      ItemsSource="{Binding Unterkategorien}"
-                      SelectedItem="{Binding EditingTool.Unterkategorie}"
-                      DisplayMemberPath="Name"/>
-            <TextBlock Text="Beschreibung:"/>
-            <TextBox Text="{Binding EditingTool.Beschreibung, UpdateSourceTrigger=PropertyChanged}" Height="80" TextWrapping="Wrap" Margin="0,0,0,10" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
-            <Button Content="Speichern" Command="{Binding SaveToolCommand}" Margin="0,5,0,0"/>
-            <Button Content="Abbrechen" Command="{Binding CancelCommand}" Margin="0,5,0,0"/>
-        </StackPanel>
-
-        <StackPanel Grid.Column="1" VerticalAlignment="Top"
-                    Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
-            <Button Content="Neues Werkzeug anlegen" Command="{Binding NewToolCommand}" Margin="0,5,0,0"/>
-            <Button Content="Werkzeug löschen" Command="{Binding DeleteToolCommand}" Margin="0,5,0,0"/>
-        </StackPanel>
+            <StackPanel VerticalAlignment="Top"
+                        Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
+                <Button Content="Neues Werkzeug anlegen" Command="{Binding NewToolCommand}" Margin="0,5,0,0"/>
+                <Button Content="Werkzeug löschen" Command="{Binding DeleteToolCommand}" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

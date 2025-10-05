@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// NC_Setup_Assist/ViewModels/StandardToolsManagementViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
@@ -20,47 +21,10 @@ namespace NC_Setup_Assist.ViewModels
 
         public int Station { get; }
 
-        // --- NEU ---
-        public ICollectionView FilteredToolsView { get; }
-
-        [ObservableProperty]
-        private string? _searchText;
-
-        public StandardToolAssignmentViewModel(int station, ObservableCollection<Werkzeug> allTools, Werkzeug? assignedTool)
+        public StandardToolAssignmentViewModel(int station, Werkzeug? assignedTool)
         {
             Station = station;
             _selectedWerkzeug = assignedTool;
-
-            // --- NEU ---
-            // Erstellt eine Kollektion, die eine leere Option (null) am Anfang enthält.
-            var toolsWithEmptyOption = new ObservableCollection<Werkzeug?> { null };
-            allTools.ToList().ForEach(t => toolsWithEmptyOption.Add(t));
-
-            FilteredToolsView = CollectionViewSource.GetDefaultView(toolsWithEmptyOption);
-            FilteredToolsView.Filter = FilterTools;
-        }
-
-        // --- NEU ---
-        partial void OnSearchTextChanged(string? value)
-        {
-            FilteredToolsView.Refresh();
-        }
-
-        // --- NEU ---
-        private bool FilterTools(object item)
-        {
-            if (string.IsNullOrEmpty(SearchText))
-            {
-                return true; // Kein Filter, alles anzeigen
-            }
-
-            if (item is Werkzeug tool)
-            {
-                // Stellt sicher, dass die Eigenschaft 'Name' nicht null ist, bevor 'Contains' aufgerufen wird
-                return tool.Name?.Contains(SearchText, System.StringComparison.OrdinalIgnoreCase) ?? false;
-            }
-
-            return item == null; // Die leere Option immer anzeigen
         }
     }
 
@@ -78,30 +42,17 @@ namespace NC_Setup_Assist.ViewModels
 
         public List<int> StationOptions { get; } = Enumerable.Range(4, 21).ToList(); // Zahlen von 4 bis 24
         public ObservableCollection<StandardToolAssignmentViewModel> ToolAssignments { get; } = new();
-        public ObservableCollection<Werkzeug> AllTools { get; } = new();
 
         public StandardToolsManagementViewModel(MainViewModel mainViewModel, Maschine machine)
         {
             _mainViewModel = mainViewModel;
             _machine = machine;
 
-            LoadAllTools();
             LoadStandardTools();
 
             SelectedAnzahlStationen = _machine.AnzahlStationen >= 4 ? _machine.AnzahlStationen : 12; // Standard: 12, falls nichts gesetzt
             // Die Anzahl der Stationen ist nur änderbar, wenn noch KEIN Werkzeug zugewiesen ist.
             IsAnzahlStationenChangeable = !ToolAssignments.Any(t => t.SelectedWerkzeug != null);
-        }
-
-        private void LoadAllTools()
-        {
-            AllTools.Clear();
-            using var context = new NcSetupContext();
-            var tools = context.Werkzeuge.OrderBy(t => t.Name).ToList();
-            foreach (var tool in tools)
-            {
-                AllTools.Add(tool);
-            }
         }
 
         private void LoadStandardTools()
@@ -111,22 +62,15 @@ namespace NC_Setup_Assist.ViewModels
             var standardTools = context.StandardWerkzeugZuweisungen
                 .Where(z => z.MaschineID == _machine.MaschineID)
                 .Include(z => z.ZugehoerigesWerkzeug)
+                .ThenInclude(w => w!.Unterkategorie)
                 .ToList();
 
             int anzahlStationen = _machine.AnzahlStationen >= 4 ? _machine.AnzahlStationen : 12;
 
             for (int i = 1; i <= anzahlStationen; i++)
             {
-                // Finde die gespeicherte Zuweisung für die aktuelle Station
                 var assignment = standardTools.FirstOrDefault(t => t.RevolverStation == i);
-
-                // Finde das Werkzeug-Objekt aus der Hauptliste "AllTools" anhand der ID
-                var assignedTool = assignment != null
-                    ? AllTools.FirstOrDefault(t => t.WerkzeugID == assignment.WerkzeugID)
-                    : null;
-
-                // Erstelle die Zeile mit der korrekten Werkzeug-Instanz
-                ToolAssignments.Add(new StandardToolAssignmentViewModel(i, AllTools, assignedTool));
+                ToolAssignments.Add(new StandardToolAssignmentViewModel(i, assignment?.ZugehoerigesWerkzeug));
             }
         }
 
@@ -136,14 +80,28 @@ namespace NC_Setup_Assist.ViewModels
             // Behalte die bereits zugewiesenen Werkzeuge
             var existingAssignments = ToolAssignments
                 .Where(a => a.SelectedWerkzeug != null)
-                .ToList();
+                .ToDictionary(a => a.Station, a => a.SelectedWerkzeug);
 
             ToolAssignments.Clear();
             for (int i = 1; i <= value; i++)
             {
-                var existing = existingAssignments.FirstOrDefault(a => a.Station == i);
-                ToolAssignments.Add(new StandardToolAssignmentViewModel(i, AllTools, existing?.SelectedWerkzeug));
+                existingAssignments.TryGetValue(i, out var existingTool);
+                ToolAssignments.Add(new StandardToolAssignmentViewModel(i, existingTool));
             }
+        }
+
+        [RelayCommand]
+        private void ChooseTool(StandardToolAssignmentViewModel? assignmentVM)
+        {
+            if (assignmentVM == null) return;
+
+            var toolManagementVM = new ToolManagementViewModel(selectedTool =>
+            {
+                assignmentVM.SelectedWerkzeug = selectedTool;
+                _mainViewModel.NavigateBack();
+            });
+
+            _mainViewModel.NavigateTo(toolManagementVM);
         }
 
         [RelayCommand]

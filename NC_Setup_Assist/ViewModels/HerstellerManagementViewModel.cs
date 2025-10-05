@@ -75,6 +75,18 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
+            using (var context = new NcSetupContext())
+            {
+                // PRÜFUNG: Wird der Hersteller noch verwendet?
+                bool isUsed = context.Maschinen.Any(m => m.HerstellerID == SelectedHersteller.HerstellerID);
+                if (isUsed)
+                {
+                    MessageBox.Show($"Der Hersteller '{SelectedHersteller.Name}' kann nicht gelöscht werden, da er noch von mindestens einer Maschine verwendet wird.",
+                                    "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return; // Methode hier beenden
+                }
+            }
+
             var result = MessageBox.Show($"Möchten Sie den Hersteller '{SelectedHersteller.Name}' wirklich löschen?",
                                          "Löschen bestätigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
@@ -90,8 +102,6 @@ namespace NC_Setup_Assist.ViewModels
                     }
                 }
                 LoadHersteller();
-
-                // --- NEU: Aufrufer benachrichtigen ---
                 _onDataChangedCallback?.Invoke();
             }
         }

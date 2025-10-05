@@ -14,6 +14,9 @@ namespace NC_Setup_Assist.ViewModels
     public partial class MachineManagementViewModel : ViewModelBase
     {
         private readonly MainViewModel _mainViewModel;
+        // --- NEU: Merkt sich eine temporär erstellte Maschine ---
+        private Maschine? _machineToDeleteOnCancel;
+
 
         public ObservableCollection<Maschine> Maschinen { get; } = new();
         public ObservableCollection<Hersteller> Hersteller { get; } = new();
@@ -68,6 +71,7 @@ namespace NC_Setup_Assist.ViewModels
         {
             EditingMaschine = new Maschine();
             IsInEditMode = true;
+            _machineToDeleteOnCancel = null; // Zurücksetzen
         }
 
         [RelayCommand]
@@ -87,6 +91,7 @@ namespace NC_Setup_Assist.ViewModels
                 ZugehoerigerStandort = SelectedMaschine.ZugehoerigerStandort
             };
             IsInEditMode = true;
+            _machineToDeleteOnCancel = null; // Zurücksetzen
         }
 
 
@@ -124,7 +129,6 @@ namespace NC_Setup_Assist.ViewModels
                     machineToUpdate.Seriennummer = EditingMaschine.Seriennummer;
                     machineToUpdate.AnzahlStationen = EditingMaschine.AnzahlStationen;
 
-                    // Nur die FK-Werte übernehmen (keine fremden Navigationsobjekte direkt setzen)
                     machineToUpdate.HerstellerID = EditingMaschine.Hersteller != null
                         ? EditingMaschine.Hersteller.HerstellerID
                         : EditingMaschine.HerstellerID;
@@ -134,6 +138,9 @@ namespace NC_Setup_Assist.ViewModels
                 }
             }
             context.SaveChanges();
+
+            // Erfolgreich gespeichert, also nicht mehr beim Abbrechen löschen
+            _machineToDeleteOnCancel = null;
 
             IsInEditMode = false;
             EditingMaschine = null;
@@ -164,25 +171,68 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void ManageStandardTools()
         {
-            if (EditingMaschine != null)
+            // Validierung vor dem Speichern
+            if (EditingMaschine == null ||
+                string.IsNullOrWhiteSpace(EditingMaschine.Name) ||
+                EditingMaschine.Hersteller == null ||
+                EditingMaschine.ZugehoerigerStandort == null)
             {
-                // Navigiere zur neuen Ansicht und übergib die aktuell bearbeitete Maschine
-                _mainViewModel.NavigateTo(new StandardToolsManagementViewModel(_mainViewModel, EditingMaschine));
+                MessageBox.Show("Bitte füllen Sie zuerst die Felder Name, Hersteller und Standort aus.", "Fehlende Daten", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
+
+            // Wenn es eine neue, noch nicht gespeicherte Maschine ist
+            if (EditingMaschine.MaschineID == 0)
+            {
+                using var context = new NcSetupContext();
+
+                EditingMaschine.HerstellerID = EditingMaschine.Hersteller.HerstellerID;
+                EditingMaschine.StandortID = EditingMaschine.ZugehoerigerStandort.StandortID;
+
+                var tempHersteller = EditingMaschine.Hersteller;
+                var tempStandort = EditingMaschine.ZugehoerigerStandort;
+
+                EditingMaschine.Hersteller = null!;
+                EditingMaschine.ZugehoerigerStandort = null!;
+
+                context.Maschinen.Add(EditingMaschine);
+                context.SaveChanges();
+
+                // Die Navigations-Eigenschaften wiederherstellen für die UI
+                EditingMaschine.Hersteller = tempHersteller;
+                EditingMaschine.ZugehoerigerStandort = tempStandort;
+
+                // Maschine zum späteren Löschen vormerken
+                _machineToDeleteOnCancel = EditingMaschine;
+            }
+
+            _mainViewModel.NavigateTo(new StandardToolsManagementViewModel(_mainViewModel, EditingMaschine));
         }
 
         [RelayCommand]
         private void Cancel()
         {
+            // Wenn eine temporäre Maschine erstellt wurde, diese löschen
+            if (_machineToDeleteOnCancel != null)
+            {
+                using var context = new NcSetupContext();
+                var machineToDelete = context.Maschinen.Find(_machineToDeleteOnCancel.MaschineID);
+                if (machineToDelete != null)
+                {
+                    context.Maschinen.Remove(machineToDelete);
+                    context.SaveChanges();
+                }
+            }
+
             EditingMaschine = null;
             IsInEditMode = false;
+            _machineToDeleteOnCancel = null;
+            LoadData(); // Lade die Daten neu, um den Zustand zu synchronisieren
         }
 
         [RelayCommand]
         private void AddHersteller()
         {
-            // Ruft das Verwaltungsfenster auf und übergibt die Methode "LoadData" als Callback,
-            // die ausgeführt wird, wenn dort Daten geändert werden.
             _mainViewModel.NavigateTo(new HerstellerManagementViewModel(LoadData));
         }
     }

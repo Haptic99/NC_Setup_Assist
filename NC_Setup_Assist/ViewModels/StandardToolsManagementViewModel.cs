@@ -5,8 +5,10 @@ using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Data;
 
 namespace NC_Setup_Assist.ViewModels
 {
@@ -17,13 +19,48 @@ namespace NC_Setup_Assist.ViewModels
         private Werkzeug? _selectedWerkzeug;
 
         public int Station { get; }
-        public ObservableCollection<Werkzeug> AllTools { get; }
+
+        // --- NEU ---
+        public ICollectionView FilteredToolsView { get; }
+
+        [ObservableProperty]
+        private string? _searchText;
 
         public StandardToolAssignmentViewModel(int station, ObservableCollection<Werkzeug> allTools, Werkzeug? assignedTool)
         {
             Station = station;
-            AllTools = allTools;
-            SelectedWerkzeug = assignedTool;
+            _selectedWerkzeug = assignedTool;
+
+            // --- NEU ---
+            // Erstellt eine Kollektion, die eine leere Option (null) am Anfang enthält.
+            var toolsWithEmptyOption = new ObservableCollection<Werkzeug?> { null };
+            allTools.ToList().ForEach(t => toolsWithEmptyOption.Add(t));
+
+            FilteredToolsView = CollectionViewSource.GetDefaultView(toolsWithEmptyOption);
+            FilteredToolsView.Filter = FilterTools;
+        }
+
+        // --- NEU ---
+        partial void OnSearchTextChanged(string? value)
+        {
+            FilteredToolsView.Refresh();
+        }
+
+        // --- NEU ---
+        private bool FilterTools(object item)
+        {
+            if (string.IsNullOrEmpty(SearchText))
+            {
+                return true; // Kein Filter, alles anzeigen
+            }
+
+            if (item is Werkzeug tool)
+            {
+                // Stellt sicher, dass die Eigenschaft 'Name' nicht null ist, bevor 'Contains' aufgerufen wird
+                return tool.Name?.Contains(SearchText, System.StringComparison.OrdinalIgnoreCase) ?? false;
+            }
+
+            return item == null; // Die leere Option immer anzeigen
         }
     }
 

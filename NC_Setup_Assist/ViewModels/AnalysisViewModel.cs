@@ -32,6 +32,7 @@ namespace NC_Setup_Assist.ViewModels
         private Maschine? _selectedMaschine;
 
         // --- NEUES FELD FÜR DEN ZUSTAND DER ZUWEISUNG ---
+        // Die Property "CanStartToolAssignment" wird automatisch generiert
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(StartToolAssignmentCommand))]
         private bool _canStartToolAssignment;
@@ -155,7 +156,7 @@ namespace NC_Setup_Assist.ViewModels
             foreach (var einsatz in einsaetzeFromDb)
             {
                 // Wenn das Werkzeug noch NICHT manuell zugewiesen ist (einsatz.WerkzeugID ist null)
-                // und es eine Revolverstation gibt
+                // und es eine RevolverStation gibt
                 if (einsatz.WerkzeugID == null && !string.IsNullOrEmpty(einsatz.RevolverStation))
                 {
                     // Versuche, das passende Standardwerkzeug zu finden
@@ -216,7 +217,7 @@ namespace NC_Setup_Assist.ViewModels
             StartToolAssignmentCommand.NotifyCanExecuteChanged();
         }
 
-        private bool CanStartToolAssignment() => _canStartToolAssignment;
+        // --- MANUELLE CanExecute-Methode entfernt! Das Command verwendet die Property CanStartToolAssignment direkt. ---
 
         [RelayCommand(CanExecute = nameof(CanStartToolAssignment))]
         private void StartToolAssignment()

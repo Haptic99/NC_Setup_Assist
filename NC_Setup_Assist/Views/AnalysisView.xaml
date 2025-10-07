@@ -27,18 +27,16 @@
             </Grid.ColumnDefinitions>
 
             <DockPanel Grid.Column="0" Margin="0,0,5,0">
-                <TextBlock DockPanel.Dock="Top" Text="NC-Code" 
- 
+                <TextBlock DockPanel.Dock="Top" 
+                           Text="NC-Code" 
                            FontWeight="SemiBold" Margin="0,0,0,5"/>
                 <TextBox x:Name="NcCodeTextBox" 
                          Text="{Binding NcCodeContent}"
                          IsReadOnly="True"
-   
                        AcceptsReturn="True"
                          FontFamily="Consolas"
                          VerticalScrollBarVisibility="Auto"
                          HorizontalScrollBarVisibility="Auto"/>
-
             </DockPanel>
 
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="LightGray"/>
@@ -50,7 +48,6 @@
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="MouseDoubleClick">
                             <i:InvokeCommandAction Command="{Binding GoToToolInCodeCommand}"
-                                            
                                      CommandParameter="{Binding ElementName=WerkzeugEinsaetzeListView, Path=SelectedItem}"/>
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
@@ -60,7 +57,6 @@
                             <Style.Triggers>
                                 <Trigger Property="ItemsControl.AlternationIndex" Value="1">
                                     <Setter Property="Background" Value="#EFEFEF"/>
-
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
@@ -68,6 +64,7 @@
                     </ListView.ItemContainerStyle>
                     <ListView.View>
                         <GridView>
+
                             <GridViewColumn Header="Nr."
  DisplayMemberBinding="{Binding Reihenfolge}" Width="30"/>
                             <GridViewColumn Header="X" DisplayMemberBinding="{Binding Anzahl}" Width="30"/>

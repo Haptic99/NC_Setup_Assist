@@ -17,9 +17,11 @@ namespace NC_Setup_Assist.ViewModels
         private readonly MainViewModel _mainViewModel;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(CreateProjectCommand))]
         private string? _ncFilePath;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(CreateProjectCommand))]
         private string? _projectName;
 
         // --- ANGEPASSTE EIGENSCHAFTEN ---

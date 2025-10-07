@@ -76,10 +76,15 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void SaveStandort()
         {
+            // HIER WURDE DIE PRÜFUNG ERWEITERT
             if (EditingStandort == null ||
-                string.IsNullOrWhiteSpace(EditingStandort.Name))
+                string.IsNullOrWhiteSpace(EditingStandort.Name) ||
+                string.IsNullOrWhiteSpace(EditingStandort.Strasse) ||
+                string.IsNullOrWhiteSpace(EditingStandort.Hausnummer) ||
+                string.IsNullOrWhiteSpace(EditingStandort.PLZ) ||
+                string.IsNullOrWhiteSpace(EditingStandort.Stadt))
             {
-                MessageBox.Show("Bitte geben Sie einen Namen für den Standort an.", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Bitte füllen Sie alle Felder für den Standort aus.", "Fehlende Angaben", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 

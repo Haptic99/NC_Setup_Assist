@@ -50,22 +50,22 @@
             <TextBox Text="{Binding EditingStandort.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
             <TextBlock Text="Strasse &amp; Nr.:"/>
-            <Grid>
+            <Grid Margin="0,0,0,5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" Text="{Binding EditingStandort.Strasse, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,5"/>
+                <TextBox Grid.Column="0" Text="{Binding EditingStandort.Strasse, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0"/>
                 <TextBox Grid.Column="1" Text="{Binding EditingStandort.Hausnummer, UpdateSourceTrigger=PropertyChanged}" Width="50"/>
             </Grid>
 
             <TextBlock Text="PLZ &amp; Ort:"/>
-            <Grid>
+            <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" Text="{Binding EditingStandort.PLZ, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="0,0,5,10"/>
+                <TextBox Grid.Column="0" Text="{Binding EditingStandort.PLZ, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="0,0,5,0"/>
                 <TextBox Grid.Column="1" Text="{Binding EditingStandort.Stadt, UpdateSourceTrigger=PropertyChanged}"/>
             </Grid>
 

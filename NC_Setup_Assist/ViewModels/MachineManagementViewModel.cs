@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -15,6 +16,9 @@ namespace NC_Setup_Assist.ViewModels
     {
         private readonly MainViewModel _mainViewModel;
         private Maschine? _machineToDeleteOnCancel;
+
+        // NEU: Speichert den Zustand der Standardwerkzeuge vor der Bearbeitung
+        private List<StandardWerkzeugZuweisung>? _originalStandardTools;
 
 
         public ObservableCollection<Maschine> Maschinen { get; } = new();
@@ -109,6 +113,7 @@ namespace NC_Setup_Assist.ViewModels
             EditingMaschine = new Maschine();
             IsInEditMode = true;
             _machineToDeleteOnCancel = null;
+            _originalStandardTools = null; // Sicherstellen, dass kein Backup aktiv ist
         }
 
         [RelayCommand]
@@ -129,6 +134,7 @@ namespace NC_Setup_Assist.ViewModels
             };
             IsInEditMode = true;
             _machineToDeleteOnCancel = null;
+            _originalStandardTools = null; // Sicherstellen, dass kein Backup aktiv ist
         }
 
 
@@ -162,6 +168,7 @@ namespace NC_Setup_Assist.ViewModels
                 {
                     machineToUpdate.Name = EditingMaschine.Name;
                     machineToUpdate.Seriennummer = EditingMaschine.Seriennummer;
+                    // AnzahlStationen wurde bereits in StandardToolsManagementViewModel gespeichert
                     machineToUpdate.AnzahlStationen = EditingMaschine.AnzahlStationen;
 
                     machineToUpdate.HerstellerID = EditingMaschine.Hersteller != null
@@ -173,6 +180,9 @@ namespace NC_Setup_Assist.ViewModels
                 }
             }
             context.SaveChanges();
+
+            // NEU: Backup löschen, da Speicherung erfolgt ist
+            _originalStandardTools = null;
 
             _machineToDeleteOnCancel = null;
 
@@ -216,6 +226,7 @@ namespace NC_Setup_Assist.ViewModels
 
             if (EditingMaschine.MaschineID == 0)
             {
+                // Logik für NEUE Maschine: Temporär speichern und Lösch-Flag setzen
                 using var context = new NcSetupContext();
 
                 EditingMaschine.HerstellerID = EditingMaschine.Hersteller.HerstellerID;
@@ -234,6 +245,17 @@ namespace NC_Setup_Assist.ViewModels
                 EditingMaschine.ZugehoerigerStandort = tempStandort;
 
                 _machineToDeleteOnCancel = EditingMaschine;
+                _originalStandardTools = null; // Kein Revert nötig, wird kaskadiert gelöscht
+            }
+            // NEU: Backup für bestehende Maschine erstellen
+            else
+            {
+                using var context = new NcSetupContext();
+                // Lade die aktuellen Zuweisungen, um sie bei Abbruch wiederherzustellen
+                _originalStandardTools = context.StandardWerkzeugZuweisungen
+                    .AsNoTracking() // Wichtig: Nur lesen, nicht tracken
+                    .Where(z => z.MaschineID == EditingMaschine.MaschineID)
+                    .ToList();
             }
 
             _mainViewModel.NavigateTo(new StandardToolsManagementViewModel(_mainViewModel, EditingMaschine, RefreshDataAndEditingState));
@@ -242,6 +264,7 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void Cancel()
         {
+            // 1. Logik für NEUE Maschine: Temporäre Maschine löschen
             if (_machineToDeleteOnCancel != null)
             {
                 using var context = new NcSetupContext();
@@ -251,6 +274,23 @@ namespace NC_Setup_Assist.ViewModels
                     context.Maschinen.Remove(machineToDelete);
                     context.SaveChanges();
                 }
+            }
+
+            // 2. NEU: Wiederherstellung der Standardwerkzeuge für BESTEHENDE Maschine
+            if (EditingMaschine != null && EditingMaschine.MaschineID != 0 && _originalStandardTools != null)
+            {
+                using var context = new NcSetupContext();
+
+                // a) Lösche alle Zuweisungen, die der Benutzer im Untermenü eventuell gespeichert hat
+                var currentAssignments = context.StandardWerkzeugZuweisungen
+                    .Where(z => z.MaschineID == EditingMaschine.MaschineID);
+                context.StandardWerkzeugZuweisungen.RemoveRange(currentAssignments);
+
+                // b) Füge die ursprünglichen (gesicherten) Zuweisungen wieder hinzu
+                context.StandardWerkzeugZuweisungen.AddRange(_originalStandardTools);
+
+                context.SaveChanges();
+                _originalStandardTools = null; // Backup-Speicher leeren
             }
 
             EditingMaschine = null;

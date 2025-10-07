@@ -134,6 +134,12 @@ namespace NC_Setup_Assist.ViewModels
             {
                 Standorte.Add(standort);
             }
+
+            // NEU: Wenn es nur einen Standort gibt, wird dieser automatisch ausgewählt.
+            if (Standorte.Count == 1)
+            {
+                SelectedStandort = Standorte.First();
+            }
         }
 
         private void LoadMaschinen(Standort? standort)
@@ -146,6 +152,12 @@ namespace NC_Setup_Assist.ViewModels
                 foreach (var maschine in standort.Maschinen)
                 {
                     Maschinen.Add(maschine);
+                }
+
+                // NEU: Wenn es für den Standort nur eine Maschine gibt, wird diese automatisch ausgewählt.
+                if (Maschinen.Count == 1)
+                {
+                    SelectedMaschine = Maschinen.First();
                 }
             }
         }

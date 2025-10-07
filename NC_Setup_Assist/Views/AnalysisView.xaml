@@ -25,7 +25,8 @@
             </Grid.ColumnDefinitions>
 
             <DockPanel Grid.Column="0" Margin="0,0,5,0">
-                <TextBlock DockPanel.Dock="Top" Text="NC-Code" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                <TextBlock DockPanel.Dock="Top" Text="NC-Code" 
+                           FontWeight="SemiBold" Margin="0,0,0,5"/>
                 <TextBox x:Name="NcCodeTextBox" 
                          Text="{Binding NcCodeContent}"
                          IsReadOnly="True"
@@ -57,11 +58,12 @@
                     </ListView.ItemContainerStyle>
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Nr." DisplayMemberBinding="{Binding Reihenfolge}" Width="20"/>
-                            <GridViewColumn Header="X" DisplayMemberBinding="{Binding Anzahl}" Width="60"/>
-                            <GridViewColumn Header="Station" DisplayMemberBinding="{Binding RevolverStation}" Width="60"/>
-                            <GridViewColumn Header="Korrektur" DisplayMemberBinding="{Binding KorrekturNummer}" Width="70"/>
-                            <GridViewColumn Header="Kommentar" DisplayMemberBinding="{Binding Kommentar}" Width="240"/>
+                            <GridViewColumn Header="Nr." DisplayMemberBinding="{Binding Reihenfolge}" Width="30"/>
+                            <GridViewColumn Header="X" DisplayMemberBinding="{Binding Anzahl}" Width="30"/>
+                            <GridViewColumn Header="Station" DisplayMemberBinding="{Binding RevolverStation}" Width="50"/>
+                            <GridViewColumn Header="Korrektur" DisplayMemberBinding="{Binding KorrekturNummer}" Width="60"/>
+                            <GridViewColumn Header="Werkzeug" DisplayMemberBinding="{Binding ZugehoerigesWerkzeug.Name}" Width="200"/>
+                            <GridViewColumn Header="Kommentar" DisplayMemberBinding="{Binding Kommentar}" Width="Auto"/>
                         </GridView>
                     </ListView.View>
                 </ListView>

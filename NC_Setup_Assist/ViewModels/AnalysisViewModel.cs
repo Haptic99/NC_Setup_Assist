@@ -60,8 +60,17 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
+            // Muss gültige RevolverStation für die Suche haben
+            if (string.IsNullOrEmpty(werkzeugEinsatz.RevolverStation))
+            {
+                return;
+            }
+
             // Erzeugt einen eindeutigen String für das Werkzeug, z.B. "T0101"
-            string toolIdentifier = $"T{werkzeugEinsatz.RevolverStation:D2}{werkzeugEinsatz.KorrekturNummer:D2}";
+            string korrekturNummer = werkzeugEinsatz.KorrekturNummer ?? "";
+
+            // Verwendet die im NC-Code erwartete Formatierung Tnnkk, wobei nn die Revolverstation ist
+            string toolIdentifier = $"T{werkzeugEinsatz.RevolverStation}{korrekturNummer}";
 
             int startIndex = 0;
             if (_lastSearchIndex.ContainsKey(werkzeugEinsatz.WerkzeugEinsatzID))
@@ -111,14 +120,49 @@ namespace NC_Setup_Assist.ViewModels
             WerkzeugEinsaetze.Clear();
             using var context = new NcSetupContext();
 
+            // 1. Lade Standardwerkzeuge der Maschine in einen Lookup
+            var standardTools = context.StandardWerkzeugZuweisungen
+                                        .Where(z => z.MaschineID == _currentProgramm.MaschineID)
+                                        .Include(z => z.ZugehoerigesWerkzeug)
+                                            .ThenInclude(w => w!.Unterkategorie)
+                                        .ToList();
+
+            // Erstelle ein Lookup (Schlüssel: RevolverStation als string "1", "2", ...)
+            // Wir nutzen die RevolverStation als Schlüssel, um geparste RevolverStation-Strings zu matchen.
+            var standardToolLookup = standardTools.ToDictionary(
+                z => z.RevolverStation.ToString(),
+                z => z
+            );
+
+
+            // 2. Lade die durch den Parser gefundenen Werkzeugeinsätze
             var einsaetzeFromDb = context.WerkzeugEinsaetze
                                         .Where(e => e.NCProgrammID == _currentProgramm.NCProgrammID)
+                                        // Laden Sie das Werkzeug, falls es schon manuell zugewiesen wurde
                                         .Include(e => e.ZugehoerigesWerkzeug)
+                                            .ThenInclude(w => w!.Unterkategorie)
                                         .OrderBy(e => e.Reihenfolge)
                                         .ToList();
 
+            // 3. Verknüpfe die geparsten Einsätze mit den Standardwerkzeugen (in memory)
             foreach (var einsatz in einsaetzeFromDb)
             {
+                // Wenn das Werkzeug noch NICHT manuell zugewiesen ist (einsatz.ZugehoerigesWerkzeug ist null)
+                // und es eine Revolverstation gibt
+                if (einsatz.ZugehoerigesWerkzeug == null && !string.IsNullOrEmpty(einsatz.RevolverStation))
+                {
+                    // Versuche, das passende Standardwerkzeug zu finden
+                    // Der RevolverStation-String des Parsers kann z.B. "01" oder "1" sein. Wir trimmen führende Nullen für den Match mit dem Int-Key.
+                    string stationKey = einsatz.RevolverStation.TrimStart('0');
+                    if (standardToolLookup.TryGetValue(stationKey, out var stdToolAssignment))
+                    {
+                        // Standardwerkzeug gefunden -> Verknüpfung in memory setzen
+                        // Wir setzen nur die Instanz für die Anzeige, damit sie in der Spalte "Werkzeug (Standard)" sichtbar ist.
+                        // Der WerkzeugID-Wert in der Datenbank bleibt NULL, solange der Benutzer das Werkzeug nicht manuell zuweist.
+                        einsatz.ZugehoerigesWerkzeug = stdToolAssignment.ZugehoerigesWerkzeug;
+                    }
+                }
+
                 WerkzeugEinsaetze.Add(einsatz);
             }
         }

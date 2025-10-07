@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// NC_Setup_Assist/ViewModels/NewProjectViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
@@ -92,28 +93,29 @@ namespace NC_Setup_Assist.ViewModels
 
             using var context = new NcSetupContext();
 
-            // Das neue Projekt wird mit der ID der ausgewählten Maschine erstellt
+            // 1. Das neue Projekt wird mit der ID der ausgewählten Maschine erstellt
             var neuesProjekt = new Projekt
             {
                 Name = ProjectName,
-                MaschineID = SelectedMaschine.MaschineID // Korrigierte Zuweisung
+                MaschineID = SelectedMaschine.MaschineID
             };
             context.Projekte.Add(neuesProjekt);
             context.SaveChanges(); // Speichern, um die neue ProjektID zu erhalten
 
-            // Jetzt das NCProgramm erstellen und mit dem Projekt verknüpfen
+            // 2. Jetzt das NCProgramm erstellen und mit dem Projekt verknüpfen
             var neuesProgramm = new NCProgramm
             {
-                // ZeichnungsNummer ist in Modell nicht nullable — also befüllen, z.B. mit dem Projektnamen oder Dateiname
                 ZeichnungsNummer = ProjectName ?? Path.GetFileNameWithoutExtension(NcFilePath),
                 Bezeichnung = Path.GetFileName(NcFilePath),
                 DateiPfad = NcFilePath,
-                MaschineID = SelectedMaschine.MaschineID // MaschineID zuweisen
+                MaschineID = SelectedMaschine.MaschineID,
+                // KORREKTUR: Weise die ProjektID explizit zu.
+                ProjektID = neuesProjekt.ProjektID // <--- WICHTIGE KORREKTUR!
             };
             context.NCProgramme.Add(neuesProgramm);
             context.SaveChanges(); // Speichern, um die neue NCProgrammID zu erhalten
 
-            // Werkzeugeinsätze dem neuen Programm zuweisen
+            // 3. Werkzeugeinsätze dem neuen Programm zuweisen
             foreach (var einsatz in werkzeugEinsaetze)
             {
                 einsatz.NCProgrammID = neuesProgramm.NCProgrammID;

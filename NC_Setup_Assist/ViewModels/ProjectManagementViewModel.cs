@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// NC_Setup_Assist/ViewModels/ProjectManagementViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
@@ -31,10 +32,11 @@ namespace NC_Setup_Assist.ViewModels
             Projekte.Clear();
             using var context = new NcSetupContext();
 
-            // Lädt alle Projekte, inklusive der zugehörigen Maschine und den NC-Programmen
+            // KORREKTUR: Fügen Sie .Include(p => p.NCProgramme) hinzu, um die zugehörigen Programme
+            // direkt mit dem Projekt aus der Datenbank zu laden.
             var projekteFromDb = context.Projekte
                                         .Include(p => p.ZugehoerigeMaschine)
-                                        .Include(p => p.NCProgramme) // Wichtig für die Anzeige der Anzahl der Programme
+                                        .Include(p => p.NCProgramme)
                                         .ToList();
 
             foreach (var projekt in projekteFromDb)
@@ -59,6 +61,7 @@ namespace NC_Setup_Assist.ViewModels
             }
             else
             {
+                // Dieser Fehler sollte nach der Korrektur von LoadProjekte nicht mehr auftreten.
                 MessageBox.Show($"Projekt '{projekt?.Name}' enthält kein NC-Programm.", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

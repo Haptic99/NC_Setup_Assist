@@ -27,6 +27,13 @@ namespace NC_Setup_Assist.ViewModels
             Station = station;
             _selectedWerkzeug = assignedTool;
         }
+
+        // Command zum Löschen des zugewiesenen Werkzeugs
+        [RelayCommand]
+        private void ClearTool()
+        {
+            SelectedWerkzeug = null;
+        }
     }
 
 
@@ -34,7 +41,10 @@ namespace NC_Setup_Assist.ViewModels
     {
         private readonly MainViewModel _mainViewModel;
         private readonly Maschine _machine;
-        private readonly Action? _onCloseCallback; // Hinzugefügte Callback-Funktion
+
+        // NEU: Callback zum Zurückgeben der UNSICHEREN Änderungen (Liste der Zuweisungen und Stationsanzahl)
+        private readonly Action<List<StandardWerkzeugZuweisung>, int> _onSaveCallback;
+        private readonly Action _onCancelCallback;
 
         [ObservableProperty]
         private int _selectedAnzahlStationen;
@@ -46,15 +56,19 @@ namespace NC_Setup_Assist.ViewModels
         public ObservableCollection<StandardToolAssignmentViewModel> ToolAssignments { get; } = new();
 
         // Angepasster Konstruktor
-        public StandardToolsManagementViewModel(MainViewModel mainViewModel, Maschine machine, Action? onCloseCallback = null)
+        public StandardToolsManagementViewModel(MainViewModel mainViewModel, Maschine machine, Action<List<StandardWerkzeugZuweisung>, int> onSaveCallback, Action onCancelCallback)
         {
             _mainViewModel = mainViewModel;
             _machine = machine;
-            _onCloseCallback = onCloseCallback; // Callback speichern
+            // NEU: Callbacks übergeben
+            _onSaveCallback = onSaveCallback;
+            _onCancelCallback = onCancelCallback;
 
+            // Lade die aktuellen Daten der Maschine, um die Stationsanzahl korrekt zu setzen
             LoadStandardTools();
 
             SelectedAnzahlStationen = _machine.AnzahlStationen >= 4 ? _machine.AnzahlStationen : 12; // Standard: 12, falls nichts gesetzt
+
             // Die Anzahl der Stationen ist nur änderbar, wenn noch KEIN Werkzeug zugewiesen ist.
             IsAnzahlStationenChangeable = !ToolAssignments.Any(t => t.SelectedWerkzeug != null);
         }
@@ -69,6 +83,7 @@ namespace NC_Setup_Assist.ViewModels
                 .ThenInclude(w => w!.Unterkategorie)
                 .ToList();
 
+            // Beziehe die Anzahl der Stationen aus der Datenbank-Instanz der Maschine
             int anzahlStationen = _machine.AnzahlStationen >= 4 ? _machine.AnzahlStationen : 12;
 
             for (int i = 1; i <= anzahlStationen; i++)
@@ -81,9 +96,9 @@ namespace NC_Setup_Assist.ViewModels
         // Wird aufgerufen, wenn die Anzahl der Stationen im Dropdown geändert wird
         partial void OnSelectedAnzahlStationenChanged(int value)
         {
-            // Behalte die bereits zugewiesenen Werkzeuge
+            // Behalte die bereits zugewiesenen Werkzeuge (falls die neue Größe dies zulässt)
             var existingAssignments = ToolAssignments
-                .Where(a => a.SelectedWerkzeug != null)
+                .Where(a => a.SelectedWerkzeug != null && a.Station <= value)
                 .ToDictionary(a => a.Station, a => a.SelectedWerkzeug);
 
             ToolAssignments.Clear();
@@ -111,44 +126,35 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void Save()
         {
-            using var context = new NcSetupContext();
+            // NEU: Änderungen in ein temporäres Listenobjekt konvertieren (KEIN DB-SAVE!)
+            var updatedAssignments = new List<StandardWerkzeugZuweisung>();
 
-            // 1. Aktualisiere die Anzahl der Stationen auf der Maschine selbst
-            var machineToUpdate = context.Maschinen.Find(_machine.MaschineID);
-            if (machineToUpdate != null)
-            {
-                machineToUpdate.AnzahlStationen = SelectedAnzahlStationen;
-            }
-
-            // 2. Lösche alle bisherigen Zuweisungen für diese Maschine
-            var existingAssignments = context.StandardWerkzeugZuweisungen
-                .Where(z => z.MaschineID == _machine.MaschineID);
-            context.StandardWerkzeugZuweisungen.RemoveRange(existingAssignments);
-
-            // 3. Füge die neuen Zuweisungen aus der aktuellen Ansicht hinzu
+            // 1. Erzeuge die unsicheren Zuweisungen
             foreach (var assignmentVM in ToolAssignments)
             {
                 if (assignmentVM.SelectedWerkzeug != null)
                 {
-                    var newAssignment = new StandardWerkzeugZuweisung
+                    updatedAssignments.Add(new StandardWerkzeugZuweisung
                     {
+                        // Wichtig: MaschineID wird für die korrekte Zuordnung im Parent-ViewModel benötigt
                         MaschineID = _machine.MaschineID,
                         RevolverStation = assignmentVM.Station,
                         WerkzeugID = assignmentVM.SelectedWerkzeug.WerkzeugID
-                    };
-                    context.StandardWerkzeugZuweisungen.Add(newAssignment);
+                    });
                 }
             }
 
-            context.SaveChanges();
-            _onCloseCallback?.Invoke(); // Callback hier aufrufen
+            // 2. Rufe das Callback im Parent-ViewModel auf und übergib die unsicheren Daten
+            _onSaveCallback?.Invoke(updatedAssignments, SelectedAnzahlStationen);
+
+            // 3. Zurück zum MachineManagementViewModel
             _mainViewModel.NavigateBack();
         }
 
         [RelayCommand]
         private void Cancel()
         {
-            _onCloseCallback?.Invoke(); // Callback hier aufrufen
+            // Verwirf alle lokalen Änderungen und gehe zurück
             _mainViewModel.NavigateBack();
         }
     }

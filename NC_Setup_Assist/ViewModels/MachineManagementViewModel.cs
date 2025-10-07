@@ -17,8 +17,12 @@ namespace NC_Setup_Assist.ViewModels
         private readonly MainViewModel _mainViewModel;
         private Maschine? _machineToDeleteOnCancel;
 
-        // NEU: Speichert den Zustand der Standardwerkzeuge vor der Bearbeitung
-        private List<StandardWerkzeugZuweisung>? _originalStandardTools;
+        // NEU: Hält die UNSICHEREN Änderungen der Standardwerkzeuge
+        private List<StandardWerkzeugZuweisung>? _pendingStandardToolChanges;
+
+        // NEU: Sichert und hält die Stationsanzahl
+        private int _originalAnzahlStationen;
+        private int? _pendingAnzahlStationen;
 
 
         public ObservableCollection<Maschine> Maschinen { get; } = new();
@@ -113,7 +117,11 @@ namespace NC_Setup_Assist.ViewModels
             EditingMaschine = new Maschine();
             IsInEditMode = true;
             _machineToDeleteOnCancel = null;
-            _originalStandardTools = null; // Sicherstellen, dass kein Backup aktiv ist
+
+            // NEU: Pending- und Originalwerte zurücksetzen
+            _pendingStandardToolChanges = null;
+            _pendingAnzahlStationen = null;
+            _originalAnzahlStationen = 0;
         }
 
         [RelayCommand]
@@ -134,7 +142,11 @@ namespace NC_Setup_Assist.ViewModels
             };
             IsInEditMode = true;
             _machineToDeleteOnCancel = null;
-            _originalStandardTools = null; // Sicherstellen, dass kein Backup aktiv ist
+
+            // NEU: Stationsanzahl für Revert sichern und Pending-Werte zurücksetzen
+            _originalAnzahlStationen = SelectedMaschine.AnzahlStationen;
+            _pendingStandardToolChanges = null;
+            _pendingAnzahlStationen = null;
         }
 
 
@@ -151,7 +163,9 @@ namespace NC_Setup_Assist.ViewModels
             }
 
             using var context = new NcSetupContext();
-            if (EditingMaschine.MaschineID == 0) // Neue Maschine
+            Maschine machineToUpdate;
+
+            if (EditingMaschine.MaschineID == 0) // Neue Maschine (sollte durch ManageStandardTools abgedeckt sein, aber als Fallback)
             {
                 EditingMaschine.HerstellerID = EditingMaschine.Hersteller.HerstellerID;
                 EditingMaschine.StandortID = EditingMaschine.ZugehoerigerStandort.StandortID;
@@ -160,16 +174,20 @@ namespace NC_Setup_Assist.ViewModels
                 EditingMaschine.ZugehoerigerStandort = null!;
 
                 context.Maschinen.Add(EditingMaschine);
+                context.SaveChanges();
+                machineToUpdate = EditingMaschine;
             }
-            else // Bestehende Maschine aktualisieren
+            else // Bestehende oder temporär gespeicherte Maschine aktualisieren
             {
-                var machineToUpdate = context.Maschinen.Find(EditingMaschine.MaschineID);
+                machineToUpdate = context.Maschinen.Find(EditingMaschine.MaschineID)!;
                 if (machineToUpdate != null)
                 {
                     machineToUpdate.Name = EditingMaschine.Name;
                     machineToUpdate.Seriennummer = EditingMaschine.Seriennummer;
-                    // AnzahlStationen wurde bereits in StandardToolsManagementViewModel gespeichert
-                    machineToUpdate.AnzahlStationen = EditingMaschine.AnzahlStationen;
+
+                    // NEU: Stationsanzahl aus pending oder EditingMaschine übernehmen
+                    machineToUpdate.AnzahlStationen = _pendingAnzahlStationen ?? EditingMaschine.AnzahlStationen;
+                    EditingMaschine.AnzahlStationen = machineToUpdate.AnzahlStationen; // Aktualisiere EditingMaschine
 
                     machineToUpdate.HerstellerID = EditingMaschine.Hersteller != null
                         ? EditingMaschine.Hersteller.HerstellerID
@@ -179,10 +197,25 @@ namespace NC_Setup_Assist.ViewModels
                         : EditingMaschine.StandortID;
                 }
             }
-            context.SaveChanges();
 
-            // NEU: Backup löschen, da Speicherung erfolgt ist
-            _originalStandardTools = null;
+            // 2. Standardwerkzeug-Änderungen anwenden und speichern
+            if (_pendingStandardToolChanges != null)
+            {
+                // Lösche alle bisherigen Zuweisungen für diese Maschine
+                var existingAssignments = context.StandardWerkzeugZuweisungen
+                    .Where(z => z.MaschineID == machineToUpdate.MaschineID);
+                context.StandardWerkzeugZuweisungen.RemoveRange(existingAssignments);
+
+                // Füge die neuen Zuweisungen hinzu
+                context.StandardWerkzeugZuweisungen.AddRange(_pendingStandardToolChanges);
+            }
+
+            context.SaveChanges(); // FINALE SPEICHERUNG
+
+            // Nach erfolgreichem Speichern: State zurücksetzen
+            _pendingStandardToolChanges = null;
+            _pendingAnzahlStationen = null;
+            _originalAnzahlStationen = EditingMaschine!.AnzahlStationen;
 
             _machineToDeleteOnCancel = null;
 
@@ -224,9 +257,9 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
+            // 1. Wenn eine NEUE Maschine bearbeitet wird, muss diese temporär gespeichert werden, um eine ID zu erhalten
             if (EditingMaschine.MaschineID == 0)
             {
-                // Logik für NEUE Maschine: Temporär speichern und Lösch-Flag setzen
                 using var context = new NcSetupContext();
 
                 EditingMaschine.HerstellerID = EditingMaschine.Hersteller.HerstellerID;
@@ -245,20 +278,31 @@ namespace NC_Setup_Assist.ViewModels
                 EditingMaschine.ZugehoerigerStandort = tempStandort;
 
                 _machineToDeleteOnCancel = EditingMaschine;
-                _originalStandardTools = null; // Kein Revert nötig, wird kaskadiert gelöscht
-            }
-            // NEU: Backup für bestehende Maschine erstellen
-            else
-            {
-                using var context = new NcSetupContext();
-                // Lade die aktuellen Zuweisungen, um sie bei Abbruch wiederherzustellen
-                _originalStandardTools = context.StandardWerkzeugZuweisungen
-                    .AsNoTracking() // Wichtig: Nur lesen, nicht tracken
-                    .Where(z => z.MaschineID == EditingMaschine.MaschineID)
-                    .ToList();
+                // Alle pending-Änderungen sind hier null, da es neu ist.
             }
 
-            _mainViewModel.NavigateTo(new StandardToolsManagementViewModel(_mainViewModel, EditingMaschine, RefreshDataAndEditingState));
+            // 2. NEU: Callback-Methoden für das untergeordnete ViewModel definieren
+            Action<List<StandardWerkzeugZuweisung>, int> onToolsSaved = (updatedAssignments, newStationCount) =>
+            {
+                // Wenn der Benutzer im Untermenü auf 'Speichern' klickt:
+                _pendingStandardToolChanges = updatedAssignments;
+                _pendingAnzahlStationen = newStationCount;
+
+                // Wir aktualisieren EditingMaschine sofort, damit der Benutzer die Änderung in der Hauptansicht sieht (z.B. Stationsanzahl)
+                EditingMaschine!.AnzahlStationen = newStationCount;
+            };
+
+            Action onToolsCanceled = () =>
+            {
+                // Beim Abbruch im Untermenü passiert hier nichts, da die Änderungen in _pending... verwaltet werden.
+            };
+
+            // 3. Navigation mit Callbacks
+            _mainViewModel.NavigateTo(new StandardToolsManagementViewModel(
+                _mainViewModel,
+                EditingMaschine!,
+                onToolsSaved,
+                onToolsCanceled));
         }
 
         [RelayCommand]
@@ -271,26 +315,21 @@ namespace NC_Setup_Assist.ViewModels
                 var machineToDelete = context.Maschinen.Find(_machineToDeleteOnCancel.MaschineID);
                 if (machineToDelete != null)
                 {
+                    // Löscht alle Standardwerkzeugzuweisungen kaskadierend
                     context.Maschinen.Remove(machineToDelete);
                     context.SaveChanges();
                 }
             }
 
-            // 2. NEU: Wiederherstellung der Standardwerkzeuge für BESTEHENDE Maschine
-            if (EditingMaschine != null && EditingMaschine.MaschineID != 0 && _originalStandardTools != null)
+            // 2. Logik für BESTEHENDE Maschine: Änderungen verwerfen
+            if (EditingMaschine != null && EditingMaschine.MaschineID != 0)
             {
-                using var context = new NcSetupContext();
+                // Verwerfe die ausstehenden Standardwerkzeug-Änderungen
+                _pendingStandardToolChanges = null;
+                _pendingAnzahlStationen = null;
 
-                // a) Lösche alle Zuweisungen, die der Benutzer im Untermenü eventuell gespeichert hat
-                var currentAssignments = context.StandardWerkzeugZuweisungen
-                    .Where(z => z.MaschineID == EditingMaschine.MaschineID);
-                context.StandardWerkzeugZuweisungen.RemoveRange(currentAssignments);
-
-                // b) Füge die ursprünglichen (gesicherten) Zuweisungen wieder hinzu
-                context.StandardWerkzeugZuweisungen.AddRange(_originalStandardTools);
-
-                context.SaveChanges();
-                _originalStandardTools = null; // Backup-Speicher leeren
+                // Setze die Stationsanzahl auf den ursprünglichen Wert zurück
+                EditingMaschine.AnzahlStationen = _originalAnzahlStationen;
             }
 
             EditingMaschine = null;

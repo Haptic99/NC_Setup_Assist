@@ -73,7 +73,7 @@
             <ListView ItemsSource="{Binding EditingStandort.Maschinen}" Height="120" Margin="0,0,0,10" IsHitTestVisible="False">
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Header="Maschinenname" DisplayMemberBinding="{Binding Name}" Width="*"/>
+                        <GridViewColumn Header="Maschinenname" DisplayMemberBinding="{Binding Name}" Width="200"/>
                     </GridView>
                 </ListView.View>
             </ListView>

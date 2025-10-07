@@ -42,7 +42,7 @@ namespace NC_Setup_Assist.ViewModels
         private readonly MainViewModel _mainViewModel;
         private readonly Maschine _machine;
 
-        // NEU: Callback zum Zurückgeben der UNSICHEREN Änderungen (Liste der Zuweisungen und Stationsanzahl)
+        // Callback zum Zurückgeben der UNSICHEREN Änderungen (Liste der Zuweisungen und Stationsanzahl)
         private readonly Action<List<StandardWerkzeugZuweisung>, int> _onSaveCallback;
         private readonly Action _onCancelCallback;
 
@@ -60,7 +60,7 @@ namespace NC_Setup_Assist.ViewModels
         {
             _mainViewModel = mainViewModel;
             _machine = machine;
-            // NEU: Callbacks übergeben
+            // Callbacks übergeben
             _onSaveCallback = onSaveCallback;
             _onCancelCallback = onCancelCallback;
 
@@ -126,7 +126,7 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void Save()
         {
-            // NEU: Änderungen in ein temporäres Listenobjekt konvertieren (KEIN DB-SAVE!)
+            // Änderungen in ein temporäres Listenobjekt konvertieren (KEIN DB-SAVE!)
             var updatedAssignments = new List<StandardWerkzeugZuweisung>();
 
             // 1. Erzeuge die unsicheren Zuweisungen

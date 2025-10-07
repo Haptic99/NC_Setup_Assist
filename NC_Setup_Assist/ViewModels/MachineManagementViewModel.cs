@@ -17,10 +17,10 @@ namespace NC_Setup_Assist.ViewModels
         private readonly MainViewModel _mainViewModel;
         private Maschine? _machineToDeleteOnCancel;
 
-        // NEU: Hält die UNSICHEREN Änderungen der Standardwerkzeuge
+        // Hält die UNSICHEREN Änderungen der Standardwerkzeuge
         private List<StandardWerkzeugZuweisung>? _pendingStandardToolChanges;
 
-        // NEU: Sichert und hält die Stationsanzahl
+        // Sichert und hält die Stationsanzahl
         private int _originalAnzahlStationen;
         private int? _pendingAnzahlStationen;
 
@@ -118,7 +118,7 @@ namespace NC_Setup_Assist.ViewModels
             IsInEditMode = true;
             _machineToDeleteOnCancel = null;
 
-            // NEU: Pending- und Originalwerte zurücksetzen
+            // Pending- und Originalwerte zurücksetzen
             _pendingStandardToolChanges = null;
             _pendingAnzahlStationen = null;
             _originalAnzahlStationen = 0;
@@ -143,7 +143,7 @@ namespace NC_Setup_Assist.ViewModels
             IsInEditMode = true;
             _machineToDeleteOnCancel = null;
 
-            // NEU: Stationsanzahl für Revert sichern und Pending-Werte zurücksetzen
+            // Stationsanzahl für Revert sichern und Pending-Werte zurücksetzen
             _originalAnzahlStationen = SelectedMaschine.AnzahlStationen;
             _pendingStandardToolChanges = null;
             _pendingAnzahlStationen = null;
@@ -163,54 +163,65 @@ namespace NC_Setup_Assist.ViewModels
             }
 
             using var context = new NcSetupContext();
-            Maschine machineToUpdate;
+            Maschine machineToSave;
+            bool isNewMachine = EditingMaschine.MaschineID == 0;
 
-            if (EditingMaschine.MaschineID == 0) // Neue Maschine (sollte durch ManageStandardTools abgedeckt sein, aber als Fallback)
+            if (isNewMachine)
             {
-                EditingMaschine.HerstellerID = EditingMaschine.Hersteller.HerstellerID;
-                EditingMaschine.StandortID = EditingMaschine.ZugehoerigerStandort.StandortID;
-
-                EditingMaschine.Hersteller = null!;
-                EditingMaschine.ZugehoerigerStandort = null!;
-
-                context.Maschinen.Add(EditingMaschine);
-                context.SaveChanges();
-                machineToUpdate = EditingMaschine;
-            }
-            else // Bestehende oder temporär gespeicherte Maschine aktualisieren
-            {
-                machineToUpdate = context.Maschinen.Find(EditingMaschine.MaschineID)!;
-                if (machineToUpdate != null)
+                // Fallback für den Fall, dass ManageStandardTools nicht aufgerufen wurde (MaschineID = 0)
+                // Wir erstellen eine saubere Entität nur mit benötigten Werten und FKs.
+                machineToSave = new Maschine
                 {
-                    machineToUpdate.Name = EditingMaschine.Name;
-                    machineToUpdate.Seriennummer = EditingMaschine.Seriennummer;
+                    Name = EditingMaschine.Name,
+                    Seriennummer = EditingMaschine.Seriennummer,
+                    AnzahlStationen = _pendingAnzahlStationen ?? 0, // Stationsanzahl aus Pending oder Fallback
+                    HerstellerID = EditingMaschine.Hersteller.HerstellerID,
+                    StandortID = EditingMaschine.ZugehoerigerStandort.StandortID
+                };
+                context.Maschinen.Add(machineToSave);
+                context.SaveChanges(); // Wichtig: Hier speichern, um die MachineID zu erhalten
 
-                    // NEU: Stationsanzahl aus pending oder EditingMaschine übernehmen
-                    machineToUpdate.AnzahlStationen = _pendingAnzahlStationen ?? EditingMaschine.AnzahlStationen;
-                    EditingMaschine.AnzahlStationen = machineToUpdate.AnzahlStationen; // Aktualisiere EditingMaschine
+                // Aktualisiere das VM-Objekt mit der neuen ID
+                EditingMaschine.MaschineID = machineToSave.MaschineID;
+            }
+            else
+            {
+                // Existierende Maschine (oder temporär gespeicherte neue Maschine)
+                // Finden und aktualisieren der verfolgten Entität
+                machineToSave = context.Maschinen.Find(EditingMaschine.MaschineID)!;
 
-                    machineToUpdate.HerstellerID = EditingMaschine.Hersteller != null
-                        ? EditingMaschine.Hersteller.HerstellerID
-                        : EditingMaschine.HerstellerID;
-                    machineToUpdate.StandortID = EditingMaschine.ZugehoerigerStandort != null
-                        ? EditingMaschine.ZugehoerigerStandort.StandortID
-                        : EditingMaschine.StandortID;
-                }
+                if (machineToSave == null) return; // Sollte nicht passieren
+
+                // 1. Update Maschine Stammdaten
+                machineToSave.Name = EditingMaschine.Name;
+                machineToSave.Seriennummer = EditingMaschine.Seriennummer;
+                machineToSave.HerstellerID = EditingMaschine.Hersteller.HerstellerID;
+                machineToSave.StandortID = EditingMaschine.ZugehoerigerStandort.StandortID;
+
+                // 2. Update Stationsanzahl aus pending oder aktuellem VM-Zustand
+                machineToSave.AnzahlStationen = _pendingAnzahlStationen ?? EditingMaschine.AnzahlStationen;
             }
 
-            // 2. Standardwerkzeug-Änderungen anwenden und speichern
+            // Aktualisiere EditingMaschine mit dem finalen Stationsstand
+            EditingMaschine.AnzahlStationen = machineToSave.AnzahlStationen;
+
+            // 3. Standardwerkzeug-Änderungen anwenden (für beide Maschinentypen)
             if (_pendingStandardToolChanges != null)
             {
-                // Lösche alle bisherigen Zuweisungen für diese Maschine
+                // Lösche alle bisherigen Zuweisungen für DIESE MASCHINE (ID ist jetzt garantiert gesetzt)
                 var existingAssignments = context.StandardWerkzeugZuweisungen
-                    .Where(z => z.MaschineID == machineToUpdate.MaschineID);
+                    .Where(z => z.MaschineID == machineToSave.MaschineID);
                 context.StandardWerkzeugZuweisungen.RemoveRange(existingAssignments);
 
                 // Füge die neuen Zuweisungen hinzu
                 context.StandardWerkzeugZuweisungen.AddRange(_pendingStandardToolChanges);
             }
 
-            context.SaveChanges(); // FINALE SPEICHERUNG
+            // FINALER SAVE: Speichert alle ausstehenden Änderungen an der Maschine und den Zuweisungen
+            if (context.ChangeTracker.HasChanges())
+            {
+                context.SaveChanges();
+            }
 
             // Nach erfolgreichem Speichern: State zurücksetzen
             _pendingStandardToolChanges = null;
@@ -278,23 +289,22 @@ namespace NC_Setup_Assist.ViewModels
                 EditingMaschine.ZugehoerigerStandort = tempStandort;
 
                 _machineToDeleteOnCancel = EditingMaschine;
-                // Alle pending-Änderungen sind hier null, da es neu ist.
             }
 
-            // 2. NEU: Callback-Methoden für das untergeordnete ViewModel definieren
+            // 2. Callback-Methoden definieren
             Action<List<StandardWerkzeugZuweisung>, int> onToolsSaved = (updatedAssignments, newStationCount) =>
             {
                 // Wenn der Benutzer im Untermenü auf 'Speichern' klickt:
                 _pendingStandardToolChanges = updatedAssignments;
                 _pendingAnzahlStationen = newStationCount;
 
-                // Wir aktualisieren EditingMaschine sofort, damit der Benutzer die Änderung in der Hauptansicht sieht (z.B. Stationsanzahl)
+                // Wir aktualisieren EditingMaschine sofort, damit der Benutzer die Stationsanzahl in der Hauptansicht sieht.
                 EditingMaschine!.AnzahlStationen = newStationCount;
             };
 
             Action onToolsCanceled = () =>
             {
-                // Beim Abbruch im Untermenü passiert hier nichts, da die Änderungen in _pending... verwaltet werden.
+                // Wird hier nicht benötigt, da Änderungen in _pending... verwaltet werden.
             };
 
             // 3. Navigation mit Callbacks

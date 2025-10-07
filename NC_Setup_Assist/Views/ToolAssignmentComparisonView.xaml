@@ -40,7 +40,7 @@
                 <Trigger Property="ItemsControl.AlternationIndex" Value="1">
                     <Setter Property="Background" Value="#EFEFEF"/>
                 </Trigger>
-                <DataTrigger Binding="{Binding ToolNameBefore}" Value="Unbekannt (Standard)">
+                <DataTrigger Binding="{Binding ToolNameBefore}" Value="Unbekannt">
                     <Setter Property="Background" Value="#FFDDDD"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -103,10 +103,10 @@
             </DockPanel>
         </Grid>
 
-        <Button Grid.Row="2" Content="Schliessen" 
-                Command="{Binding CloseCommand}" 
+        <Button Grid.Row="2" Content="Zuweisung abschliessen &amp; Speichern" 
+                Command="{Binding FinishAssignmentCommand}" 
                 HorizontalAlignment="Right" 
                 Margin="0,10,0,0" 
-                Width="100"/>
+                Width="250"/>
     </Grid>
 </UserControl>

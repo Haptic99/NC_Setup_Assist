@@ -48,6 +48,8 @@ namespace NC_Setup_Assist.ViewModels
 
             // Wir laden die Daten beim Start
             LoadComparisonData();
+            // NEU: Initialer Check des Command-Status für den "Fertig"-Button
+            FinishAssignmentCommand.NotifyCanExecuteChanged();
         }
 
         private void LoadComparisonData()
@@ -172,12 +174,25 @@ namespace NC_Setup_Assist.ViewModels
 
             // Lade die Daten in der Vergleichsansicht neu, um die UI zu aktualisieren
             LoadComparisonData();
+
+            // NEU: Benachrichtigt den Fertig-Button über den geänderten Status
+            FinishAssignmentCommand.NotifyCanExecuteChanged();
         }
 
-        [RelayCommand]
-        private void Close()
+        // NEU: Command zum Abschließen der Zuweisung und Zurückkehren
+        [RelayCommand(CanExecute = nameof(CanFinishAssignment))]
+        private void FinishAssignment()
         {
+            // Alle Zuweisungen sind bereits in PerformToolAssignmentUpdate gespeichert.
+            // Wir navigieren einfach zurück zum Analyse-ViewModel.
             _mainViewModel.NavigateBack();
+        }
+
+        // NEU: Logik, die bestimmt, ob der Fertig-Button klickbar ist
+        private bool CanFinishAssignment()
+        {
+            // Das Projekt ist "fertig", wenn alle Einträge eine Zuweisung haben.
+            return ComparisonItems.Any() && ComparisonItems.All(item => item.IsAssigned);
         }
     }
 }

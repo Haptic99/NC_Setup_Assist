@@ -23,7 +23,8 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void ManageProjects()
         {
-            MessageBox.Show("Funktion 'Projekte verwalten' wird noch implementiert.");
+            // NEU: Navigation zur Projektverwaltung
+            _mainViewModel.NavigateTo(new ProjectManagementViewModel(_mainViewModel));
         }
 
         [RelayCommand]

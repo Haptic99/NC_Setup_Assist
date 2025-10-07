@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// NC_Setup_Assist/ViewModels/AnalysisViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
@@ -31,11 +32,9 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private Maschine? _selectedMaschine;
 
-        // --- NEUES FELD FÜR DEN ZUSTAND DER ZUWEISUNG ---
-        // Die Property "CanStartToolAssignment" wird automatisch generiert
-        [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(StartToolAssignmentCommand))]
-        private bool _canStartToolAssignment;
+        // --- ENTFERNT: FELD FÜR DEN ZUSTAND DER ZUWEISUNG ---
+        // Die Property "CanStartToolAssignment" ist nun nicht mehr notwendig,
+        // da das Command immer ausführbar ist und direkt zur Vergleichsansicht geht.
         // --------------------------------------------------
 
         // --- NEUES FELD ZUM SPEICHERN DER LETZTEN SUCHE ---
@@ -59,7 +58,6 @@ namespace NC_Setup_Assist.ViewModels
             LoadMaschinen(value);
         }
 
-        // --- NEUER BEFEHL FÜR DEN DOPPELKLICK ---
         [RelayCommand]
         private void GoToToolInCode(WerkzeugEinsatz? werkzeugEinsatz)
         {
@@ -172,9 +170,6 @@ namespace NC_Setup_Assist.ViewModels
 
                 WerkzeugEinsaetze.Add(einsatz);
             }
-
-            // 4. Initialisiere CanStartToolAssignment
-            CheckCanStartToolAssignment();
         }
 
         private void LoadStandorte()
@@ -204,90 +199,13 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
-        // --- NEUE LOGIK FÜR DIE SEQUENZIELLE ZUWEISUNG ---
-
-        private void CheckCanStartToolAssignment()
-        {
-            // true, wenn noch eindeutige, unzugewiesene Werkzeuge vorhanden sind
-            _canStartToolAssignment = WerkzeugEinsaetze
-                .Where(e => e.WerkzeugID == null && !string.IsNullOrEmpty(e.RevolverStation))
-                .GroupBy(e => new { e.RevolverStation, e.KorrekturNummer })
-                .Any();
-
-            StartToolAssignmentCommand.NotifyCanExecuteChanged();
-        }
-
-        // --- MANUELLE CanExecute-Methode entfernt! Das Command verwendet die Property CanStartToolAssignment direkt. ---
-
-        [RelayCommand(CanExecute = nameof(CanStartToolAssignment))]
+        // --- NEUE LOGIK FÜR DEN DIREKTEN AUFRUF DER VERGLEICHSANSICHT ---
+        [RelayCommand]
         private void StartToolAssignment()
         {
-            AssignNextTool();
-        }
-
-        private void AssignNextTool()
-        {
-            // 1. Finde das nächste eindeutige, unzugewiesene Werkzeug
-            var nextToolGroup = WerkzeugEinsaetze
-                .Where(e => e.WerkzeugID == null && !string.IsNullOrEmpty(e.RevolverStation))
-                .GroupBy(e => new { e.RevolverStation, e.KorrekturNummer })
-                .OrderBy(g => g.Min(e => e.Reihenfolge)) // Nach Reihenfolge sortieren
-                .FirstOrDefault();
-
-            if (nextToolGroup == null)
-            {
-                // Zuweisung abgeschlossen
-                CheckCanStartToolAssignment(); // Setzt CanExecute auf false
-
-                // Navigation zum Vergleichsfenster
-                // Es ist wichtig, die aktuelle Liste der Einsätze zu verwenden, da sie alle Informationen (auch die neuen Werkzeug-IDs) enthält
-                var finalAssignments = WerkzeugEinsaetze.ToList();
-
-                _mainViewModel.NavigateTo(new ToolAssignmentComparisonViewModel(_mainViewModel, _currentProgramm, finalAssignments));
-
-                return;
-            }
-
-            var sampleEinsatz = nextToolGroup.First();
-            string station = sampleEinsatz.RevolverStation!;
-            string korrektur = sampleEinsatz.KorrekturNummer ?? "";
-
-            // Navigation zum ToolManagementViewModel (Auswahlmodus)
-            var toolManagementVM = new ToolManagementViewModel(selectedTool =>
-            {
-                // Callback-Aktion nach Auswahl des Werkzeugs
-                PerformToolAssignmentUpdate(station, korrektur, selectedTool.WerkzeugID);
-
-                // Setze den Prozess sofort fort (rekursiver Aufruf)
-                _mainViewModel.NavigateBack(); // Schließt die ToolManagementView
-                AssignNextTool();
-            });
-
-            MessageBox.Show($"Bitte weisen Sie ein Werkzeug für Revolverstation {station} und Korrektur {korrektur} zu. Dieses Werkzeug wird allen '{station}/{korrektur}' Einsätzen im Programm zugewiesen.", "Werkzeugzuweisung starten", MessageBoxButton.OK, MessageBoxImage.Information);
-
-            _mainViewModel.NavigateTo(toolManagementVM);
-        }
-
-        private void PerformToolAssignmentUpdate(string station, string korrektur, int werkzeugId)
-        {
-            using var context = new NcSetupContext();
-
-            // Finde ALLE WerkzeugEinsatz-Objekte mit der gleichen RevolverStation und KorrekturNummer im aktuellen NC-Programm
-            var einsaetzeToUpdate = context.WerkzeugEinsaetze
-                .Where(e => e.NCProgrammID == _currentProgramm.NCProgrammID &&
-                            e.RevolverStation == station &&
-                            (e.KorrekturNummer == korrektur || (string.IsNullOrEmpty(korrektur) && e.KorrekturNummer == null)))
-                .ToList();
-
-            // Aktualisiere die WerkzeugID in der Datenbank
-            foreach (var einsatz in einsaetzeToUpdate)
-            {
-                einsatz.WerkzeugID = werkzeugId;
-            }
-            context.SaveChanges();
-
-            // Lade die Daten im ViewModel neu, um die UI zu aktualisieren
-            LoadWerkzeugEinsaetze();
+            // Direkte Navigation zur Vergleichsansicht mit dem aktuellen Zustand
+            var finalAssignments = WerkzeugEinsaetze.ToList();
+            _mainViewModel.NavigateTo(new ToolAssignmentComparisonViewModel(_mainViewModel, _currentProgramm, finalAssignments));
         }
 
         // ------------------------------------------------------------------

@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -33,6 +34,7 @@ namespace NC_Setup_Assist.ViewModels
     {
         private readonly MainViewModel _mainViewModel;
         private readonly Maschine _machine;
+        private readonly Action? _onCloseCallback; // Hinzugefügte Callback-Funktion
 
         [ObservableProperty]
         private int _selectedAnzahlStationen;
@@ -43,10 +45,12 @@ namespace NC_Setup_Assist.ViewModels
         public List<int> StationOptions { get; } = Enumerable.Range(4, 21).ToList(); // Zahlen von 4 bis 24
         public ObservableCollection<StandardToolAssignmentViewModel> ToolAssignments { get; } = new();
 
-        public StandardToolsManagementViewModel(MainViewModel mainViewModel, Maschine machine)
+        // Angepasster Konstruktor
+        public StandardToolsManagementViewModel(MainViewModel mainViewModel, Maschine machine, Action? onCloseCallback = null)
         {
             _mainViewModel = mainViewModel;
             _machine = machine;
+            _onCloseCallback = onCloseCallback; // Callback speichern
 
             LoadStandardTools();
 
@@ -137,12 +141,14 @@ namespace NC_Setup_Assist.ViewModels
             }
 
             context.SaveChanges();
+            _onCloseCallback?.Invoke(); // Callback hier aufrufen
             _mainViewModel.NavigateBack();
         }
 
         [RelayCommand]
         private void Cancel()
         {
+            _onCloseCallback?.Invoke(); // Callback hier aufrufen
             _mainViewModel.NavigateBack();
         }
     }

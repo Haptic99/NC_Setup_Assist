@@ -14,7 +14,6 @@ namespace NC_Setup_Assist.ViewModels
     public partial class MachineManagementViewModel : ViewModelBase
     {
         private readonly MainViewModel _mainViewModel;
-        // --- NEU: Merkt sich eine temporär erstellte Maschine ---
         private Maschine? _machineToDeleteOnCancel;
 
 
@@ -66,12 +65,31 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
+        // --- NEUE METHODE ZUM AKTUALISIEREN ---
+        private void RefreshDataAndEditingState()
+        {
+            int? editingMachineId = EditingMaschine?.MaschineID;
+
+            LoadData();
+
+            if (editingMachineId.HasValue && editingMachineId != 0)
+            {
+                var refreshedMachineInList = Maschinen.FirstOrDefault(m => m.MaschineID == editingMachineId.Value);
+                if (refreshedMachineInList != null && EditingMaschine != null)
+                {
+                    // Wichtig: Aktualisiere die Eigenschaft des Bearbeitungsobjekts
+                    EditingMaschine.AnzahlStationen = refreshedMachineInList.AnzahlStationen;
+                }
+            }
+        }
+
+
         [RelayCommand]
         private void NewMachine()
         {
             EditingMaschine = new Maschine();
             IsInEditMode = true;
-            _machineToDeleteOnCancel = null; // Zurücksetzen
+            _machineToDeleteOnCancel = null;
         }
 
         [RelayCommand]
@@ -91,7 +109,7 @@ namespace NC_Setup_Assist.ViewModels
                 ZugehoerigerStandort = SelectedMaschine.ZugehoerigerStandort
             };
             IsInEditMode = true;
-            _machineToDeleteOnCancel = null; // Zurücksetzen
+            _machineToDeleteOnCancel = null;
         }
 
 
@@ -110,11 +128,9 @@ namespace NC_Setup_Assist.ViewModels
             using var context = new NcSetupContext();
             if (EditingMaschine.MaschineID == 0) // Neue Maschine
             {
-                // FK-Werte aus der ausgewählten Navigations-Instanz übernehmen
                 EditingMaschine.HerstellerID = EditingMaschine.Hersteller.HerstellerID;
                 EditingMaschine.StandortID = EditingMaschine.ZugehoerigerStandort.StandortID;
 
-                // WICHTIG: Navigations-Eigenschaften entfernen, damit EF keinen detached Hersteller als neues Entity einfügt.
                 EditingMaschine.Hersteller = null!;
                 EditingMaschine.ZugehoerigerStandort = null!;
 
@@ -139,7 +155,6 @@ namespace NC_Setup_Assist.ViewModels
             }
             context.SaveChanges();
 
-            // Erfolgreich gespeichert, also nicht mehr beim Abbrechen löschen
             _machineToDeleteOnCancel = null;
 
             IsInEditMode = false;
@@ -171,7 +186,6 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void ManageStandardTools()
         {
-            // Validierung vor dem Speichern
             if (EditingMaschine == null ||
                 string.IsNullOrWhiteSpace(EditingMaschine.Name) ||
                 EditingMaschine.Hersteller == null ||
@@ -181,7 +195,6 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            // Wenn es eine neue, noch nicht gespeicherte Maschine ist
             if (EditingMaschine.MaschineID == 0)
             {
                 using var context = new NcSetupContext();
@@ -198,21 +211,19 @@ namespace NC_Setup_Assist.ViewModels
                 context.Maschinen.Add(EditingMaschine);
                 context.SaveChanges();
 
-                // Die Navigations-Eigenschaften wiederherstellen für die UI
                 EditingMaschine.Hersteller = tempHersteller;
                 EditingMaschine.ZugehoerigerStandort = tempStandort;
 
-                // Maschine zum späteren Löschen vormerken
                 _machineToDeleteOnCancel = EditingMaschine;
             }
 
-            _mainViewModel.NavigateTo(new StandardToolsManagementViewModel(_mainViewModel, EditingMaschine));
+            // --- ANGEPASSTER AUFRUF ---
+            _mainViewModel.NavigateTo(new StandardToolsManagementViewModel(_mainViewModel, EditingMaschine, RefreshDataAndEditingState));
         }
 
         [RelayCommand]
         private void Cancel()
         {
-            // Wenn eine temporäre Maschine erstellt wurde, diese löschen
             if (_machineToDeleteOnCancel != null)
             {
                 using var context = new NcSetupContext();
@@ -227,7 +238,7 @@ namespace NC_Setup_Assist.ViewModels
             EditingMaschine = null;
             IsInEditMode = false;
             _machineToDeleteOnCancel = null;
-            LoadData(); // Lade die Daten neu, um den Zustand zu synchronisieren
+            LoadData();
         }
 
         [RelayCommand]

@@ -260,8 +260,7 @@ namespace NC_Setup_Assist
                 {
                     // 1. Standorte erstellen
                     var standort1 = new Standort { Name = "STB Maschinenbau AG", PLZ = "9032", Stadt = "Engelburg", Strasse = "Breitschachenstrasse", Hausnummer = "56" };
-                    var standort2 = new Standort { Name = "Gebrüder Egli Maschinen AG", PLZ = "9512", Stadt = "Rossrüti", Strasse = "Konstanzerstrasse", Hausnummer = "14" };
-                    context.Standorte.AddRange(standort1, standort2);
+                    context.Standorte.AddRange(standort1);
                     context.SaveChanges(); // Speichern, damit die IDs generiert werden
 
                     // 2. Maschinen erstellen und zuweisen
@@ -270,7 +269,7 @@ namespace NC_Setup_Assist
 
                     var maschine1 = new Maschine { Name = "Okuma ES-L8", Hersteller = okumaHersteller, ZugehoerigerStandort = standort1 };
                     var maschine2 = new Maschine { Name = "Okuma LU-15", Hersteller = okumaHersteller, ZugehoerigerStandort = standort1 };
-                    var maschine3 = new Maschine { Name = "Kern", Hersteller = dmtHersteller, ZugehoerigerStandort = standort2 };
+                    var maschine3 = new Maschine { Name = "Kern", Hersteller = dmtHersteller, ZugehoerigerStandort = standort1 };
                     context.Maschinen.AddRange(maschine1, maschine2, maschine3);
 
                     context.SaveChanges();

@@ -37,30 +37,20 @@
                             <Setter Property="Background" Value="#EFEFEF"/>
                         </Trigger>
                     </Style.Triggers>
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseDoubleClick">
+                            <i:InvokeCommandAction Command="{Binding DataContext.ChooseToolCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
                 </Style>
             </ListView.ItemContainerStyle>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid>
-                        <i:Interaction.Behaviors>
-                            <i:EventTriggerBehavior EventName="MouseDoubleClick">
-                                <i:InvokeCommandAction Command="{Binding DataContext.ChooseToolCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}"/>
-                            </i:EventTriggerBehavior>
-                        </i:Interaction.Behaviors>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="80"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="200"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Text="{Binding Station}" Grid.Column="0"/>
-
-                        <TextBlock Text="{Binding SelectedWerkzeug.Name}" Grid.Column="1"/>
-
-                        <TextBlock Text="{Binding SelectedWerkzeug.Unterkategorie.Name}" Grid.Column="2"/>
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Station" DisplayMemberBinding="{Binding Station}" Width="80"/>
+                    <GridViewColumn Header="Werkzeug" DisplayMemberBinding="{Binding SelectedWerkzeug.Name}" Width="400"/>
+                    <GridViewColumn Header="Typ" DisplayMemberBinding="{Binding SelectedWerkzeug.Unterkategorie.Name}" Width="200"/>
+                </GridView>
+            </ListView.View>
         </ListView>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Windows;
 
 namespace NC_Setup_Assist.ViewModels
 {
@@ -29,6 +30,12 @@ namespace NC_Setup_Assist.ViewModels
 
         [ObservableProperty]
         private Maschine? _selectedMaschine;
+
+        // --- NEUES FELD FÜR DEN ZUSTAND DER ZUWEISUNG ---
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(StartToolAssignmentCommand))]
+        private bool _canStartToolAssignment;
+        // --------------------------------------------------
 
         // --- NEUES FELD ZUM SPEICHERN DER LETZTEN SUCHE ---
         private readonly Dictionary<int, int> _lastSearchIndex = new();
@@ -147,9 +154,9 @@ namespace NC_Setup_Assist.ViewModels
             // 3. Verknüpfe die geparsten Einsätze mit den Standardwerkzeugen (in memory)
             foreach (var einsatz in einsaetzeFromDb)
             {
-                // Wenn das Werkzeug noch NICHT manuell zugewiesen ist (einsatz.ZugehoerigesWerkzeug ist null)
+                // Wenn das Werkzeug noch NICHT manuell zugewiesen ist (einsatz.WerkzeugID ist null)
                 // und es eine Revolverstation gibt
-                if (einsatz.ZugehoerigesWerkzeug == null && !string.IsNullOrEmpty(einsatz.RevolverStation))
+                if (einsatz.WerkzeugID == null && !string.IsNullOrEmpty(einsatz.RevolverStation))
                 {
                     // Versuche, das passende Standardwerkzeug zu finden
                     // Der RevolverStation-String des Parsers kann z.B. "01" oder "1" sein. Wir trimmen führende Nullen für den Match mit dem Int-Key.
@@ -157,7 +164,6 @@ namespace NC_Setup_Assist.ViewModels
                     if (standardToolLookup.TryGetValue(stationKey, out var stdToolAssignment))
                     {
                         // Standardwerkzeug gefunden -> Verknüpfung in memory setzen
-                        // Wir setzen nur die Instanz für die Anzeige, damit sie in der Spalte "Werkzeug (Standard)" sichtbar ist.
                         // Der WerkzeugID-Wert in der Datenbank bleibt NULL, solange der Benutzer das Werkzeug nicht manuell zuweist.
                         einsatz.ZugehoerigesWerkzeug = stdToolAssignment.ZugehoerigesWerkzeug;
                     }
@@ -165,6 +171,9 @@ namespace NC_Setup_Assist.ViewModels
 
                 WerkzeugEinsaetze.Add(einsatz);
             }
+
+            // 4. Initialisiere CanStartToolAssignment
+            CheckCanStartToolAssignment();
         }
 
         private void LoadStandorte()
@@ -193,5 +202,93 @@ namespace NC_Setup_Assist.ViewModels
                 }
             }
         }
+
+        // --- NEUE LOGIK FÜR DIE SEQUENZIELLE ZUWEISUNG ---
+
+        private void CheckCanStartToolAssignment()
+        {
+            // true, wenn noch eindeutige, unzugewiesene Werkzeuge vorhanden sind
+            _canStartToolAssignment = WerkzeugEinsaetze
+                .Where(e => e.WerkzeugID == null && !string.IsNullOrEmpty(e.RevolverStation))
+                .GroupBy(e => new { e.RevolverStation, e.KorrekturNummer })
+                .Any();
+
+            StartToolAssignmentCommand.NotifyCanExecuteChanged();
+        }
+
+        private bool CanStartToolAssignment() => _canStartToolAssignment;
+
+        [RelayCommand(CanExecute = nameof(CanStartToolAssignment))]
+        private void StartToolAssignment()
+        {
+            AssignNextTool();
+        }
+
+        private void AssignNextTool()
+        {
+            // 1. Finde das nächste eindeutige, unzugewiesene Werkzeug
+            var nextToolGroup = WerkzeugEinsaetze
+                .Where(e => e.WerkzeugID == null && !string.IsNullOrEmpty(e.RevolverStation))
+                .GroupBy(e => new { e.RevolverStation, e.KorrekturNummer })
+                .OrderBy(g => g.Min(e => e.Reihenfolge)) // Nach Reihenfolge sortieren
+                .FirstOrDefault();
+
+            if (nextToolGroup == null)
+            {
+                // Zuweisung abgeschlossen
+                CheckCanStartToolAssignment(); // Setzt CanExecute auf false
+
+                // Navigation zum Vergleichsfenster
+                // Es ist wichtig, die aktuelle Liste der Einsätze zu verwenden, da sie alle Informationen (auch die neuen Werkzeug-IDs) enthält
+                var finalAssignments = WerkzeugEinsaetze.ToList();
+
+                _mainViewModel.NavigateTo(new ToolAssignmentComparisonViewModel(_mainViewModel, _currentProgramm, finalAssignments));
+
+                return;
+            }
+
+            var sampleEinsatz = nextToolGroup.First();
+            string station = sampleEinsatz.RevolverStation!;
+            string korrektur = sampleEinsatz.KorrekturNummer ?? "";
+
+            // Navigation zum ToolManagementViewModel (Auswahlmodus)
+            var toolManagementVM = new ToolManagementViewModel(selectedTool =>
+            {
+                // Callback-Aktion nach Auswahl des Werkzeugs
+                PerformToolAssignmentUpdate(station, korrektur, selectedTool.WerkzeugID);
+
+                // Setze den Prozess sofort fort (rekursiver Aufruf)
+                _mainViewModel.NavigateBack(); // Schließt die ToolManagementView
+                AssignNextTool();
+            });
+
+            MessageBox.Show($"Bitte weisen Sie ein Werkzeug für Revolverstation {station} und Korrektur {korrektur} zu. Dieses Werkzeug wird allen '{station}/{korrektur}' Einsätzen im Programm zugewiesen.", "Werkzeugzuweisung starten", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            _mainViewModel.NavigateTo(toolManagementVM);
+        }
+
+        private void PerformToolAssignmentUpdate(string station, string korrektur, int werkzeugId)
+        {
+            using var context = new NcSetupContext();
+
+            // Finde ALLE WerkzeugEinsatz-Objekte mit der gleichen RevolverStation und KorrekturNummer im aktuellen NC-Programm
+            var einsaetzeToUpdate = context.WerkzeugEinsaetze
+                .Where(e => e.NCProgrammID == _currentProgramm.NCProgrammID &&
+                            e.RevolverStation == station &&
+                            (e.KorrekturNummer == korrektur || (string.IsNullOrEmpty(korrektur) && e.KorrekturNummer == null)))
+                .ToList();
+
+            // Aktualisiere die WerkzeugID in der Datenbank
+            foreach (var einsatz in einsaetzeToUpdate)
+            {
+                einsatz.WerkzeugID = werkzeugId;
+            }
+            context.SaveChanges();
+
+            // Lade die Daten im ViewModel neu, um die UI zu aktualisieren
+            LoadWerkzeugEinsaetze();
+        }
+
+        // ------------------------------------------------------------------
     }
 }

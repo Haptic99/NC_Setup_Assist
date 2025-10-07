@@ -15,6 +15,7 @@
 
     <Window.Resources>
 
+
         <DataTemplate DataType="{x:Type viewmodels:MainMenuViewModel}">
             <views:MainMenuView/>
         </DataTemplate>
@@ -28,6 +29,7 @@
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type viewmodels:NewProjectViewModel}">
+
             <views:NewProjectView/>
         </DataTemplate>
 
@@ -41,6 +43,7 @@
 
         <DataTemplate DataType="{x:Type viewmodels:AddMachineViewModel}">
             <views:AddMachineView/>
+
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type viewmodels:HerstellerManagementViewModel}">
@@ -54,6 +57,11 @@
         <DataTemplate DataType="{x:Type viewmodels:StandortManagementViewModel}">
             <views:StandortManagementView/>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewmodels:ToolAssignmentComparisonViewModel}">
+            <views:ToolAssignmentComparisonView/>
+        </DataTemplate>
+
     </Window.Resources>
 
     <Grid>

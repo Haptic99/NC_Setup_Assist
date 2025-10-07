@@ -65,20 +65,39 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
-        // --- NEUE METHODE ZUM AKTUALISIEREN ---
         private void RefreshDataAndEditingState()
         {
+            // IDs der aktuellen Auswahl merken (falls vorhanden)
             int? editingMachineId = EditingMaschine?.MaschineID;
+            var selectedHerstellerId = EditingMaschine?.Hersteller?.HerstellerID;
+            var selectedStandortId = EditingMaschine?.ZugehoerigerStandort?.StandortID;
 
+            // Alle Daten neu aus der DB laden
             LoadData();
 
-            if (editingMachineId.HasValue && editingMachineId != 0)
+            // Wenn wir im Bearbeitungsmodus sind, die Auswahl wiederherstellen
+            if (EditingMaschine != null)
             {
-                var refreshedMachineInList = Maschinen.FirstOrDefault(m => m.MaschineID == editingMachineId.Value);
-                if (refreshedMachineInList != null && EditingMaschine != null)
+                // Auswahl für Hersteller wiederherstellen
+                if (selectedHerstellerId.HasValue)
                 {
-                    // Wichtig: Aktualisiere die Eigenschaft des Bearbeitungsobjekts
-                    EditingMaschine.AnzahlStationen = refreshedMachineInList.AnzahlStationen;
+                    EditingMaschine.Hersteller = Hersteller.FirstOrDefault(h => h.HerstellerID == selectedHerstellerId.Value);
+                }
+
+                // Auswahl für Standort wiederherstellen
+                if (selectedStandortId.HasValue)
+                {
+                    EditingMaschine.ZugehoerigerStandort = Standorte.FirstOrDefault(s => s.StandortID == selectedStandortId.Value);
+                }
+
+                // Daten der Maschine selbst (wie Stationsanzahl) aktualisieren
+                if (editingMachineId.HasValue && editingMachineId != 0)
+                {
+                    var refreshedMachineInList = Maschinen.FirstOrDefault(m => m.MaschineID == editingMachineId.Value);
+                    if (refreshedMachineInList != null)
+                    {
+                        EditingMaschine.AnzahlStationen = refreshedMachineInList.AnzahlStationen;
+                    }
                 }
             }
         }
@@ -217,7 +236,6 @@ namespace NC_Setup_Assist.ViewModels
                 _machineToDeleteOnCancel = EditingMaschine;
             }
 
-            // --- ANGEPASSTER AUFRUF ---
             _mainViewModel.NavigateTo(new StandardToolsManagementViewModel(_mainViewModel, EditingMaschine, RefreshDataAndEditingState));
         }
 
@@ -244,7 +262,8 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void AddHersteller()
         {
-            _mainViewModel.NavigateTo(new HerstellerManagementViewModel(LoadData));
+            // Die neue, intelligentere Refresh-Methode als Callback übergeben
+            _mainViewModel.NavigateTo(new HerstellerManagementViewModel(RefreshDataAndEditingState));
         }
     }
 }

@@ -8,7 +8,7 @@
              mc:Ignorable="d">
     <Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Button Content="Werkzeuge Verwalten" Command="{Binding OpenToolManagementCommand}" Width="200" Margin="5"/>
+            <Button Content="Werkzeuge" Command="{Binding OpenToolManagementCommand}" Width="200" Margin="5"/>
             <Button Content="Maschinen" Command="{Binding OpenMachineManagementCommand}" Width="200" Margin="5"/>
         </StackPanel>
     </Grid>

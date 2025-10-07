@@ -213,6 +213,39 @@ namespace NC_Setup_Assist.ViewModels
                     .Where(z => z.MaschineID == machineToSave.MaschineID);
                 context.StandardWerkzeugZuweisungen.RemoveRange(existingAssignments);
 
+                // FIX: Sicherstellung der FK-Auflösung für Werkzeuge
+                var toolIds = _pendingStandardToolChanges.Select(a => a.WerkzeugID).Distinct();
+
+                // Minimal-Stubs für die Kette der non-nullable Navigationseigenschaften
+                var minimalKategorieStub = new WerkzeugKategorie { WerkzeugKategorieID = 0, Name = "Stub" };
+                var minimalUnterkategorieStub = new WerkzeugUnterkategorie
+                {
+                    WerkzeugUnterkategorieID = 0,
+                    Name = "Stub",
+                    Kategorie = minimalKategorieStub // Erfüllt non-nullable Referenz
+                };
+
+                // Setze die Stubs auf Detached, damit EF Core sie nicht speichert
+                context.Entry(minimalKategorieStub).State = EntityState.Detached;
+                context.Entry(minimalUnterkategorieStub).State = EntityState.Detached;
+
+                foreach (var toolId in toolIds)
+                {
+                    // Erstelle den Werkzeug-Stub mit den notwendigen (aber leeren) Non-Null-Properties
+                    var werkzeugStub = new Werkzeug
+                    {
+                        WerkzeugID = toolId,
+                        Name = "PLACEHOLDER", // Füllt non-nullable Name
+                        // Füllt die non-nullable Referenzeigenschaften
+                        WerkzeugUnterkategorieID = minimalUnterkategorieStub.WerkzeugUnterkategorieID,
+                        Unterkategorie = minimalUnterkategorieStub
+                    };
+
+                    // Manuell anhängen und Zustand auf Unchanged setzen
+                    context.Werkzeuge.Attach(werkzeugStub);
+                    context.Entry(werkzeugStub).State = EntityState.Unchanged;
+                }
+
                 // Füge die neuen Zuweisungen hinzu
                 context.StandardWerkzeugZuweisungen.AddRange(_pendingStandardToolChanges);
             }
@@ -307,12 +340,14 @@ namespace NC_Setup_Assist.ViewModels
                 // Wird hier nicht benötigt, da Änderungen in _pending... verwaltet werden.
             };
 
-            // 3. Navigation mit Callbacks
+            // 3. Navigation mit Callbacks und Übergabe der PENDING CHANGES
             _mainViewModel.NavigateTo(new StandardToolsManagementViewModel(
                 _mainViewModel,
                 EditingMaschine!,
                 onToolsSaved,
-                onToolsCanceled));
+                onToolsCanceled,
+                // NEU: Übergebe die ausstehenden Änderungen, falls vorhanden.
+                _pendingStandardToolChanges));
         }
 
         [RelayCommand]

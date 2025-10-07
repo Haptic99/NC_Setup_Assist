@@ -46,6 +46,9 @@ namespace NC_Setup_Assist.ViewModels
         private readonly Action<List<StandardWerkzeugZuweisung>, int> _onSaveCallback;
         private readonly Action _onCancelCallback;
 
+        // NEU: Feld für die übergebenen, unsicheren Änderungen
+        private readonly List<StandardWerkzeugZuweisung>? _initialPendingAssignments;
+
         [ObservableProperty]
         private int _selectedAnzahlStationen;
 
@@ -56,18 +59,33 @@ namespace NC_Setup_Assist.ViewModels
         public ObservableCollection<StandardToolAssignmentViewModel> ToolAssignments { get; } = new();
 
         // Angepasster Konstruktor
-        public StandardToolsManagementViewModel(MainViewModel mainViewModel, Maschine machine, Action<List<StandardWerkzeugZuweisung>, int> onSaveCallback, Action onCancelCallback)
+        public StandardToolsManagementViewModel(
+            MainViewModel mainViewModel,
+            Maschine machine,
+            Action<List<StandardWerkzeugZuweisung>, int> onSaveCallback,
+            Action onCancelCallback,
+            // NEU: Optionaler Parameter für pending changes
+            List<StandardWerkzeugZuweisung>? initialPendingAssignments = null)
         {
             _mainViewModel = mainViewModel;
             _machine = machine;
             // Callbacks übergeben
             _onSaveCallback = onSaveCallback;
             _onCancelCallback = onCancelCallback;
+            // NEU: Initialisiere das Feld
+            _initialPendingAssignments = initialPendingAssignments;
 
-            // Lade die aktuellen Daten der Maschine, um die Stationsanzahl korrekt zu setzen
+            // Lade die Tools (entweder aus Pending-Liste oder DB)
             LoadStandardTools();
 
-            SelectedAnzahlStationen = _machine.AnzahlStationen >= 4 ? _machine.AnzahlStationen : 12; // Standard: 12, falls nichts gesetzt
+            // Setze die Stationsanzahl basierend auf der Maschine (die ggf. schon Pending-Werte enthält)
+            SelectedAnzahlStationen = _machine.AnzahlStationen >= 4 ? _machine.AnzahlStationen : 12;
+
+            // Führe die Logik für die Stationsanzahl aus, um die Liste an die Größe anzupassen
+            if (ToolAssignments.Count != SelectedAnzahlStationen)
+            {
+                OnSelectedAnzahlStationenChanged(SelectedAnzahlStationen);
+            }
 
             // Die Anzahl der Stationen ist nur änderbar, wenn noch KEIN Werkzeug zugewiesen ist.
             IsAnzahlStationenChangeable = !ToolAssignments.Any(t => t.SelectedWerkzeug != null);
@@ -76,20 +94,53 @@ namespace NC_Setup_Assist.ViewModels
         private void LoadStandardTools()
         {
             ToolAssignments.Clear();
-            using var context = new NcSetupContext();
-            var standardTools = context.StandardWerkzeugZuweisungen
-                .Where(z => z.MaschineID == _machine.MaschineID)
-                .Include(z => z.ZugehoerigesWerkzeug)
-                .ThenInclude(w => w!.Unterkategorie)
-                .ToList();
 
-            // Beziehe die Anzahl der Stationen aus der Datenbank-Instanz der Maschine
+            // 1. Hole die tatsächliche Stationsanzahl (entweder aus der DB-Maschine oder dem Pending-State des Parent-VM)
             int anzahlStationen = _machine.AnzahlStationen >= 4 ? _machine.AnzahlStationen : 12;
 
+            // 2. Lade die Zuweisungen
+            List<StandardWerkzeugZuweisung> assignmentsToUse;
+
+            if (_initialPendingAssignments != null)
+            {
+                // FALL A (FIX): Verwende die übergebenen, unsicheren Zuweisungen aus dem Parent-VM
+                assignmentsToUse = _initialPendingAssignments;
+
+                // Füge die Navigationseigenschaften hinzu, falls sie fehlen (dies ist notwendig für die Anzeige in der UI)
+                using var context = new NcSetupContext();
+                foreach (var assignment in assignmentsToUse)
+                {
+                    if (assignment.ZugehoerigesWerkzeug == null)
+                    {
+                        // Lade das Werkzeug direkt aus der DB, da es im Pending-Objekt nur als ID existiert
+                        assignment.ZugehoerigesWerkzeug = context.Werkzeuge
+                            .Include(w => w.Unterkategorie)
+                            .SingleOrDefault(w => w.WerkzeugID == assignment.WerkzeugID);
+                    }
+                }
+            }
+            else
+            {
+                // FALL B: Lade Zuweisungen aus der Datenbank (ursprüngliches Verhalten)
+                using var context = new NcSetupContext();
+                assignmentsToUse = context.StandardWerkzeugZuweisungen
+                    .Where(z => z.MaschineID == _machine.MaschineID)
+                    .Include(z => z.ZugehoerigesWerkzeug)
+                    .ThenInclude(w => w!.Unterkategorie)
+                    .ToList();
+            }
+
+            // 3. Fülle die ViewModel-Liste
+            // Erstelle ein schnelles Lookup für die Zuweisungen (Schlüssel: RevolverStation, Wert: Werkzeug)
+            var assignmentLookup = assignmentsToUse
+                .Where(a => a.ZugehoerigesWerkzeug != null)
+                .ToDictionary(a => a.RevolverStation, a => a.ZugehoerigesWerkzeug);
+
+            // Nur bis zur aktuellen Stationsanzahl iterieren
             for (int i = 1; i <= anzahlStationen; i++)
             {
-                var assignment = standardTools.FirstOrDefault(t => t.RevolverStation == i);
-                ToolAssignments.Add(new StandardToolAssignmentViewModel(i, assignment?.ZugehoerigesWerkzeug));
+                assignmentLookup.TryGetValue(i, out var assignedTool);
+                ToolAssignments.Add(new StandardToolAssignmentViewModel(i, assignedTool));
             }
         }
 
@@ -118,6 +169,8 @@ namespace NC_Setup_Assist.ViewModels
             {
                 assignmentVM.SelectedWerkzeug = selectedTool;
                 _mainViewModel.NavigateBack();
+                // Wenn ein Werkzeug ausgewählt/zugewiesen wurde, kann die Stationsanzahl nicht mehr geändert werden.
+                IsAnzahlStationenChangeable = false;
             });
 
             _mainViewModel.NavigateTo(toolManagementVM);
@@ -139,6 +192,7 @@ namespace NC_Setup_Assist.ViewModels
                         // Wichtig: MaschineID wird für die korrekte Zuordnung im Parent-ViewModel benötigt
                         MaschineID = _machine.MaschineID,
                         RevolverStation = assignmentVM.Station,
+                        // Speichere nur die ID, da die eigentliche Entität bereits in der DB existiert
                         WerkzeugID = assignmentVM.SelectedWerkzeug.WerkzeugID
                     });
                 }

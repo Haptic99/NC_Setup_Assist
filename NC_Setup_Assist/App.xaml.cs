@@ -255,19 +255,16 @@ namespace NC_Setup_Assist
                     context.SaveChanges();
                 }
 
-                // Fülle die Firma/Standorte/Maschinen, falls sie noch leer sind
-                if (context.Firmen.Any() == false)
+                // Fülle die Standorte/Maschinen, falls sie noch leer sind
+                if (context.Standorte.Any() == false)
                 {
-                    // 1. Firma erstellen
-                    var firma = new Firma { Name = "Musterfirma GmbH" };
-                    context.Firmen.Add(firma);
-
-                    // 2. Standorte erstellen
-                    var standort1 = new Standort { Name = "STB Maschinenbau AG", PLZ = "9032", Stadt = "Engelburg", Strasse = "Breitschachenstrasse", Hausnummer = "56", ZugehoerigeFirma = firma };
-                    var standort2 = new Standort { Name = "Gebrüder Egli Maschinen AG", PLZ = "9512", Stadt = "Rossrüti", Strasse = "Konstanzerstrasse", Hausnummer = "14", ZugehoerigeFirma = firma };
+                    // 1. Standorte erstellen
+                    var standort1 = new Standort { Name = "STB Maschinenbau AG", PLZ = "9032", Stadt = "Engelburg", Strasse = "Breitschachenstrasse", Hausnummer = "56" };
+                    var standort2 = new Standort { Name = "Gebrüder Egli Maschinen AG", PLZ = "9512", Stadt = "Rossrüti", Strasse = "Konstanzerstrasse", Hausnummer = "14" };
                     context.Standorte.AddRange(standort1, standort2);
+                    context.SaveChanges(); // Speichern, damit die IDs generiert werden
 
-                    // 3. Maschinen erstellen und zuweisen
+                    // 2. Maschinen erstellen und zuweisen
                     var okumaHersteller = context.Hersteller.SingleOrDefault(h => h.Name == "Okuma");
                     var dmtHersteller = context.Hersteller.SingleOrDefault(h => h.Name == "DMT");
 

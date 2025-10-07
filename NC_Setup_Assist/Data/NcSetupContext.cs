@@ -9,7 +9,6 @@ namespace NC_Setup_Assist.Data
     public class NcSetupContext : DbContext
     {
         // ... (Alle Ihre DbSet-Eigenschaften bleiben unverändert)
-        public DbSet<Firma> Firmen { get; set; }
         public DbSet<Standort> Standorte { get; set; }
         public DbSet<Maschine> Maschinen { get; set; }
         public DbSet<Werkzeug> Werkzeuge { get; set; }

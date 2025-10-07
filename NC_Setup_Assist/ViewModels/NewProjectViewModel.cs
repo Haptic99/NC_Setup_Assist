@@ -22,13 +22,13 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private string? _projectName;
 
-        // --- NEUE EIGENSCHAFTEN ---
-        public ObservableCollection<Firma> Firmen { get; } = new();
+        // --- ANGEPASSTE EIGENSCHAFTEN ---
+        public ObservableCollection<Standort> Standorte { get; } = new();
         public ObservableCollection<Maschine> Maschinen { get; } = new();
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(CreateProjectCommand))]
-        private Firma? _selectedFirma;
+        private Standort? _selectedStandort;
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(CreateProjectCommand))]
@@ -38,11 +38,11 @@ namespace NC_Setup_Assist.ViewModels
         public NewProjectViewModel(MainViewModel mainViewModel)
         {
             _mainViewModel = mainViewModel;
-            LoadFirmen(); // Lädt die Firmenliste beim Start
+            LoadStandorte(); // Lädt die Standorte beim Start
         }
 
-        // --- NEUE METHODE: Wird aufgerufen, wenn sich die Auswahl der Firma ändert ---
-        partial void OnSelectedFirmaChanged(Firma? value)
+        // --- NEUE METHODE: Wird aufgerufen, wenn sich die Auswahl des Standorts ändert ---
+        partial void OnSelectedStandortChanged(Standort? value)
         {
             LoadMaschinen(value);
         }
@@ -69,7 +69,7 @@ namespace NC_Setup_Assist.ViewModels
             // Ein Projekt kann nur erstellt werden, wenn alle Felder ausgefüllt sind
             return !string.IsNullOrWhiteSpace(NcFilePath) &&
                    !string.IsNullOrWhiteSpace(ProjectName) &&
-                   SelectedFirma != null &&
+                   SelectedStandort != null &&
                    SelectedMaschine != null;
         }
 
@@ -78,7 +78,7 @@ namespace NC_Setup_Assist.ViewModels
         {
             if (string.IsNullOrWhiteSpace(NcFilePath) ||
                 string.IsNullOrWhiteSpace(ProjectName) ||
-                SelectedFirma == null ||
+                SelectedStandort == null ||
                 SelectedMaschine == null)
             {
                 MessageBox.Show("Bitte füllen Sie alle Felder aus.", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -122,29 +122,28 @@ namespace NC_Setup_Assist.ViewModels
             _mainViewModel.NavigateTo(new AnalysisViewModel(neuesProgramm, _mainViewModel));
         }
 
-        // --- NEUE METHODEN ZUM LADEN VON DATEN ---
-        private void LoadFirmen()
+        // --- ANGEPASSTE METHODEN ZUM LADEN VON DATEN ---
+        private void LoadStandorte()
         {
-            Firmen.Clear();
+            Standorte.Clear();
             using var context = new NcSetupContext();
-            var firmenFromDb = context.Firmen
-                                      .Include(f => f.Standorte)
-                                      .ThenInclude(s => s.Maschinen)
-                                      .ToList();
-            foreach (var firma in firmenFromDb)
+            var standorteFromDb = context.Standorte
+                                         .Include(s => s.Maschinen)
+                                         .ToList();
+            foreach (var standort in standorteFromDb)
             {
-                Firmen.Add(firma);
+                Standorte.Add(standort);
             }
         }
 
-        private void LoadMaschinen(Firma? firma)
+        private void LoadMaschinen(Standort? standort)
         {
             Maschinen.Clear();
             SelectedMaschine = null; // Auswahl zurücksetzen
-            if (firma != null)
+            if (standort != null)
             {
-                var maschinen = firma.Standorte.SelectMany(s => s.Maschinen).ToList();
-                foreach (var maschine in maschinen)
+                // Die Maschinen sind bereits durch das Include geladen
+                foreach (var maschine in standort.Maschinen)
                 {
                     Maschinen.Add(maschine);
                 }

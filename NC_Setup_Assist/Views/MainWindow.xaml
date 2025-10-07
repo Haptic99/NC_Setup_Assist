@@ -28,7 +28,6 @@
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type viewmodels:NewProjectViewModel}">
-
             <views:NewProjectView/>
         </DataTemplate>
 
@@ -51,11 +50,14 @@
         <DataTemplate DataType="{x:Type viewmodels:StandardToolsManagementViewModel}">
             <views:StandardToolsManagementView/>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewmodels:StandortManagementViewModel}">
+            <views:StandortManagementView/>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>

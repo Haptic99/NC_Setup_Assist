@@ -10,6 +10,7 @@
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
             <Button Content="Werkzeuge" Command="{Binding OpenToolManagementCommand}" Width="200" Margin="5"/>
             <Button Content="Maschinen" Command="{Binding OpenMachineManagementCommand}" Width="200" Margin="5"/>
+            <Button Content="Standorte" Command="{Binding OpenStandortManagementCommand}" Width="200" Margin="5"/>
         </StackPanel>
     </Grid>
 </UserControl>

@@ -21,11 +21,11 @@ namespace NC_Setup_Assist.ViewModels
 
         public ObservableCollection<WerkzeugEinsatz> WerkzeugEinsaetze { get; } = new();
 
-        public ObservableCollection<Firma> Firmen { get; } = new();
+        public ObservableCollection<Standort> Standorte { get; } = new();
         public ObservableCollection<Maschine> Maschinen { get; } = new();
 
         [ObservableProperty]
-        private Firma? _selectedFirma;
+        private Standort? _selectedStandort;
 
         [ObservableProperty]
         private Maschine? _selectedMaschine;
@@ -43,10 +43,10 @@ namespace NC_Setup_Assist.ViewModels
 
             LoadNcFileContent();
             LoadWerkzeugEinsaetze();
-            LoadFirmen();
+            LoadStandorte();
         }
 
-        partial void OnSelectedFirmaChanged(Firma? value)
+        partial void OnSelectedStandortChanged(Standort? value)
         {
             LoadMaschinen(value);
         }
@@ -123,29 +123,27 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
-        private void LoadFirmen()
+        private void LoadStandorte()
         {
-            Firmen.Clear();
+            Standorte.Clear();
             using var context = new NcSetupContext();
-            var firmenFromDb = context.Firmen
-                                      .Include(f => f.Standorte)
-                                      .ThenInclude(s => s.Maschinen)
-                                      .ToList();
-            foreach (var firma in firmenFromDb)
+            var standorteFromDb = context.Standorte
+                                         .Include(s => s.Maschinen)
+                                         .ToList();
+            foreach (var standort in standorteFromDb)
             {
-                Firmen.Add(firma);
+                Standorte.Add(standort);
             }
         }
 
-        private void LoadMaschinen(Firma? firma)
+        private void LoadMaschinen(Standort? standort)
         {
             Maschinen.Clear();
             SelectedMaschine = null; // Auswahl zurücksetzen
-            if (firma != null)
+            if (standort != null)
             {
-                // Sammelt alle Maschinen von allen Standorten der ausgewählten Firma
-                var maschinen = firma.Standorte.SelectMany(s => s.Maschinen).ToList();
-                foreach (var maschine in maschinen)
+                // Sammelt alle Maschinen vom ausgewählten Standort
+                foreach (var maschine in standort.Maschinen)
                 {
                     Maschinen.Add(maschine);
                 }

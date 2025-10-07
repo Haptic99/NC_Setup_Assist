@@ -23,5 +23,11 @@ namespace NC_Setup_Assist.ViewModels
         {
             _mainViewModel.NavigateTo(new MachineManagementViewModel(_mainViewModel));
         }
+
+        [RelayCommand]
+        private void OpenStandortManagement()
+        {
+            _mainViewModel.NavigateTo(new StandortManagementViewModel(_mainViewModel));
+        }
     }
 }

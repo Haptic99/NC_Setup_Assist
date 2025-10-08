@@ -10,8 +10,8 @@ using NC_Setup_Assist.Data;
 namespace NC_Setup_Assist.Migrations
 {
     [DbContext(typeof(NcSetupContext))]
-    [Migration("20251007040907_Initialize")]
-    partial class Initialize
+    [Migration("20251008084602_Initilaize")]
+    partial class Initilaize
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -185,6 +185,9 @@ namespace NC_Setup_Assist.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<double?>("Steigung")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("WerkzeugUnterkategorieID")
                         .HasColumnType("INTEGER");

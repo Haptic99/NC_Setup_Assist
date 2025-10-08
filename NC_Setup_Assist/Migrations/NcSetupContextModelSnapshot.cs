@@ -183,6 +183,9 @@ namespace NC_Setup_Assist.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<double?>("Steigung")
+                        .HasColumnType("REAL");
+
                     b.Property<int>("WerkzeugUnterkategorieID")
                         .HasColumnType("INTEGER");
 

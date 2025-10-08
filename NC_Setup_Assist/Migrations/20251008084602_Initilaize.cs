@@ -5,7 +5,7 @@
 namespace NC_Setup_Assist.Migrations
 {
     /// <inheritdoc />
-    public partial class Initialize : Migration
+    public partial class Initilaize : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -130,6 +130,7 @@ namespace NC_Setup_Assist.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Beschreibung = table.Column<string>(type: "TEXT", nullable: true),
+                    Steigung = table.Column<double>(type: "REAL", nullable: true),
                     WerkzeugUnterkategorieID = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>

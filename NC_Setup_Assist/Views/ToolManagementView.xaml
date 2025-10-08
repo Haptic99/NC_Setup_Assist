@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:NC_Setup_Assist.Views"
              xmlns:vm="clr-namespace:NC_Setup_Assist.ViewModels"
              xmlns:conv="clr-namespace:NC_Setup_Assist.Converters"
+        
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
@@ -18,6 +19,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="1*"/>
+
         </Grid.ColumnDefinitions>
 
         <DockPanel Grid.Column="0" Margin="0,0,10,0">
@@ -25,23 +27,27 @@
 
             <ListView ItemsSource="{Binding FilteredWerkzeuge}"
                       SelectedItem="{Binding SelectedTool, Mode=TwoWay}"
-                      IsEnabled="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
+                      IsEnabled="{Binding IsInEditMode, 
+ Converter={StaticResource InverseBoolToVis}}">
 
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseDoubleClick">
                         <i:InvokeCommandAction Command="{Binding EditToolCommand}" />
                     </i:EventTrigger>
+
                 </i:Interaction.Triggers>
 
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="ID" DisplayMemberBinding="{Binding WerkzeugID}" Width="50"/>
                         <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150"/>
+
                         <GridViewColumn Header="Typ" DisplayMemberBinding="{Binding Unterkategorie.Name}" Width="150"/>
                         <GridViewColumn Header="Beschreibung" DisplayMemberBinding="{Binding Beschreibung}" Width="Auto"/>
                     </GridView>
                 </ListView.View>
             </ListView>
+
         </DockPanel>
 
         <Grid Grid.Column="1" Visibility="{Binding IsSelectionMode, Converter={StaticResource InverseBoolToVis}}">
@@ -49,26 +55,40 @@
                 <TextBlock Text="Werkzeug Details" FontWeight="Bold" Margin="0,0,0,10"/>
                 <TextBlock Text="Name:"/>
                 <TextBox Text="{Binding EditingTool.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5"/>
+
                 <TextBlock Text="Kategorie:"/>
                 <ComboBox Margin="0,0,0,5"
                           ItemsSource="{Binding Kategorien}"
                           SelectedItem="{Binding SelectedKategorie}"
-                          DisplayMemberPath="Name"/>
+                     
+      DisplayMemberPath="Name"/>
                 <TextBlock Text="Unterkategorie / Typ:"/>
                 <ComboBox Margin="0,0,0,5"
                           ItemsSource="{Binding Unterkategorien}"
-                          SelectedItem="{Binding EditingTool.Unterkategorie}"
-                          DisplayMemberPath="Name"/>
+                          SelectedItem="{Binding SelectedUnterkategorie}" 
+     
+                      DisplayMemberPath="Name"/>
+
+                <StackPanel Visibility="{Binding IsPitchRequired, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="Steigung"/>
+
+                    <TextBox Text="{Binding PitchInputString, UpdateSourceTrigger=PropertyChanged}" 
+                             Margin="0,0,0,5" 
+                             ToolTip="Nur für Gewindedrehstähle erforderlich. Erlaubt Dezimalzahlen mit Komma oder Punkt."/>
+
+                </StackPanel>
                 <TextBlock Text="Beschreibung:"/>
                 <TextBox Text="{Binding EditingTool.Beschreibung, UpdateSourceTrigger=PropertyChanged}" Height="80" TextWrapping="Wrap" Margin="0,0,0,10" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
                 <Button Content="Speichern" Command="{Binding SaveToolCommand}" Margin="0,5,0,0"/>
-                <Button Content="Abbrechen" Command="{Binding CancelCommand}" Margin="0,5,0,0"/>
+                <Button Content="Abbrechen" 
+ Command="{Binding CancelCommand}" Margin="0,5,0,0"/>
             </StackPanel>
 
             <StackPanel VerticalAlignment="Top"
                         Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
                 <Button Content="Neues Werkzeug anlegen" Command="{Binding NewToolCommand}" Margin="0,5,0,0"/>
                 <Button Content="Werkzeug löschen" Command="{Binding DeleteToolCommand}" Margin="0,5,0,0"/>
+
             </StackPanel>
         </Grid>
     </Grid>

@@ -12,6 +12,9 @@ namespace NC_Setup_Assist.Models
         public string Name { get; set; } = null!; // <-- Behebt die Warnung für Name
         public string? Beschreibung { get; set; }
 
+        // NEU: Eigenschaft für die Gewindesteigung (nullable)
+        public double? Steigung { get; set; }
+
         // Beziehung zur Unterkategorie
         public int WerkzeugUnterkategorieID { get; set; }
         [ForeignKey("WerkzeugUnterkategorieID")]

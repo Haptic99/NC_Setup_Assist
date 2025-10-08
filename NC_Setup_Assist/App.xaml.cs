@@ -210,6 +210,8 @@ namespace NC_Setup_Assist
                             werkzeuge.Add(new Werkzeug { Name = $"Aussenstahl {platte} 1204{radius}", Unterkategorie = ukAussen });
                         }
                     }
+                    werkzeuge.Add(new Werkzeug { Name = "Messerst. 80°", Unterkategorie = ukAussen });
+                    werkzeuge.Add(new Werkzeug { Name = "Messerst. 35° gekr.", Unterkategorie = ukAussen });
 
                     // Innenbearbeitung
                     string[] wendeInnen = { "CCMT", "DCMT" };
@@ -225,6 +227,7 @@ namespace NC_Setup_Assist
                     werkzeuge.Add(new Werkzeug { Name = "Abstecher 2mm", Unterkategorie = ukAbstech });
                     werkzeuge.Add(new Werkzeug { Name = "Abstecher 3mm", Unterkategorie = ukAbstech });
                     werkzeuge.Add(new Werkzeug { Name = "Abstecher 4mm", Unterkategorie = ukAbstech });
+                    werkzeuge.Add(new Werkzeug { Name = "Abstechst. B=3mm", Unterkategorie = ukAbstech });
 
                     // Gewindedrehstähle
                     double[] steigung = { 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0 };
@@ -233,6 +236,7 @@ namespace NC_Setup_Assist
                         werkzeuge.Add(new Werkzeug { Name = $"Gew.-Stahl Aussen 60° P{s:F2}", Unterkategorie = ukGewindeDA });
                         werkzeuge.Add(new Werkzeug { Name = $"Gew.-Stahl Innen 60° P{s:F2}", Unterkategorie = ukGewindeDI });
                     }
+                    werkzeuge.Add(new Werkzeug { Name = "Gew. Aussen P=0.75", Unterkategorie = ukGewindeDA });
 
 
                     // Alle generierten Werkzeuge zur Datenbank hinzufügen
@@ -265,11 +269,33 @@ namespace NC_Setup_Assist
 
                     // 2. Maschinen erstellen und zuweisen
                     var okumaHersteller = context.Hersteller.SingleOrDefault(h => h.Name == "Okuma");
-                    var dmtHersteller = context.Hersteller.SingleOrDefault(h => h.Name == "DMT");
+                    // var dmtHersteller = context.Hersteller.SingleOrDefault(h => h.Name == "DMT"); // Nicht mehr benötigt
 
-                    var maschine1 = new Maschine { Name = "Okuma ES-L8", Hersteller = okumaHersteller, ZugehoerigerStandort = standort1};
+                    var maschine1 = new Maschine
+                    {
+                        Name = "Okuma ES-L8",
+                        Hersteller = okumaHersteller,
+                        ZugehoerigerStandort = standort1,
+                        // NEU: Seriennummer und Stationsanzahl hinzufügen
+                        Seriennummer = "ESL8-2024-001",
+                        AnzahlStationen = 12
+                    };
                     context.Maschinen.AddRange(maschine1);
+                    context.SaveChanges(); // Speichern, um maschine1.MaschineID zu erhalten!
 
+                    // 3. NEU: Standardwerkzeuge zuweisen
+                    var aussenStahl1 = context.Werkzeuge.Single(w => w.Name == "Messerst. 80°");
+                    var aussenStahl2 = context.Werkzeuge.Single(w => w.Name == "Messerst. 35° gekr.");
+                    var abstecher = context.Werkzeuge.Single(w => w.Name == "Abstechst. B=3mm");
+
+                    var standardTools = new List<StandardWerkzeugZuweisung>
+                    {
+                        new StandardWerkzeugZuweisung { MaschineID = maschine1.MaschineID, RevolverStation = 2, WerkzeugID = aussenStahl1.WerkzeugID },
+                        new StandardWerkzeugZuweisung { MaschineID = maschine1.MaschineID, RevolverStation = 1, WerkzeugID = aussenStahl2.WerkzeugID },
+                        new StandardWerkzeugZuweisung { MaschineID = maschine1.MaschineID, RevolverStation = 4, WerkzeugID = abstecher.WerkzeugID },
+                    };
+
+                    context.StandardWerkzeugZuweisungen.AddRange(standardTools);
                     context.SaveChanges();
                 }
             }

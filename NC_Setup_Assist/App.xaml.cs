@@ -267,8 +267,8 @@ namespace NC_Setup_Assist
                     var okumaHersteller = context.Hersteller.SingleOrDefault(h => h.Name == "Okuma");
                     var dmtHersteller = context.Hersteller.SingleOrDefault(h => h.Name == "DMT");
 
-                    var maschine1 = new Maschine { Name = "Okuma ES-L8", Hersteller = okumaHersteller, ZugehoerigerStandort = standort1, StandardWerkzeuge = };
-                    context.Maschinen.AddRange(maschine1, maschine2, maschine3);
+                    var maschine1 = new Maschine { Name = "Okuma ES-L8", Hersteller = okumaHersteller, ZugehoerigerStandort = standort1};
+                    context.Maschinen.AddRange(maschine1);
 
                     context.SaveChanges();
                 }

@@ -42,9 +42,6 @@ namespace NC_Setup_Assist.Services
             var korbZurückRegex = new Regex(@"\bM76\b");
             var toolRegex = new Regex(@"\bT(\d{2})(\d{2})?");
             var natRegex = new Regex(@"NAT(\d+)");
-            var xValueRegex = new Regex(@"X(\d+)", RegexOptions.IgnoreCase);
-            var g71Regex = new Regex(@"G71");
-            var steigungRegex = new Regex(@"F(\d +)");
             #endregion
 
             foreach (var line in lines)
@@ -136,33 +133,6 @@ namespace NC_Setup_Assist.Services
                 if (natMatch.Success)
                 {
                     nat = true;
-                }
-
-                var g71Match = g71Regex.Match(line);
-                if (g71Match.Success)
-                {
-                    var steigungMatch = steigungRegex.Match(line);
-                    if (steigungMatch.Success)
-                    {
-                        var xValueMatchg71 = xValueRegex.Match(line);
-                        if (xValueMatchg71.Success)
-                        {
-                            if (xValue > int.Parse(xValueMatchg71.Groups[1].Value))
-                            {
-
-                            }
-                            else
-                            {
-
-                            }
-                        }
-                    }
-                }
-
-                var xValueMatch = xValueRegex.Match(line);
-                if (xValueMatch.Success)
-                {
-                    xValue = int.Parse(xValueMatch.Groups[1].Value);
                 }
 
                 // --- ZULETZT DIE WERKZEUGVERARBEITUNG ---

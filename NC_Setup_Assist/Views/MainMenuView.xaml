@@ -3,18 +3,82 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:NC_Setup_Assist.Views"
-             
              xmlns:viewmodels="clr-namespace:NC_Setup_Assist.ViewModels"
-             
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
     <Grid>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Button Content="Neues Projekt" Command="{Binding CreateNewProjectCommand}" Width="200" Margin="5"/>
-            <Button Content="Projekte verwalten" Command="{Binding ManageProjectsCommand}" Width="200" Margin="5"/>
-            <Button Content="Einstellungen" Command="{Binding OpenSettingsCommand}" Width="200" Margin="5"/>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20">
+
+            <TextBlock Text="NC-Setup-Assist" 
+                       FontSize="36" 
+                       FontWeight="Bold" 
+                       Margin="0,0,0,30" 
+                       HorizontalAlignment="Center"
+                       Foreground="{StaticResource MaterialDesignBody}"/>
+
+            <UniformGrid Columns="3" 
+                         Rows="1" 
+                         HorizontalAlignment="Center" 
+                         VerticalAlignment="Center" 
+                         Width="650"
+                         Height="150">
+
+                <Button Command="{Binding CreateNewProjectCommand}" 
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Margin="10" 
+                        Padding="20"
+                        materialDesign:ButtonAssist.CornerRadius="5"
+                        ToolTip="Ein neues Projekt mit NC-Code starten.">
+                    <StackPanel>
+                        <materialDesign:PackIcon Kind="FileDocumentPlus" 
+                                                 Width="32" 
+                                                 Height="32" 
+                                                 Margin="0,0,0,10" 
+                                                 HorizontalAlignment="Center"/>
+                        <TextBlock Text="Neues Projekt" 
+                                   HorizontalAlignment="Center" 
+                                   FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding ManageProjectsCommand}" 
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Margin="10" 
+                        Padding="20"
+                        materialDesign:ButtonAssist.CornerRadius="5"
+                        ToolTip="Bestehende Projekte ansehen und bearbeiten.">
+                    <StackPanel>
+                        <materialDesign:PackIcon Kind="FolderMultiple" 
+                                                 Width="32" 
+                                                 Height="32" 
+                                                 Margin="0,0,0,10" 
+                                                 HorizontalAlignment="Center"/>
+                        <TextBlock Text="Projekte verwalten" 
+                                   HorizontalAlignment="Center" 
+                                   FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding OpenSettingsCommand}" 
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Margin="10" 
+                        Padding="20"
+                        materialDesign:ButtonAssist.CornerRadius="5"
+                        ToolTip="Einstellungen für Werkzeuge und Maschinen.">
+                    <StackPanel>
+                        <materialDesign:PackIcon Kind="Cog" 
+                                                 Width="32" 
+                                                 Height="32" 
+                                                 Margin="0,0,0,10" 
+                                                 HorizontalAlignment="Center"/>
+                        <TextBlock Text="Einstellungen" 
+                                   HorizontalAlignment="Center" 
+                                   FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+            </UniformGrid>
         </StackPanel>
     </Grid>
 </UserControl>

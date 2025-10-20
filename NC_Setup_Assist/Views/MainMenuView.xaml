@@ -26,7 +26,7 @@
                          Height="150">
 
                 <Button Command="{Binding CreateNewProjectCommand}" 
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Style="{StaticResource MaterialDesign.OutlinedButton}"
                         Margin="10" 
                         Padding="20"
                         materialDesign:ButtonAssist.CornerRadius="5"
@@ -44,7 +44,7 @@
                 </Button>
 
                 <Button Command="{Binding ManageProjectsCommand}" 
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Style="{StaticResource MaterialDesign.OutlinedButton}"
                         Margin="10" 
                         Padding="20"
                         materialDesign:ButtonAssist.CornerRadius="5"
@@ -62,7 +62,7 @@
                 </Button>
 
                 <Button Command="{Binding OpenSettingsCommand}" 
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Style="{StaticResource MaterialDesign.OutlinedButton}"
                         Margin="10" 
                         Padding="20"
                         materialDesign:ButtonAssist.CornerRadius="5"

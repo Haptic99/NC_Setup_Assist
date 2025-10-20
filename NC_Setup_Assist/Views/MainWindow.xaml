@@ -11,8 +11,7 @@
         Title="NC-Setup-Assist" 
         Height="600" 
         Width="900" 
-        WindowStartupLocation="CenterScreen"
-        Style="{StaticResource MaterialDesignWindow}">
+        WindowStartupLocation="CenterScreen">
     <Window.DataContext>
         <viewmodels:MainViewModel/>
     </Window.DataContext>
@@ -83,6 +82,6 @@
                 HorizontalAlignment="Right" 
                 Margin="10" 
                 Width="100"
-                Style="{StaticResource MaterialDesignOutlinedButton}"/>
+                Style="{StaticResource MaterialDesign.OutlinedButton}"/>
     </Grid>
 </Window>

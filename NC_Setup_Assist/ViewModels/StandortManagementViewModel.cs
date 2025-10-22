@@ -6,6 +6,7 @@ using NC_Setup_Assist.Models;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Collections.Generic; // NEU
 
 namespace NC_Setup_Assist.ViewModels
 {
@@ -13,9 +14,14 @@ namespace NC_Setup_Assist.ViewModels
     {
         private readonly MainViewModel _mainViewModel;
 
-        public ObservableCollection<Standort> Standorte { get; } = new();
+        // --- NEU: Listen und SearchTerm ---
+        private List<Standort> _allStandorte = new(); // Hält ungefilterte Daten
+
+        public ObservableCollection<Standort> FilteredStandorte { get; } = new(); // Sichtbare Liste
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(EditStandortCommand))]
+        [NotifyCanExecuteChangedFor(nameof(DeleteStandortCommand))]
         private Standort? _selectedStandort;
 
         [ObservableProperty]
@@ -24,15 +30,22 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private bool _isInEditMode;
 
+        [ObservableProperty] // NEU
+        private string? _searchTerm;
+        // ------------------------------------
+
         public StandortManagementViewModel(MainViewModel mainViewModel)
         {
             _mainViewModel = mainViewModel;
             LoadData();
         }
 
+        // NEU: Reagiert auf Änderungen im Suchfeld
+        partial void OnSearchTermChanged(string? value) => ApplyFilter();
+
         private void LoadData()
         {
-            Standorte.Clear();
+            _allStandorte.Clear();
 
             using var context = new NcSetupContext();
 
@@ -41,9 +54,26 @@ namespace NC_Setup_Assist.ViewModels
                                          .Include(s => s.Maschinen)
                                          .OrderBy(s => s.Name)
                                          .ToList();
-            foreach (var standort in standorteFromDb)
+
+            _allStandorte.AddRange(standorteFromDb);
+            ApplyFilter(); // Filter anwenden, um die sichtbare Liste zu füllen
+        }
+
+        private void ApplyFilter()
+        {
+            FilteredStandorte.Clear();
+            var filter = SearchTerm?.Trim().ToLower() ?? "";
+
+            var filteredList = _allStandorte.Where(s =>
+                string.IsNullOrWhiteSpace(filter) ||
+                s.Name.ToLower().Contains(filter) ||
+                s.PLZ.Contains(filter) ||
+                s.Stadt.ToLower().Contains(filter)
+            ).ToList();
+
+            foreach (var standort in filteredList)
             {
-                Standorte.Add(standort);
+                FilteredStandorte.Add(standort);
             }
         }
 
@@ -54,9 +84,15 @@ namespace NC_Setup_Assist.ViewModels
             IsInEditMode = true;
         }
 
-        [RelayCommand]
+        private bool CanExecuteStandortCommand()
+        {
+            return SelectedStandort != null;
+        }
+
+        [RelayCommand(CanExecute = nameof(CanExecuteStandortCommand))]
         private void EditStandort()
         {
+            // ... (unveränderte Logik)
             if (SelectedStandort == null) return;
 
             // Erstelle eine Kopie für die Bearbeitung, um die Originaldaten nicht direkt zu ändern
@@ -76,7 +112,7 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void SaveStandort()
         {
-            // HIER WURDE DIE PRÜFUNG ERWEITERT
+            // ... (unveränderte Logik)
             if (EditingStandort == null ||
                 string.IsNullOrWhiteSpace(EditingStandort.Name) ||
                 string.IsNullOrWhiteSpace(EditingStandort.Strasse) ||
@@ -112,9 +148,10 @@ namespace NC_Setup_Assist.ViewModels
             LoadData(); // Lade die Daten neu, um die Änderungen anzuzeigen
         }
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(CanExecuteStandortCommand))]
         private void DeleteStandort()
         {
+            // ... (unveränderte Logik)
             if (SelectedStandort == null) return;
 
             // Sicherheitsabfrage

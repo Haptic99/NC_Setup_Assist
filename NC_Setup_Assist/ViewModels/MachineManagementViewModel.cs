@@ -1,5 +1,4 @@
-﻿// NC_Setup_Assist/ViewModels/MachineManagementViewModel.cs
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
@@ -19,17 +18,20 @@ namespace NC_Setup_Assist.ViewModels
 
         // Hält die UNSICHEREN Änderungen der Standardwerkzeuge
         private List<StandardWerkzeugZuweisung>? _pendingStandardToolChanges;
-
-        // Sichert und hält die Stationsanzahl
         private int _originalAnzahlStationen;
         private int? _pendingAnzahlStationen;
 
+        // --- NEU: Listen und SearchTerm ---
+        private List<Maschine> _allMaschinen = new(); // Hält ungefilterte Daten
 
-        public ObservableCollection<Maschine> Maschinen { get; } = new();
+        public ObservableCollection<Maschine> FilteredMaschinen { get; } = new(); // Sichtbare Liste
+
         public ObservableCollection<Hersteller> Hersteller { get; } = new();
         public ObservableCollection<Standort> Standorte { get; } = new();
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(EditMachineCommand))]
+        [NotifyCanExecuteChangedFor(nameof(DeleteMachineCommand))]
         private Maschine? _selectedMaschine;
 
         [ObservableProperty]
@@ -38,38 +40,66 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private bool _isInEditMode;
 
+        [ObservableProperty] // NEU
+        private string? _searchTerm;
+        // ------------------------------------
+
         public MachineManagementViewModel(MainViewModel mainViewModel)
         {
             _mainViewModel = mainViewModel;
             LoadData();
         }
 
+        // NEU: Reagiert auf Änderungen im Suchfeld
+        partial void OnSearchTermChanged(string? value) => ApplyFilter();
+
         private void LoadData()
         {
-            Maschinen.Clear();
-            Hersteller.Clear();
-            Standorte.Clear();
+            _allMaschinen.Clear();
+            FilteredMaschinen.Clear();
 
             using var context = new NcSetupContext();
             var maschinenFromDb = context.Maschinen
                                          .Include(m => m.Hersteller)
                                          .Include(m => m.ZugehoerigerStandort)
                                          .ToList();
-            foreach (var maschine in maschinenFromDb)
-            {
-                Maschinen.Add(maschine);
-            }
 
+            _allMaschinen.AddRange(maschinenFromDb);
+
+            // Hersteller und Standorte laden (unverändert)
+            Hersteller.Clear();
             var herstellerFromDb = context.Hersteller.OrderBy(h => h.Name).ToList();
             foreach (var herst in herstellerFromDb)
             {
                 Hersteller.Add(herst);
             }
 
+            Standorte.Clear();
             var standorteFromDb = context.Standorte.ToList();
             foreach (var standort in standorteFromDb)
             {
                 Standorte.Add(standort);
+            }
+
+            ApplyFilter(); // Filter anwenden
+        }
+
+        private void ApplyFilter()
+        {
+            FilteredMaschinen.Clear();
+            var filter = this.SearchTerm?.Trim().ToLower() ?? "";
+
+            var filteredList = _allMaschinen.Where(m =>
+                string.IsNullOrWhiteSpace(filter) ||
+                m.Name.ToLower().Contains(filter) ||
+                (m.Seriennummer?.ToLower().Contains(filter) ?? false) ||
+                (m.Hersteller?.Name.ToLower().Contains(filter) ?? false) ||
+                (m.ZugehoerigerStandort?.Name.ToLower().Contains(filter) ?? false)
+            ).ToList();
+
+            foreach (var maschine in filteredList)
+            {
+                FilteredMaschinen.Add(maschine);
             }
         }
 
@@ -81,7 +111,7 @@ namespace NC_Setup_Assist.ViewModels
             var selectedStandortId = EditingMaschine?.ZugehoerigerStandort?.StandortID;
 
             // Alle Daten neu aus der DB laden
-            LoadData();
+            LoadData(); // Ruft jetzt LoadData/ApplyFilter auf
 
             // Wenn wir im Bearbeitungsmodus sind, die Auswahl wiederherstellen
             if (EditingMaschine != null)
@@ -101,7 +131,7 @@ namespace NC_Setup_Assist.ViewModels
                 // Daten der Maschine selbst (wie Stationsanzahl) aktualisieren
                 if (editingMachineId.HasValue && editingMachineId != 0)
                 {
-                    var refreshedMachineInList = Maschinen.FirstOrDefault(m => m.MaschineID == editingMachineId.Value);
+                    var refreshedMachineInList = _allMaschinen.FirstOrDefault(m => m.MaschineID == editingMachineId.Value);
                     if (refreshedMachineInList != null)
                     {
                         EditingMaschine.AnzahlStationen = refreshedMachineInList.AnzahlStationen;
@@ -111,22 +141,28 @@ namespace NC_Setup_Assist.ViewModels
         }
 
 
+        private bool CanExecuteMachineCommand()
+        {
+            return SelectedMaschine != null;
+        }
+
         [RelayCommand]
         private void NewMachine()
         {
+            // ... (unveränderte Logik)
             EditingMaschine = new Maschine();
             IsInEditMode = true;
             _machineToDeleteOnCancel = null;
 
-            // Pending- und Originalwerte zurücksetzen
             _pendingStandardToolChanges = null;
             _pendingAnzahlStationen = null;
             _originalAnzahlStationen = 0;
         }
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(CanExecuteMachineCommand))]
         private void EditMachine()
         {
+            // ... (unveränderte Logik)
             if (SelectedMaschine == null) return;
 
             EditingMaschine = new Maschine
@@ -143,7 +179,6 @@ namespace NC_Setup_Assist.ViewModels
             IsInEditMode = true;
             _machineToDeleteOnCancel = null;
 
-            // Stationsanzahl für Revert sichern und Pending-Werte zurücksetzen
             _originalAnzahlStationen = SelectedMaschine.AnzahlStationen;
             _pendingStandardToolChanges = null;
             _pendingAnzahlStationen = null;
@@ -153,6 +188,7 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void SaveMachine()
         {
+            // ... (unveränderte Logik)
             if (EditingMaschine == null ||
                 string.IsNullOrWhiteSpace(EditingMaschine.Name) ||
                 EditingMaschine.Hersteller == null ||
@@ -168,95 +204,76 @@ namespace NC_Setup_Assist.ViewModels
 
             if (isNewMachine)
             {
-                // Fallback für den Fall, dass ManageStandardTools nicht aufgerufen wurde (MaschineID = 0)
-                // Wir erstellen eine saubere Entität nur mit benötigten Werten und FKs.
                 machineToSave = new Maschine
                 {
                     Name = EditingMaschine.Name,
                     Seriennummer = EditingMaschine.Seriennummer,
-                    AnzahlStationen = _pendingAnzahlStationen ?? 0, // Stationsanzahl aus Pending oder Fallback
+                    AnzahlStationen = _pendingAnzahlStationen ?? 0,
                     HerstellerID = EditingMaschine.Hersteller.HerstellerID,
                     StandortID = EditingMaschine.ZugehoerigerStandort.StandortID
                 };
                 context.Maschinen.Add(machineToSave);
-                context.SaveChanges(); // Wichtig: Hier speichern, um die MachineID zu erhalten
+                context.SaveChanges();
 
-                // Aktualisiere das VM-Objekt mit der neuen ID
                 EditingMaschine.MaschineID = machineToSave.MaschineID;
             }
             else
             {
-                // Existierende Maschine (oder temporär gespeicherte neue Maschine)
-                // Finden und aktualisieren der verfolgten Entität
                 machineToSave = context.Maschinen.Find(EditingMaschine.MaschineID)!;
 
-                if (machineToSave == null) return; // Sollte nicht passieren
+                if (machineToSave == null) return;
 
-                // 1. Update Maschine Stammdaten
                 machineToSave.Name = EditingMaschine.Name;
                 machineToSave.Seriennummer = EditingMaschine.Seriennummer;
                 machineToSave.HerstellerID = EditingMaschine.Hersteller.HerstellerID;
                 machineToSave.StandortID = EditingMaschine.ZugehoerigerStandort.StandortID;
 
-                // 2. Update Stationsanzahl aus pending oder aktuellem VM-Zustand
                 machineToSave.AnzahlStationen = _pendingAnzahlStationen ?? EditingMaschine.AnzahlStationen;
             }
 
-            // Aktualisiere EditingMaschine mit dem finalen Stationsstand
             EditingMaschine.AnzahlStationen = machineToSave.AnzahlStationen;
 
-            // 3. Standardwerkzeug-Änderungen anwenden (für beide Maschinentypen)
             if (_pendingStandardToolChanges != null)
             {
-                // Lösche alle bisherigen Zuweisungen für DIESE MASCHINE (ID ist jetzt garantiert gesetzt)
                 var existingAssignments = context.StandardWerkzeugZuweisungen
                     .Where(z => z.MaschineID == machineToSave.MaschineID);
                 context.StandardWerkzeugZuweisungen.RemoveRange(existingAssignments);
 
-                // FIX: Sicherstellung der FK-Auflösung für Werkzeuge
                 var toolIds = _pendingStandardToolChanges.Select(a => a.WerkzeugID).Distinct();
 
-                // Minimal-Stubs für die Kette der non-nullable Navigationseigenschaften
                 var minimalKategorieStub = new WerkzeugKategorie { WerkzeugKategorieID = 0, Name = "Stub" };
                 var minimalUnterkategorieStub = new WerkzeugUnterkategorie
                 {
                     WerkzeugUnterkategorieID = 0,
                     Name = "Stub",
-                    Kategorie = minimalKategorieStub // Erfüllt non-nullable Referenz
+                    Kategorie = minimalKategorieStub
                 };
 
-                // Setze die Stubs auf Detached, damit EF Core sie nicht speichert
                 context.Entry(minimalKategorieStub).State = EntityState.Detached;
                 context.Entry(minimalUnterkategorieStub).State = EntityState.Detached;
 
                 foreach (var toolId in toolIds)
                 {
-                    // Erstelle den Werkzeug-Stub mit den notwendigen (aber leeren) Non-Null-Properties
                     var werkzeugStub = new Werkzeug
                     {
                         WerkzeugID = toolId,
-                        Name = "PLACEHOLDER", // Füllt non-nullable Name
-                        // Füllt die non-nullable Referenzeigenschaften
+                        Name = "PLACEHOLDER",
                         WerkzeugUnterkategorieID = minimalUnterkategorieStub.WerkzeugUnterkategorieID,
                         Unterkategorie = minimalUnterkategorieStub
                     };
 
-                    // Manuell anhängen und Zustand auf Unchanged setzen
                     context.Werkzeuge.Attach(werkzeugStub);
                     context.Entry(werkzeugStub).State = EntityState.Unchanged;
                 }
 
-                // Füge die neuen Zuweisungen hinzu
                 context.StandardWerkzeugZuweisungen.AddRange(_pendingStandardToolChanges);
             }
 
-            // FINALER SAVE: Speichert alle ausstehenden Änderungen an der Maschine und den Zuweisungen
             if (context.ChangeTracker.HasChanges())
             {
                 context.SaveChanges();
             }
 
-            // Nach erfolgreichem Speichern: State zurücksetzen
             _pendingStandardToolChanges = null;
             _pendingAnzahlStationen = null;
             _originalAnzahlStationen = EditingMaschine!.AnzahlStationen;
@@ -268,9 +285,10 @@ namespace NC_Setup_Assist.ViewModels
             LoadData();
         }
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(CanExecuteMachineCommand))]
         private void DeleteMachine()
         {
+            // ... (unveränderte Logik)
             if (SelectedMaschine == null) return;
 
             var result = MessageBox.Show($"Möchten Sie die Maschine '{SelectedMaschine.Name}' wirklich löschen?",
@@ -292,6 +310,7 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void ManageStandardTools()
         {
+            // ... (unveränderte Logik)
             if (EditingMaschine == null ||
                 string.IsNullOrWhiteSpace(EditingMaschine.Name) ||
                 EditingMaschine.Hersteller == null ||
@@ -301,7 +320,6 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            // 1. Wenn eine NEUE Maschine bearbeitet wird, muss diese temporär gespeichert werden, um eine ID zu erhalten
             if (EditingMaschine.MaschineID == 0)
             {
                 using var context = new NcSetupContext();
@@ -324,56 +342,45 @@ namespace NC_Setup_Assist.ViewModels
                 _machineToDeleteOnCancel = EditingMaschine;
             }
 
-            // 2. Callback-Methoden definieren
             Action<List<StandardWerkzeugZuweisung>, int> onToolsSaved = (updatedAssignments, newStationCount) =>
             {
-                // Wenn der Benutzer im Untermenü auf 'Speichern' klickt:
                 _pendingStandardToolChanges = updatedAssignments;
                 _pendingAnzahlStationen = newStationCount;
-
-                // Wir aktualisieren EditingMaschine sofort, damit der Benutzer die Stationsanzahl in der Hauptansicht sieht.
                 EditingMaschine!.AnzahlStationen = newStationCount;
             };
 
             Action onToolsCanceled = () =>
             {
-                // Wird hier nicht benötigt, da Änderungen in _pending... verwaltet werden.
+                // Leer
             };
 
-            // 3. Navigation mit Callbacks und Übergabe der PENDING CHANGES
             _mainViewModel.NavigateTo(new StandardToolsManagementViewModel(
                 _mainViewModel,
                 EditingMaschine!,
                 onToolsSaved,
                 onToolsCanceled,
-                // NEU: Übergebe die ausstehenden Änderungen, falls vorhanden.
                 _pendingStandardToolChanges));
         }
 
         [RelayCommand]
         private void Cancel()
         {
-            // 1. Logik für NEUE Maschine: Temporäre Maschine löschen
+            // ... (unveränderte Logik)
             if (_machineToDeleteOnCancel != null)
             {
                 using var context = new NcSetupContext();
                 var machineToDelete = context.Maschinen.Find(_machineToDeleteOnCancel.MaschineID);
                 if (machineToDelete != null)
                 {
-                    // Löscht alle Standardwerkzeugzuweisungen kaskadierend
                     context.Maschinen.Remove(machineToDelete);
                     context.SaveChanges();
                 }
             }
 
-            // 2. Logik für BESTEHENDE Maschine: Änderungen verwerfen
             if (EditingMaschine != null && EditingMaschine.MaschineID != 0)
             {
-                // Verwerfe die ausstehenden Standardwerkzeug-Änderungen
                 _pendingStandardToolChanges = null;
                 _pendingAnzahlStationen = null;
-
-                // Setze die Stationsanzahl auf den ursprünglichen Wert zurück
                 EditingMaschine.AnzahlStationen = _originalAnzahlStationen;
             }
 
@@ -386,7 +393,7 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void AddHersteller()
         {
-            // Die neue, intelligentere Refresh-Methode als Callback übergeben
+            // ... (unveränderte Logik)
             _mainViewModel.NavigateTo(new HerstellerManagementViewModel(RefreshDataAndEditingState));
         }
     }

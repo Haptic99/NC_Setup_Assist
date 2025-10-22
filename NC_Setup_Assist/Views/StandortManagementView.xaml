@@ -20,8 +20,7 @@
             <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
 
-        <DockPanel Grid.Column="0" Margin="0,0,10,0"
-                   Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
+        <DockPanel Grid.Column="0" Margin="0,0,10,0">
 
             <TextBlock DockPanel.Dock="Top" 
                        Text="Standortverwaltung" 
@@ -30,12 +29,7 @@
                        Margin="0,0,0,10"
                        Foreground="#333333"/>
 
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
-                <Button Content="Neu" Command="{Binding NewStandortCommand}" Width="100" Margin="0,0,5,0" Style="{StaticResource ModernTileButton}" Padding="10,5"/>
-                <Button Content="Löschen" Command="{Binding DeleteStandortCommand}" Width="100" Style="{StaticResource ModernTileButton}" Padding="10,5"/>
-            </StackPanel>
-
-            <ListView ItemsSource="{Binding Standorte}"
+            <ListView ItemsSource="{Binding FilteredStandorte}"
                       SelectedItem="{Binding SelectedStandort, Mode=TwoWay}"
                       AlternationCount="2">
                 <i:Interaction.Triggers>
@@ -66,61 +60,82 @@
                         <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="200"/>
                         <GridViewColumn Header="PLZ" DisplayMemberBinding="{Binding PLZ}" Width="80"/>
                         <GridViewColumn Header="Stadt" DisplayMemberBinding="{Binding Stadt}" Width="150"/>
+                        <GridViewColumn Header="Maschinen" DisplayMemberBinding="{Binding Maschinen.Count}" Width="80"/>
                         <GridViewColumn Header="Strasse" DisplayMemberBinding="{Binding Strasse}" Width="Auto"/>
                     </GridView>
                 </ListView.View>
             </ListView>
         </DockPanel>
 
-        <StackPanel Grid.Column="1"
-                    Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
-            <TextBlock Text="Standort bearbeiten" FontWeight="Bold" Margin="0,0,0,10" FontSize="16" Foreground="#007ACC"/>
+        <Grid Grid.Column="1">
 
-            <TextBlock Text="Name des Standorts:" Margin="0,5,0,0"/>
-            <TextBox Text="{Binding EditingStandort.Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0,0,0,5"/>
+            <StackPanel Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Standort bearbeiten" Style="{StaticResource HeaderTextStyle}"/>
 
-            <TextBlock Text="Strasse &amp; Nr.:" Margin="0,5,0,0"/>
-            <Grid Margin="0,0,0,5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" Text="{Binding EditingStandort.Strasse, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0,0,5,0"/>
-                <TextBox Grid.Column="1" Text="{Binding EditingStandort.Hausnummer, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Width="50" Margin="0"/>
-            </Grid>
+                <TextBlock Text="Name des Standorts:" Margin="0,5,0,0"/>
+                <TextBox Text="{Binding EditingStandort.Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0,0,0,5"/>
 
-            <TextBlock Text="PLZ &amp; Ort:" Margin="0,5,0,0"/>
-            <Grid Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" Text="{Binding EditingStandort.PLZ, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Width="60" Margin="0,0,5,0"/>
-                <TextBox Grid.Column="1" Text="{Binding EditingStandort.Stadt, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0"/>
-            </Grid>
+                <TextBlock Text="Strasse &amp; Nr.:" Margin="0,5,0,0"/>
+                <Grid Margin="0,0,0,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" Text="{Binding EditingStandort.Strasse, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0,0,5,0"/>
+                    <TextBox Grid.Column="1" Text="{Binding EditingStandort.Hausnummer, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Width="50" Margin="0"/>
+                </Grid>
 
-            <TextBlock Text="Maschinen an diesem Standort:" Margin="0,10,0,5" FontWeight="SemiBold"/>
-            <Border BorderBrush="#CCCCCC" BorderThickness="1">
-                <ListView ItemsSource="{Binding EditingStandort.Maschinen}" Height="120" IsHitTestVisible="False" BorderThickness="0">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="Padding" Value="5"/>
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Maschinenname" DisplayMemberBinding="{Binding Name}" Width="200"/>
-                        </GridView>
-                    </ListView.View>
-                </ListView>
-            </Border>
+                <TextBlock Text="PLZ &amp; Ort:" Margin="0,5,0,0"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" Text="{Binding EditingStandort.PLZ, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Width="60" Margin="0,0,5,0"/>
+                    <TextBox Grid.Column="1" Text="{Binding EditingStandort.Stadt, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0"/>
+                </Grid>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                <Button Content="Speichern" Command="{Binding SaveStandortCommand}" Width="100" IsDefault="True" Style="{StaticResource AccentButton}"/>
-                <Button Content="Abbrechen" Command="{Binding CancelCommand}" Width="100" IsCancel="True" Style="{StaticResource SecondaryButton}" Margin="5,0,0,0"/>
+                <TextBlock Text="Maschinen an diesem Standort:" Margin="0,10,0,5" FontWeight="SemiBold"/>
+                <Border BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="3">
+                    <ListView ItemsSource="{Binding EditingStandort.Maschinen}" Height="100" IsHitTestVisible="False" BorderThickness="0">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="Padding" Value="5"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Maschinenname" DisplayMemberBinding="{Binding Name}" Width="200"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Border>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                    <Button Content="Speichern" Command="{Binding SaveStandortCommand}" Width="100" IsDefault="True" Style="{StaticResource AccentButton}"/>
+                    <Button Content="Abbrechen" Command="{Binding CancelCommand}" Width="100" IsCancel="True" Style="{StaticResource SecondaryButton}" Margin="5,0,0,0"/>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
+
+            <StackPanel VerticalAlignment="Top"
+                        Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
+
+                <TextBlock Text="Aktionen" FontWeight="Bold" Margin="0,0,0,10" FontSize="16" Foreground="#333333"/>
+
+                <TextBlock Text="Standort suchen:" Margin="0,0,0,5" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" 
+                         Style="{StaticResource BaseTextBoxStyle}"
+                         Margin="0,0,0,15"
+                         Width="200"
+                         HorizontalAlignment="Left"
+                         ToolTip="Suche nach Name, PLZ oder Stadt"/>
+
+                <Button Content="Neuer Standort anlegen" Command="{Binding NewStandortCommand}" Width="200" HorizontalAlignment="Left" Style="{StaticResource AccentButton}" Margin="0,0,0,5"/>
+                <Button Content="Standort bearbeiten" Command="{Binding EditStandortCommand}" Width="200" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Margin="0,10,0,5"/>
+                <Button Content="Standort löschen" Command="{Binding DeleteStandortCommand}" Width="200" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Margin="0,15,0,0"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

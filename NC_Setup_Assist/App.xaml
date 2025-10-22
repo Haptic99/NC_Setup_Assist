@@ -21,6 +21,7 @@
                 <Setter Property="Margin" Value="0,0,0,5"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
             </Style>
+
             <Style x:Key="BaseTextBoxStyle" TargetType="{x:Type TextBox}" 
                    BasedOn="{StaticResource InputTextBoxStyle}"/>
             <Style TargetType="{x:Type ComboBox}">
@@ -63,7 +64,7 @@
             <Style x:Key="AccentButton" TargetType="{x:Type Button}">
                 <Setter Property="Background" Value="#007ACC"/>
                 <Setter Property="Foreground" Value="White"/>
-                <Setter Property="Padding" Value="8,5"/>
+                <Setter Property="Padding" Value="10,8"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Template">
@@ -88,7 +89,7 @@
             <Style x:Key="SecondaryButton" TargetType="{x:Type Button}">
                 <Setter Property="Background" Value="#E0E0E0"/>
                 <Setter Property="Foreground" Value="#333333"/>
-                <Setter Property="Padding" Value="8,5"/>
+                <Setter Property="Padding" Value="10,8"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -115,4 +116,4 @@
 
         </ResourceDictionary>
     </Application.Resources>
-</Application> 
+</Application>

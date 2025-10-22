@@ -29,8 +29,7 @@
             <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
 
-        <DockPanel Grid.Column="0" Margin="0,0,10,0"
-                   Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
+        <DockPanel Grid.Column="0" Margin="0,0,10,0">
 
             <TextBlock DockPanel.Dock="Top" 
                        Text="Maschinenverwaltung" 
@@ -39,12 +38,7 @@
                        Margin="0,0,0,10"
                        Foreground="#333333"/>
 
-            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
-                <Button Content="Neu" Command="{Binding NewMachineCommand}" Width="100" Margin="0,0,5,0" Style="{StaticResource ModernTileButton}" Padding="10,5"/>
-                <Button Content="Löschen" Command="{Binding DeleteMachineCommand}" Width="100" Style="{StaticResource ModernTileButton}" Padding="10,5"/>
-            </StackPanel>
-
-            <ListView ItemsSource="{Binding Maschinen}"
+            <ListView ItemsSource="{Binding FilteredMaschinen}"
                       SelectedItem="{Binding SelectedMaschine, Mode=TwoWay}"
                       AlternationCount="2">
                 <i:Interaction.Triggers>
@@ -82,49 +76,70 @@
             </ListView>
         </DockPanel>
 
-        <StackPanel Grid.Column="1"
-                    Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
-            <TextBlock Text="Maschine bearbeiten" FontWeight="Bold" Margin="0,0,0,10" FontSize="16" Foreground="#007ACC"/>
+        <Grid Grid.Column="1">
 
-            <TextBlock Text="Maschinenname:" Margin="0,5,0,0"/>
-            <TextBox Text="{Binding EditingMaschine.Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0,0,0,5"/>
+            <StackPanel Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Maschine bearbeiten" Style="{StaticResource HeaderTextStyle}"/>
 
-            <TextBlock Text="Seriennummer:" Margin="0,5,0,0"/>
-            <TextBox Text="{Binding EditingMaschine.Seriennummer, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0,0,0,5"/>
+                <TextBlock Text="Maschinenname:" Margin="0,5,0,0"/>
+                <TextBox Text="{Binding EditingMaschine.Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0,0,0,5"/>
 
-            <TextBlock Text="Hersteller:" Margin="0,5,0,0"/>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <ComboBox Grid.Column="0" ItemsSource="{Binding Hersteller}"
-                          SelectedItem="{Binding EditingMaschine.Hersteller}"
+                <TextBlock Text="Seriennummer:" Margin="0,5,0,0"/>
+                <TextBox Text="{Binding EditingMaschine.Seriennummer, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0,0,0,5"/>
+
+                <TextBlock Text="Hersteller:" Margin="0,5,0,0"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding Hersteller}"
+                              SelectedItem="{Binding EditingMaschine.Hersteller}"
+                              DisplayMemberPath="Name"
+                              Margin="0,0,5,5"/>
+                    <Button Grid.Column="1" Content="+" 
+                            Command="{Binding AddHerstellerCommand}" 
+                            Style="{StaticResource SmallAddButton}"
+                            ToolTip="Neuen Hersteller hinzufügen"/>
+                </Grid>
+
+                <TextBlock Text="Standort:" Margin="0,5,0,0"/>
+                <ComboBox ItemsSource="{Binding Standorte}"
+                          SelectedItem="{Binding EditingMaschine.ZugehoerigerStandort}"
                           DisplayMemberPath="Name"
-                          Margin="0,0,5,5"/>
-                <Button Grid.Column="1" Content="+" 
-                        Command="{Binding AddHerstellerCommand}" 
-                        Style="{StaticResource SmallAddButton}"
-                        ToolTip="Neuen Hersteller hinzufügen"/>
-            </Grid>
+                          Margin="0,0,0,10"/>
 
-            <TextBlock Text="Standort:" Margin="0,5,0,0"/>
-            <ComboBox ItemsSource="{Binding Standorte}"
-                      SelectedItem="{Binding EditingMaschine.ZugehoerigerStandort}"
-                      DisplayMemberPath="Name"
-                      Margin="0,0,0,10"/>
+                <Button Content="Standardwerkzeuge verwalten"
+                        Command="{Binding ManageStandardToolsCommand}"
+                        ToolTip="Hier klicken, um die auf dieser Maschine fest zugewiesenen Werkzeuge zu bearbeiten."
+                        Style="{StaticResource AccentButton}"
+                        Width="200"
+                        HorizontalAlignment="Left"
+                        Margin="0,15,0,15"/>
 
-            <Button Content="Standardwerkzeuge verwalten"
-                    Command="{Binding ManageStandardToolsCommand}"
-                    ToolTip="Hier klicken, um die auf dieser Maschine fest zugewiesenen Werkzeuge zu bearbeiten."
-                    Style="{StaticResource AccentButton}"
-                    Margin="0,15,0,15"
-                    Padding="10"/>
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                <Button Content="Speichern" Command="{Binding SaveMachineCommand}" Width="100" IsDefault="True" Style="{StaticResource AccentButton}"/>
-                <Button Content="Abbrechen" Command="{Binding CancelCommand}" Width="100" IsCancel="True" Style="{StaticResource SecondaryButton}" Margin="5,0,0,0"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                    <Button Content="Speichern" Command="{Binding SaveMachineCommand}" Width="100" IsDefault="True" Style="{StaticResource AccentButton}"/>
+                    <Button Content="Abbrechen" Command="{Binding CancelCommand}" Width="100" IsCancel="True" Style="{StaticResource SecondaryButton}" Margin="5,0,0,0"/>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
+
+            <StackPanel VerticalAlignment="Top"
+                        Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
+
+                <TextBlock Text="Aktionen" FontWeight="Bold" Margin="0,0,0,10" FontSize="16" Foreground="#333333"/>
+
+                <TextBlock Text="Maschine suchen:" Margin="0,0,0,5" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" 
+                         Style="{StaticResource BaseTextBoxStyle}"
+                         Margin="0,0,0,15"
+                         Width="200"
+                         HorizontalAlignment="Left"
+                         ToolTip="Suche nach Name, Hersteller oder Seriennummer"/>
+
+                <Button Content="Neue Maschine anlegen" Command="{Binding NewMachineCommand}" Width="200" HorizontalAlignment="Left" Style="{StaticResource AccentButton}" Margin="0,0,0,5"/>
+                <Button Content="Maschine bearbeiten" Command="{Binding EditMachineCommand}" Width="200" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Margin="0,10,0,5"/>
+                <Button Content="Maschine löschen" Command="{Binding DeleteMachineCommand}" Width="200" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Margin="0,15,0,0"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

@@ -15,7 +15,7 @@
         <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
 
         <Style x:Key="SearchTextBoxStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseTextBoxStyle}">
-            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Background" Value="#F9F9F9"/>
         </Style>
 
@@ -34,19 +34,6 @@
                        FontWeight="Bold" 
                        Margin="0,0,0,10"
                        Foreground="#333333"/>
-
-            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0"
-                        Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
-                <Button Content="Neu" Command="{Binding NewToolCommand}" Width="100" Margin="0,0,5,0" Style="{StaticResource ModernTileButton}" Padding="10,5"/>
-                <Button Content="Löschen" Command="{Binding DeleteToolCommand}" Width="100" Style="{StaticResource ModernTileButton}" Padding="10,5"/>
-            </StackPanel>
-
-            <Border DockPanel.Dock="Top" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="3" Margin="0,0,0,5">
-                <TextBox Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" 
-                          Padding="5" 
-                          Style="{StaticResource SearchTextBoxStyle}"
-                          ToolTip="Suche nach Name, Typ oder Beschreibung..."/>
-            </Border>
 
             <ListView ItemsSource="{Binding FilteredWerkzeuge}"
                       SelectedItem="{Binding SelectedTool, Mode=TwoWay}"
@@ -91,7 +78,7 @@
         <Grid Grid.Column="1" Visibility="{Binding IsSelectionMode, Converter={StaticResource InverseBoolToVis}}">
 
             <StackPanel Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Werkzeug bearbeiten" FontWeight="Bold" Margin="0,0,0,10" FontSize="16" Foreground="#007ACC"/>
+                <TextBlock Text="Werkzeug bearbeiten" Style="{StaticResource HeaderTextStyle}"/>
 
                 <TextBlock Text="Name:" Margin="0,5,0,0"/>
                 <TextBox Text="{Binding EditingTool.Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0,0,0,5"/>
@@ -133,14 +120,31 @@
 
             <StackPanel VerticalAlignment="Top"
                         Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
-                <TextBlock Text="Werkzeug wählen" FontWeight="Bold" Margin="0,0,0,10" FontSize="16" Visibility="{Binding IsSelectionMode, Converter={StaticResource BoolToVis}}" Foreground="#007ACC"/>
 
-                <Button Content="Werkzeug auswählen" Command="{Binding EditToolCommand}" Style="{StaticResource AccentButton}" Padding="10" Margin="0,0,0,5"
+                <TextBlock Text="Aktionen" FontWeight="Bold" Margin="0,0,0,10" FontSize="16" Foreground="#333333"/>
+
+                <TextBlock Text="Werkzeug suchen:" Margin="0,0,0,5" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" 
+                         Style="{StaticResource BaseTextBoxStyle}"
+                         Margin="0,0,0,15"
+                         Width="200"
+                         HorizontalAlignment="Left"
+                         ToolTip="Suche nach Name, Typ oder Beschreibung"/>
+
+                <Button Content="Werkzeug auswählen" Command="{Binding EditToolCommand}" 
+                        Style="{StaticResource AccentButton}" 
+                        Width="200" 
+                        HorizontalAlignment="Left" 
                         Visibility="{Binding IsSelectionMode, Converter={StaticResource BoolToVis}}"/>
 
-                <TextBlock Text="Aktionen" FontWeight="Bold" Margin="0,15,0,10" FontSize="16" Visibility="{Binding IsSelectionMode, Converter={StaticResource InverseBoolToVis}}" Foreground="#333333"/>
-                <Button Content="Werkzeug bearbeiten" Command="{Binding EditToolCommand}" Style="{StaticResource SecondaryButton}" Width="200" HorizontalAlignment="Left" Padding="10" Margin="0,0,0,5"
-                        Visibility="{Binding IsSelectionMode, Converter={StaticResource InverseBoolToVis}}"/>
+                <StackPanel Visibility="{Binding IsSelectionMode, Converter={StaticResource InverseBoolToVis}}">
+                    <Button Content="Neues Werkzeug anlegen" Command="{Binding NewToolCommand}" 
+                            Width="200" HorizontalAlignment="Left" Style="{StaticResource AccentButton}" Margin="0,0,0,5"/>
+                    <Button Content="Werkzeug bearbeiten" Command="{Binding EditToolCommand}" 
+                            Width="200" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Margin="0,10,0,5"/>
+                    <Button Content="Werkzeug löschen" Command="{Binding DeleteToolCommand}" 
+                            Width="200" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Margin="0,15,0,0"/>
+                </StackPanel>
             </StackPanel>
         </Grid>
     </Grid>

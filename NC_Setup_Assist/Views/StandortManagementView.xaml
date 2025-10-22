@@ -8,6 +8,7 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
+
     <UserControl.Resources>
         <conv:BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
@@ -21,22 +22,51 @@
 
         <DockPanel Grid.Column="0" Margin="0,0,10,0"
                    Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
+
+            <TextBlock DockPanel.Dock="Top" 
+                       Text="Standortverwaltung" 
+                       FontSize="18" 
+                       FontWeight="Bold" 
+                       Margin="0,0,0,10"
+                       Foreground="#333333"/>
+
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
-                <Button Content="Neu" Command="{Binding NewStandortCommand}" Width="100" Margin="0,0,5,0"/>
-                <Button Content="Löschen" Command="{Binding DeleteStandortCommand}" Width="100"/>
+                <Button Content="Neu" Command="{Binding NewStandortCommand}" Width="100" Margin="0,0,5,0" Style="{StaticResource ModernTileButton}" Padding="10,5"/>
+                <Button Content="Löschen" Command="{Binding DeleteStandortCommand}" Width="100" Style="{StaticResource ModernTileButton}" Padding="10,5"/>
             </StackPanel>
 
             <ListView ItemsSource="{Binding Standorte}"
-                      SelectedItem="{Binding SelectedStandort, Mode=TwoWay}">
+                      SelectedItem="{Binding SelectedStandort, Mode=TwoWay}"
+                      AlternationCount="2">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseDoubleClick">
                         <i:InvokeCommandAction Command="{Binding EditStandortCommand}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
+
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Padding" Value="5"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        <Setter Property="BorderBrush" Value="#EEEEEE"/>
+                        <Style.Triggers>
+                            <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                <Setter Property="Background" Value="#F8F8F8"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#E0F0FF"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                            </Trigger>
+                            </Style.Triggers>
+                    </Style>
+                </ListView.ItemContainerStyle>
+
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="200"/>
+                        <GridViewColumn Header="PLZ" DisplayMemberBinding="{Binding PLZ}" Width="80"/>
                         <GridViewColumn Header="Stadt" DisplayMemberBinding="{Binding Stadt}" Width="150"/>
+                        <GridViewColumn Header="Strasse" DisplayMemberBinding="{Binding Strasse}" Width="Auto"/>
                     </GridView>
                 </ListView.View>
             </ListView>
@@ -44,44 +74,52 @@
 
         <StackPanel Grid.Column="1"
                     Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
-            <TextBlock Text="Standort bearbeiten" FontWeight="Bold" Margin="0,0,0,10" FontSize="16"/>
+            <TextBlock Text="Standort bearbeiten" FontWeight="Bold" Margin="0,0,0,10" FontSize="16" Foreground="#007ACC"/>
 
-            <TextBlock Text="Name des Standorts:"/>
-            <TextBox Text="{Binding EditingStandort.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+            <TextBlock Text="Name des Standorts:" Margin="0,5,0,0"/>
+            <TextBox Text="{Binding EditingStandort.Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0,0,0,5"/>
 
-            <TextBlock Text="Strasse &amp; Nr.:"/>
+            <TextBlock Text="Strasse &amp; Nr.:" Margin="0,5,0,0"/>
             <Grid Margin="0,0,0,5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" Text="{Binding EditingStandort.Strasse, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0"/>
-                <TextBox Grid.Column="1" Text="{Binding EditingStandort.Hausnummer, UpdateSourceTrigger=PropertyChanged}" Width="50"/>
+                <TextBox Grid.Column="0" Text="{Binding EditingStandort.Strasse, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0,0,5,0"/>
+                <TextBox Grid.Column="1" Text="{Binding EditingStandort.Hausnummer, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Width="50" Margin="0"/>
             </Grid>
 
-            <TextBlock Text="PLZ &amp; Ort:"/>
+            <TextBlock Text="PLZ &amp; Ort:" Margin="0,5,0,0"/>
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" Text="{Binding EditingStandort.PLZ, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="0,0,5,0"/>
-                <TextBox Grid.Column="1" Text="{Binding EditingStandort.Stadt, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Grid.Column="0" Text="{Binding EditingStandort.PLZ, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Width="60" Margin="0,0,5,0"/>
+                <TextBox Grid.Column="1" Text="{Binding EditingStandort.Stadt, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0"/>
             </Grid>
 
             <TextBlock Text="Maschinen an diesem Standort:" Margin="0,10,0,5" FontWeight="SemiBold"/>
-            <ListView ItemsSource="{Binding EditingStandort.Maschinen}" Height="120" Margin="0,0,0,10" IsHitTestVisible="False">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="Maschinenname" DisplayMemberBinding="{Binding Name}" Width="200"/>
-                    </GridView>
-                </ListView.View>
-            </ListView>
-
+            <Border BorderBrush="#CCCCCC" BorderThickness="1">
+                <ListView ItemsSource="{Binding EditingStandort.Maschinen}" Height="120" IsHitTestVisible="False" BorderThickness="0">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Padding" Value="5"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Maschinenname" DisplayMemberBinding="{Binding Name}" Width="200"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Border>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                <Button Content="Speichern" Command="{Binding SaveStandortCommand}" Width="100" Margin="0,0,5,0" IsDefault="True"/>
-                <Button Content="Abbrechen" Command="{Binding CancelCommand}" Width="100" IsCancel="True"/>
+                <Button Content="Speichern" Command="{Binding SaveStandortCommand}" Width="100" IsDefault="True" Style="{StaticResource AccentButton}"/>
+                <Button Content="Abbrechen" Command="{Binding CancelCommand}" Width="100" IsCancel="True" Style="{StaticResource SecondaryButton}" Margin="5,0,0,0"/>
             </StackPanel>
         </StackPanel>
     </Grid>

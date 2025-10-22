@@ -11,12 +11,12 @@
         Height="600" 
         Width="900" 
         WindowStartupLocation="CenterScreen">
+
     <Window.DataContext>
         <viewmodels:MainViewModel/>
     </Window.DataContext>
 
     <Window.Resources>
-
         <DataTemplate DataType="{x:Type viewmodels:MainMenuViewModel}">
             <views:MainMenuView/>
         </DataTemplate>

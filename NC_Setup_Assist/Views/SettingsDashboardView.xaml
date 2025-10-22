@@ -8,9 +8,70 @@
              mc:Ignorable="d">
     <Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Button Content="Werkzeuge" Command="{Binding OpenToolManagementCommand}" Width="200" Margin="5"/>
-            <Button Content="Maschinen" Command="{Binding OpenMachineManagementCommand}" Width="200" Margin="5"/>
-            <Button Content="Standorte" Command="{Binding OpenStandortManagementCommand}" Width="200" Margin="5"/>
+
+            <TextBlock Text="Einstellungen" 
+                       FontSize="36" 
+                       FontWeight="Bold" 
+                       Margin="0,0,0,30" 
+                       HorizontalAlignment="Center"
+                       Foreground="#333333"/>
+
+            <UniformGrid Columns="3" 
+                         Rows="1" 
+                         HorizontalAlignment="Center" 
+                         VerticalAlignment="Center" 
+                         Width="650"
+                         Height="150">
+
+                <Button Command="{Binding OpenToolManagementCommand}" 
+                        Style="{StaticResource ModernTileButton}" 
+                        Margin="10"
+                        ToolTip="Werkzeugdatenbank verwalten (Werkzeuge, Kategorien).">
+                    <StackPanel>
+                        <TextBlock Text="&#x2692;" 
+                                   FontSize="32" 
+                                   Margin="0,0,0,10" 
+                                   HorizontalAlignment="Center"
+                                   Foreground="#007ACC"/>
+                        <TextBlock Text ="Werkzeuge" 
+                                   HorizontalAlignment="Center" 
+                                   FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding OpenMachineManagementCommand}" 
+                        Style="{StaticResource ModernTileButton}" 
+                        Margin="10"
+                        ToolTip="Maschinen und deren Standardwerkzeuge verwalten.">
+                    <StackPanel>
+                        <TextBlock Text="&#x25B2;" 
+                                   FontSize="32" 
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,10" 
+                                   HorizontalAlignment="Center"
+                                   Foreground="#007ACC"/>
+                        <TextBlock Text ="Maschinen" 
+                                   HorizontalAlignment="Center" 
+                                   FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding OpenStandortManagementCommand}" 
+                        Style="{StaticResource ModernTileButton}" 
+                        Margin="10"
+                        ToolTip="Standorte und deren Adressinformationen verwalten.">
+                    <StackPanel>
+                        <TextBlock Text="&#x2302;" 
+                                   FontSize="32" 
+                                   Margin="0,0,0,10" 
+                                   HorizontalAlignment="Center"
+                                   Foreground="#007ACC"/>
+                        <TextBlock Text ="Standorte" 
+                                   HorizontalAlignment="Center" 
+                                   FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+            </UniformGrid>
         </StackPanel>
     </Grid>
 </UserControl>

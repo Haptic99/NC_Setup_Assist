@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:NC_Setup_Assist.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -13,9 +14,32 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Hersteller verwalten" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
+        <TextBlock Grid.Row="0" 
+                   Text="Hersteller verwalten" 
+                   FontSize="18" 
+                   FontWeight="Bold" 
+                   Margin="0,0,0,10"
+                   Foreground="#333333"/>
 
         <ListView Grid.Row="1" ItemsSource="{Binding Hersteller}" SelectedItem="{Binding SelectedHersteller}" Margin="0,0,0,10">
+
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Padding" Value="5"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    <Setter Property="BorderBrush" Value="#EEEEEE"/>
+                    <Style.Triggers>
+                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                            <Setter Property="Background" Value="#F8F8F8"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#E0F0FF"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
+
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="ID" DisplayMemberBinding="{Binding HerstellerID}" Width="50"/>
@@ -25,9 +49,17 @@
         </ListView>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal">
-            <TextBox Text="{Binding NewHerstellerName, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="0,0,10,0"/>
-            <Button Content="Hinzufügen" Command="{Binding AddHerstellerCommand}" Width="100" Margin="0,0,10,0"/>
-            <Button Content="Löschen" Command="{Binding DeleteHerstellerCommand}" Width="100"/>
+            <TextBox Text="{Binding NewHerstellerName, UpdateSourceTrigger=PropertyChanged}" 
+                     Style="{StaticResource BaseTextBoxStyle}"
+                     Width="200" Margin="0,0,10,0"/>
+            <Button Content="Hinzufügen" 
+                    Command="{Binding AddHerstellerCommand}" 
+                    Style="{StaticResource AccentButton}"
+                    Width="100" Margin="0,0,10,0"/>
+            <Button Content="Löschen" 
+                    Command="{Binding DeleteHerstellerCommand}" 
+                    Style="{StaticResource SecondaryButton}"
+                    Width="100"/>
         </StackPanel>
     </Grid>
 </UserControl>

@@ -8,9 +8,11 @@
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance vm:ToolAssignmentComparisonViewModel}"
              d:DesignHeight="600" d:DesignWidth="800">
+
     <UserControl.Resources>
         <Style x:Key="AssignmentStatusItemStyle" TargetType="ListViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="5"/>
             <Style.Triggers>
                 <Trigger Property="ItemsControl.AlternationIndex" Value="0">
                     <Setter Property="Background" Value="White"/>
@@ -23,16 +25,21 @@
                     <Setter Property="Background" Value="#FFFACD"/>
                     <Setter Property="Foreground" Value="Black"/>
                 </DataTrigger>
-
                 <DataTrigger Binding="{Binding IsAssigned}" Value="True">
                     <Setter Property="Background" Value="#D0F0C0"/>
                     <Setter Property="Foreground" Value="#006400"/>
                 </DataTrigger>
+
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#E0F0FF"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="StandardAssignmentItemStyle" TargetType="ListViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="5"/>
             <Style.Triggers>
                 <Trigger Property="ItemsControl.AlternationIndex" Value="0">
                     <Setter Property="Background" Value="White"/>
@@ -40,9 +47,15 @@
                 <Trigger Property="ItemsControl.AlternationIndex" Value="1">
                     <Setter Property="Background" Value="#EFEFEF"/>
                 </Trigger>
+
                 <DataTrigger Binding="{Binding ToolNameBefore}" Value="Unbekannt">
                     <Setter Property="Background" Value="#FFDDDD"/>
                 </DataTrigger>
+
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#E0F0FF"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                </Trigger>
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
@@ -54,7 +67,12 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Werkzeugzuweisung Vergleich" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
+        <TextBlock Grid.Row="0" 
+                   Text="Werkzeugzuweisung Vergleich" 
+                   FontSize="18" 
+                   FontWeight="Bold" 
+                   Margin="0,0,0,10"
+                   Foreground="#333333"/>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -64,7 +82,10 @@
             </Grid.ColumnDefinitions>
 
             <DockPanel Grid.Column="0" Margin="0,0,5,0">
-                <TextBlock DockPanel.Dock="Top" Text="Standardzuweisungen und bekannte Werkzeuge" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                <TextBlock DockPanel.Dock="Top" 
+                           Text="Standardzuweisungen und bekannte Werkzeuge" 
+                           FontWeight="SemiBold" Margin="0,0,0,5"
+                           Foreground="#333333"/>
                 <ListView ItemsSource="{Binding ComparisonItems}" AlternationCount="2"
                           ItemContainerStyle="{StaticResource StandardAssignmentItemStyle}">
                     <ListView.View>
@@ -77,10 +98,13 @@
                 </ListView>
             </DockPanel>
 
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="LightGray"/>
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="#EEEEEE"/>
 
             <DockPanel Grid.Column="2" Margin="5,0,0,0">
-                <TextBlock DockPanel.Dock="Top" Text="Alle Zugewiesenen Werkzeuge" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                <TextBlock DockPanel.Dock="Top" 
+                           Text="Alle Zugewiesenen Werkzeuge" 
+                           FontWeight="SemiBold" Margin="0,0,0,5"
+                           Foreground="#333333"/>
                 <ListView ItemsSource="{Binding ComparisonItems}" 
                           AlternationCount="2" 
                           ItemContainerStyle="{StaticResource AssignmentStatusItemStyle}"
@@ -105,6 +129,7 @@
 
         <Button Grid.Row="2" Content="Zuweisung abschliessen &amp; Speichern" 
                 Command="{Binding FinishAssignmentCommand}" 
+                Style="{StaticResource AccentButton}"
                 HorizontalAlignment="Right" 
                 Margin="0,10,0,0" 
                 Width="250"/>

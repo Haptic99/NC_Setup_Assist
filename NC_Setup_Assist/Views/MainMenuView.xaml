@@ -4,9 +4,39 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:viewmodels="clr-namespace:NC_Setup_Assist.ViewModels"
-             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <Style x:Key="ModernTileButton" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#F0F0F0"/>
+                                <Setter Property="BorderBrush" Value="#666666"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#E0E0E0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
 
     <Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20">
@@ -16,7 +46,7 @@
                        FontWeight="Bold" 
                        Margin="0,0,0,30" 
                        HorizontalAlignment="Center"
-                       Foreground="{StaticResource MaterialDesignBody}"/>
+                       Foreground="#333333"/>
 
             <UniformGrid Columns="3" 
                          Rows="1" 
@@ -26,17 +56,16 @@
                          Height="150">
 
                 <Button Command="{Binding CreateNewProjectCommand}" 
-                        Style="{StaticResource MaterialDesign.Button.Outlined}"
+                        Style="{StaticResource ModernTileButton}"
                         Margin="10" 
-                        Padding="20"
-                        materialDesign:ButtonAssist.CornerRadius="5"
                         ToolTip="Ein neues Projekt mit NC-Code starten.">
                     <StackPanel>
-                        <materialDesign:PackIcon Kind="FileDocumentPlus" 
-                                                 Width="32" 
-                                                 Height="32" 
-                                                 Margin="0,0,0,10" 
-                                                 HorizontalAlignment="Center"/>
+                        <TextBlock Text="&#x25A0;"  
+                                   FontSize="32" 
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,10" 
+                                   HorizontalAlignment="Center"
+                                   Foreground="#007ACC"/>
                         <TextBlock Text="Neues Projekt" 
                                    HorizontalAlignment="Center" 
                                    FontWeight="SemiBold"/>
@@ -44,17 +73,15 @@
                 </Button>
 
                 <Button Command="{Binding ManageProjectsCommand}" 
-                        Style="{StaticResource MaterialDesign.Button.Outlined}"
+                        Style="{StaticResource ModernTileButton}"
                         Margin="10" 
-                        Padding="20"
-                        materialDesign:ButtonAssist.CornerRadius="5"
                         ToolTip="Bestehende Projekte ansehen und bearbeiten.">
                     <StackPanel>
-                        <materialDesign:PackIcon Kind="FolderMultiple" 
-                                                 Width="32" 
-                                                 Height="32" 
-                                                 Margin="0,0,0,10" 
-                                                 HorizontalAlignment="Center"/>
+                        <TextBlock Text="&#x1F4C1;" 
+                                   FontSize="32" 
+                                   Margin="0,0,0,10" 
+                                   HorizontalAlignment="Center"
+                                   Foreground="#007ACC"/>
                         <TextBlock Text="Projekte verwalten" 
                                    HorizontalAlignment="Center" 
                                    FontWeight="SemiBold"/>
@@ -62,17 +89,15 @@
                 </Button>
 
                 <Button Command="{Binding OpenSettingsCommand}" 
-                        Style="{StaticResource MaterialDesign.Button.Outlined}"
+                        Style="{StaticResource ModernTileButton}"
                         Margin="10" 
-                        Padding="20"
-                        materialDesign:ButtonAssist.CornerRadius="5"
                         ToolTip="Einstellungen für Werkzeuge und Maschinen.">
                     <StackPanel>
-                        <materialDesign:PackIcon Kind="Cog" 
-                                                 Width="32" 
-                                                 Height="32" 
-                                                 Margin="0,0,0,10" 
-                                                 HorizontalAlignment="Center"/>
+                        <TextBlock Text="&#x2699;" 
+                                   FontSize="32" 
+                                   Margin="0,0,0,10" 
+                                   HorizontalAlignment="Center"
+                                   Foreground="#007ACC"/>
                         <TextBlock Text="Einstellungen" 
                                    HorizontalAlignment="Center" 
                                    FontWeight="SemiBold"/>

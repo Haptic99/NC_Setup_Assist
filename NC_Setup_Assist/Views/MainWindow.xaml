@@ -6,7 +6,6 @@
         xmlns:local="clr-namespace:NC_Setup_Assist"
         xmlns:views="clr-namespace:NC_Setup_Assist.Views"
         xmlns:viewmodels="clr-namespace:NC_Setup_Assist.ViewModels"
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="NC-Setup-Assist" 
         Height="600" 
@@ -81,7 +80,6 @@
                 Command="{Binding NavigateBackCommand}" 
                 HorizontalAlignment="Right" 
                 Margin="10" 
-                Width="100"
-                Style="{StaticResource MaterialDesign.Button.Outlined}"/>
+                Width="100"/>
     </Grid>
 </Window>

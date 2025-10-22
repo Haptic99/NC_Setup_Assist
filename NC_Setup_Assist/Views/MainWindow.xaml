@@ -82,6 +82,6 @@
                 HorizontalAlignment="Right" 
                 Margin="10" 
                 Width="100"
-                Style="{StaticResource MaterialDesign.OutlinedButton}"/>
+                Style="{StaticResource MaterialDesign.Button.Outlined}"/>
     </Grid>
 </Window>

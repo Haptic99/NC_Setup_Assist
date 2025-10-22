@@ -21,7 +21,7 @@ namespace NC_Setup_Assist.Views
     {
         public MainWindow()
         {
-            InitializeComponent();
+                InitializeComponent();
         }
     }
 }

@@ -42,12 +42,22 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private bool _isPitchRequired;
 
-        // --- NEU: String-Property für die UI-Eingabe der Steigung ---
         [ObservableProperty]
         private string? _pitchInputString;
 
         [ObservableProperty]
         private string? _searchTerm;
+
+        // --- NEU: Eigenschaften zur Workflow-Steuerung ---
+
+        [ObservableProperty]
+        private string? _toolName; // Bindet an die Name-Textbox
+
+        [ObservableProperty]
+        private bool _isUnterkategorieEnabled; // Steuert das Unterkategorie-Dropdown
+
+        [ObservableProperty]
+        private bool _isToolDetailsEnabled; // Steuert Name, Steigung, Beschreibung
 
         // --- NEU: Für den Auswahlmodus ---
         private readonly Action<Werkzeug>? _onToolSelectedCallback;
@@ -160,14 +170,36 @@ namespace NC_Setup_Assist.ViewModels
                     Unterkategorien.Add(sub);
                 }
             }
+
+            // NEU: Workflow-Steuerung
+            if (value != null)
+            {
+                IsUnterkategorieEnabled = true;
+            }
+            else
+            {
+                IsUnterkategorieEnabled = false;
+                IsToolDetailsEnabled = false; // Wenn Kategorie zurückgesetzt wird, alles sperren
+            }
         }
 
         partial void OnSelectedUnterkategorieChanged(WerkzeugUnterkategorie? value)
         {
             // 1. Sichtbarkeit der Steigung prüfen
             IsPitchRequired = (value?.Name == "Gewindedrehstahl Aussen" ||
-                               value?.Name == "Gewindedrehstahl Innen" ||
-                               value?.Name == "Gewindedrehstahl");
+                               value?.Name == "Gewindedrehstahl Innen");
+
+            // NEU: Workflow-Steuerung
+            if (value != null)
+            {
+                IsToolDetailsEnabled = true;
+                UpdateToolName(); // Neuen Namen generieren
+            }
+            else
+            {
+                IsToolDetailsEnabled = false;
+                ToolName = string.Empty;
+            }
 
             if (EditingTool != null)
             {
@@ -175,6 +207,36 @@ namespace NC_Setup_Assist.ViewModels
                 // Hier nur die Unterkategorie setzen.
             }
         }
+
+        // NEU: Reagiert auf Eingabe der Steigung
+        partial void OnPitchInputStringChanged(string? value)
+        {
+            UpdateToolName();
+        }
+
+        // NEU: Methode zur Namensgenerierung
+        private void UpdateToolName()
+        {
+            if (EditingTool == null || SelectedUnterkategorie == null)
+            {
+                return;
+            }
+
+            // Wenn es sich um einen Gewindestahl handelt
+            if (IsPitchRequired)
+            {
+                // Ersetze Komma durch Punkt für die Anzeige
+                string pitchDisplay = (PitchInputString ?? "").Replace(',', '.');
+
+                ToolName = $"{SelectedUnterkategorie.Name} P= {pitchDisplay}";
+            }
+            else
+            {
+                // Für alle anderen Werkzeuge
+                ToolName = SelectedUnterkategorie.Name;
+            }
+        }
+
         #endregion
 
         #region Commands (Neu, Bearbeiten, Speichern, Abbrechen, Löschen)
@@ -183,11 +245,17 @@ namespace NC_Setup_Assist.ViewModels
         {
             EditingTool = new Werkzeug();
             EditingTool.Steigung = null;
-            PitchInputString = string.Empty; // NEU: String-Feld leeren
+
+            ToolName = string.Empty; // NEU
+            PitchInputString = string.Empty;
             SelectedKategorie = null;
             SelectedUnterkategorie = null;
             IsInEditMode = true;
             IsPitchRequired = false;
+
+            // NEU: Workflow-Status setzen
+            IsUnterkategorieEnabled = false;
+            IsToolDetailsEnabled = false;
         }
 
         [RelayCommand]
@@ -211,11 +279,11 @@ namespace NC_Setup_Assist.ViewModels
                     WerkzeugUnterkategorieID = SelectedTool.WerkzeugUnterkategorieID
                 };
 
-                // NEU: Steigung aus dem Modell in das String-Feld übertragen
+                ToolName = EditingTool.Name; // NEU
+
                 PitchInputString = EditingTool.Steigung?.ToString(CultureInfo.InvariantCulture);
                 if (PitchInputString != null)
                 {
-                    // Ersetze den Punkt der Invariant-Kultur durch das Komma (für die deutsche Anzeige)
                     PitchInputString = PitchInputString.Replace('.', ',');
                 }
 
@@ -223,42 +291,41 @@ namespace NC_Setup_Assist.ViewModels
                 SelectedUnterkategorie = SelectedTool.Unterkategorie;
 
                 IsInEditMode = true;
+
+                // NEU: Beim Bearbeiten alles aktivieren
+                IsUnterkategorieEnabled = true;
+                IsToolDetailsEnabled = true;
             }
         }
 
         [RelayCommand]
         private void SaveTool()
         {
-            if (EditingTool == null || SelectedUnterkategorie == null)
+            if (EditingTool == null || SelectedUnterkategorie == null || string.IsNullOrWhiteSpace(ToolName)) // NEU: ToolName geprüft
             {
-                MessageBox.Show("Bitte wählen Sie eine Kategorie und einen Typ aus.", "Fehlende Eingabe");
+                MessageBox.Show("Bitte wählen Sie eine Kategorie, einen Typ aus und geben Sie einen Namen ein.", "Fehlende Eingabe");
                 return;
             }
 
             // --- NEUE ROBUSTE VALIDIERUNG DER STEIGUNG ---
-
             double? finalPitch = null;
             string rawInput = PitchInputString?.Trim() ?? string.Empty;
 
             if (!string.IsNullOrEmpty(rawInput))
             {
-                // 1. Ersetze Komma durch Punkt, um das Parsen mit InvariantCulture (Punkt als Dezimaltrenner) zu ermöglichen
                 string normalizedInput = rawInput.Replace(',', '.');
 
-                // 2. TryParse mit InvariantCulture
                 if (double.TryParse(normalizedInput, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double parsedValue))
                 {
                     finalPitch = parsedValue;
                 }
                 else
                 {
-                    // Parsing fehlgeschlagen: Der Wert ist keine Zahl, kein Komma/Punkt, oder es gibt mehrere Separatoren
                     MessageBox.Show("Die eingegebene Steigung ist keine gültige Dezimalzahl (erlaubt sind nur Zahlen, Komma oder Punkt).", "Fehlerhafte Eingabe", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
             }
 
-            // 3. Prüfung, ob die Steigung zwingend erforderlich ist
             if (IsPitchRequired)
             {
                 if (finalPitch == null || finalPitch.Value <= 0)
@@ -270,6 +337,7 @@ namespace NC_Setup_Assist.ViewModels
 
             // 4. Den finalen, validierten Wert in das Modell schreiben
             EditingTool.Steigung = finalPitch;
+            EditingTool.Name = ToolName; // NEU: ToolName explizit zuweisen
 
             // ---------------------------------------------
 
@@ -290,7 +358,7 @@ namespace NC_Setup_Assist.ViewModels
                 {
                     toolToUpdate.Name = EditingTool.Name;
                     toolToUpdate.Beschreibung = EditingTool.Beschreibung;
-                    toolToUpdate.Steigung = EditingTool.Steigung; // Steigung aktualisieren
+                    toolToUpdate.Steigung = EditingTool.Steigung;
                     toolToUpdate.WerkzeugUnterkategorieID = SelectedUnterkategorie.WerkzeugUnterkategorieID;
                 }
             }
@@ -299,11 +367,12 @@ namespace NC_Setup_Assist.ViewModels
             LoadTools();
             IsInEditMode = false;
             EditingTool = null;
+            ToolName = string.Empty; // NEU
             SelectedTool = null;
             SelectedKategorie = null;
             SelectedUnterkategorie = null;
             IsPitchRequired = false;
-            PitchInputString = string.Empty; // NEU: String-Feld zurücksetzen
+            PitchInputString = string.Empty;
         }
 
         [RelayCommand]
@@ -314,7 +383,12 @@ namespace NC_Setup_Assist.ViewModels
             SelectedKategorie = null;
             SelectedUnterkategorie = null;
             IsPitchRequired = false;
-            PitchInputString = string.Empty; // NEU: String-Feld zurücksetzen
+            PitchInputString = string.Empty;
+
+            // NEU: Workflow-Status zurücksetzen
+            ToolName = string.Empty;
+            IsUnterkategorieEnabled = false;
+            IsToolDetailsEnabled = false;
         }
 
         [RelayCommand]

@@ -80,9 +80,6 @@
             <StackPanel Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
                 <TextBlock Text="Werkzeug bearbeiten" Style="{StaticResource HeaderTextStyle}"/>
 
-                <TextBlock Text="Name:" Margin="0,5,0,0"/>
-                <TextBox Text="{Binding EditingTool.Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBoxStyle}" Margin="0,0,0,5"/>
-
                 <TextBlock Text="Kategorie:" Margin="0,5,0,0"/>
                 <ComboBox Margin="0,0,0,5"
                           ItemsSource="{Binding Kategorien}"
@@ -91,17 +88,26 @@
 
                 <TextBlock Text="Unterkategorie / Typ:" Margin="0,5,0,0"/>
                 <ComboBox Margin="0,0,0,5"
-                          ItemsSource="{Binding Unterkategorien}"
-                          SelectedItem="{Binding SelectedUnterkategorie}" 
-                          DisplayMemberPath="Name"/>
+                           ItemsSource="{Binding Unterkategorien}"
+                           SelectedItem="{Binding SelectedUnterkategorie}" 
+                           DisplayMemberPath="Name"
+                           IsEnabled="{Binding IsUnterkategorieEnabled}"/>
 
-                <StackPanel Visibility="{Binding IsPitchRequired, Converter={StaticResource BoolToVis}}">
+                <StackPanel Visibility="{Binding IsPitchRequired, Converter={StaticResource BoolToVis}}"
+                            IsEnabled="{Binding IsToolDetailsEnabled}">
                     <TextBlock Text="Steigung" Margin="0,5,0,0"/>
                     <TextBox Text="{Binding PitchInputString, UpdateSourceTrigger=PropertyChanged}" 
                              Style="{StaticResource BaseTextBoxStyle}"
                              Margin="0,0,0,5" 
-                             ToolTip="Nur für Gewindedrehstähle erforderlich. Erlaubt Dezimalzahlen mit Komma oder Punkt."/>
+                             ToolTip="Nur für Gewindedrehstähle erforderlich.
+Erlaubt Dezimalzahlen mit Komma oder Punkt."/>
                 </StackPanel>
+
+                <TextBlock Text="Name:" Margin="0,5,0,0"/>
+                <TextBox Text="{Binding ToolName, UpdateSourceTrigger=PropertyChanged}" 
+                         Style="{StaticResource BaseTextBoxStyle}" 
+                         Margin="0,0,0,5"
+                         IsEnabled="{Binding IsToolDetailsEnabled}"/>
 
                 <TextBlock Text="Beschreibung:" Margin="0,5,0,0"/>
                 <TextBox Text="{Binding EditingTool.Beschreibung, UpdateSourceTrigger=PropertyChanged}" 
@@ -110,7 +116,8 @@
                          TextWrapping="Wrap" 
                          AcceptsReturn="True" 
                          VerticalScrollBarVisibility="Auto"
-                         Margin="0,0,0,10"/>
+                         Margin="0,0,0,10"
+                         IsEnabled="{Binding IsToolDetailsEnabled}"/>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                     <Button Content="Speichern" Command="{Binding SaveToolCommand}" Style="{StaticResource AccentButton}" Width="100"/>

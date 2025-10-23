@@ -49,6 +49,9 @@
             <views:HerstellerManagementView/>
         </DataTemplate>
 
+        <DataTemplate DataType="{x:Type viewmodels:WerkzeugKategorieManagementViewModel}">
+            <views:WerkzeugKategorieManagementView/>
+        </DataTemplate>
         <DataTemplate DataType="{x:Type viewmodels:StandardToolsManagementViewModel}">
             <views:StandardToolsManagementView/>
         </DataTemplate>

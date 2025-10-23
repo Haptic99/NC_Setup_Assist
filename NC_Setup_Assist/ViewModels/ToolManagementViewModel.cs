@@ -17,6 +17,9 @@ namespace NC_Setup_Assist.ViewModels
 {
     public partial class ToolManagementViewModel : ViewModelBase
     {
+        // --- NEU: MainViewModel für Navigation ---
+        private readonly MainViewModel _mainViewModel;
+
         // --- Listen für die Daten ---
         private List<Werkzeug> _allTools = new List<Werkzeug>();
         public ObservableCollection<Werkzeug> FilteredWerkzeuge { get; private set; }
@@ -65,8 +68,10 @@ namespace NC_Setup_Assist.ViewModels
         private bool _isSelectionMode;
 
 
-        public ToolManagementViewModel()
+        // --- ANGEPASSTER KONSTRUKTOR (Nimmt jetzt MainViewModel) ---
+        public ToolManagementViewModel(MainViewModel mainViewModel)
         {
+            _mainViewModel = mainViewModel;
             FilteredWerkzeuge = new ObservableCollection<Werkzeug>();
             Kategorien = new ObservableCollection<WerkzeugKategorie>();
             Unterkategorien = new ObservableCollection<WerkzeugUnterkategorie>();
@@ -78,7 +83,8 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
-        public ToolManagementViewModel(Action<Werkzeug> onToolSelectedCallback) : this()
+        // --- ANGEPASSTER KONSTRUKTOR (Für Auswahlmodus) ---
+        public ToolManagementViewModel(MainViewModel mainViewModel, Action<Werkzeug> onToolSelectedCallback) : this(mainViewModel)
         {
             _onToolSelectedCallback = onToolSelectedCallback;
             IsSelectionMode = true;
@@ -99,11 +105,35 @@ namespace NC_Setup_Assist.ViewModels
         private void LoadKategorien()
         {
             using var context = new NcSetupContext();
-            var katsFromDb = context.WerkzeugKategorien.ToList();
+            var katsFromDb = context.WerkzeugKategorien.OrderBy(k => k.Name).ToList();
             Kategorien.Clear();
             foreach (var kat in katsFromDb)
             {
                 Kategorien.Add(kat);
+            }
+        }
+
+        // --- NEUE METHODE: Callback zum Aktualisieren der Dropdowns ---
+        private void RefreshKategorienData()
+        {
+            // Selektionen merken
+            var oldKatId = SelectedKategorie?.WerkzeugKategorieID;
+            var oldUnterKatId = SelectedUnterkategorie?.WerkzeugUnterkategorieID;
+
+            // Kategorien neu laden
+            LoadKategorien();
+
+            // Alte Auswahl wiederherstellen
+            if (oldKatId.HasValue)
+            {
+                SelectedKategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == oldKatId.Value);
+            }
+
+            // Wenn die Hauptkategorie wiederhergestellt wurde, wurde OnSelectedKategorieChanged ausgelöst
+            // und die Unterkategorien wurden neu geladen. Jetzt auch die Unterkategorie wiederherstellen.
+            if (SelectedKategorie != null && oldUnterKatId.HasValue)
+            {
+                SelectedUnterkategorie = Unterkategorien.FirstOrDefault(u => u.WerkzeugUnterkategorieID == oldUnterKatId.Value);
             }
         }
 
@@ -164,6 +194,7 @@ namespace NC_Setup_Assist.ViewModels
             {
                 var subs = context.WerkzeugUnterkategorien
                                    .Where(s => s.WerkzeugKategorieID == value.WerkzeugKategorieID)
+                                   .OrderBy(s => s.Name) // Sortieren
                                    .ToList();
                 foreach (var sub in subs)
                 {
@@ -411,6 +442,23 @@ namespace NC_Setup_Assist.ViewModels
                 LoadTools();
             }
         }
+
+        // --- NEUE COMMANDS FÜR KATEGORIE-MANAGEMENT ---
+
+        [RelayCommand]
+        private void AddKategorie()
+        {
+            // Öffnet die neue Ansicht und übergibt die Refresh-Methode als Callback
+            _mainViewModel.NavigateTo(new WerkzeugKategorieManagementViewModel(RefreshKategorienData));
+        }
+
+        [RelayCommand]
+        private void AddUnterkategorie()
+        {
+            // Öffnet die neue Ansicht und übergibt die Refresh-Methode als Callback
+            _mainViewModel.NavigateTo(new WerkzeugKategorieManagementViewModel(RefreshKategorienData));
+        }
+
         #endregion
     }
 }

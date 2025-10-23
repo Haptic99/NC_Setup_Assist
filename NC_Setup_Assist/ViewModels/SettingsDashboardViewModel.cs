@@ -15,7 +15,8 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void OpenToolManagement()
         {
-            _mainViewModel.NavigateTo(new ToolManagementViewModel());
+            // --- ANGEPASST: MainViewModel wird jetzt übergeben ---
+            _mainViewModel.NavigateTo(new ToolManagementViewModel(_mainViewModel));
         }
 
         [RelayCommand]

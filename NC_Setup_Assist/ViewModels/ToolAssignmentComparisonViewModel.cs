@@ -141,7 +141,8 @@ namespace NC_Setup_Assist.ViewModels
             string korrektur = item.Korrektur;
 
             // Navigation zum ToolManagementViewModel (Auswahlmodus)
-            var toolManagementVM = new ToolManagementViewModel(selectedTool =>
+            // --- KORREKTUR HINZUGEFÜGT: _mainViewModel als erstes Argument übergeben ---
+            var toolManagementVM = new ToolManagementViewModel(_mainViewModel, selectedTool =>
             {
                 // Callback-Aktion nach Auswahl des Werkzeugs
                 PerformToolAssignmentUpdate(station, korrektur, selectedTool.WerkzeugID);

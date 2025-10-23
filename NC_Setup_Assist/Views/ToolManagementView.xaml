@@ -81,17 +81,39 @@
                 <TextBlock Text="Werkzeug bearbeiten" Style="{StaticResource HeaderTextStyle}"/>
 
                 <TextBlock Text="Kategorie:" Margin="0,5,0,0"/>
-                <ComboBox Margin="0,0,0,5"
-                          ItemsSource="{Binding Kategorien}"
-                          SelectedItem="{Binding SelectedKategorie}"
-                          DisplayMemberPath="Name"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0" Margin="0,0,5,5"
+                              ItemsSource="{Binding Kategorien}"
+                              SelectedItem="{Binding SelectedKategorie}"
+                              DisplayMemberPath="Name"/>
+                    <Button Grid.Column="1" Content="+"
+                            Command="{Binding AddKategorieCommand}"
+                            Style="{StaticResource SmallAddButton}"
+                            ToolTip="Neue Kategorie hinzufügen"/>
+                </Grid>
+
 
                 <TextBlock Text="Unterkategorie / Typ:" Margin="0,5,0,0"/>
-                <ComboBox Margin="0,0,0,5"
-                           ItemsSource="{Binding Unterkategorien}"
-                           SelectedItem="{Binding SelectedUnterkategorie}" 
-                           DisplayMemberPath="Name"
-                           IsEnabled="{Binding IsUnterkategorieEnabled}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0" Margin="0,0,5,5"
+                              ItemsSource="{Binding Unterkategorien}"
+                              SelectedItem="{Binding SelectedUnterkategorie}" 
+                              DisplayMemberPath="Name"
+                              IsEnabled="{Binding IsUnterkategorieEnabled}"/>
+                    <Button Grid.Column="1" Content="+"
+                            Command="{Binding AddUnterkategorieCommand}"
+                            Style="{StaticResource SmallAddButton}"
+                            IsEnabled="{Binding IsUnterkategorieEnabled}"
+                            ToolTip="Neue Unterkategorie hinzufügen"/>
+                </Grid>
 
                 <StackPanel Visibility="{Binding IsPitchRequired, Converter={StaticResource BoolToVis}}"
                             IsEnabled="{Binding IsToolDetailsEnabled}">
@@ -99,8 +121,7 @@
                     <TextBox Text="{Binding PitchInputString, UpdateSourceTrigger=PropertyChanged}" 
                              Style="{StaticResource BaseTextBoxStyle}"
                              Margin="0,0,0,5" 
-                             ToolTip="Nur für Gewindedrehstähle erforderlich.
-Erlaubt Dezimalzahlen mit Komma oder Punkt."/>
+                             ToolTip="Nur für Gewindedrehstähle erforderlich.&#x0a;Erlaubt Dezimalzahlen mit Komma oder Punkt."/>
                 </StackPanel>
 
                 <TextBlock Text="Name:" Margin="0,5,0,0"/>

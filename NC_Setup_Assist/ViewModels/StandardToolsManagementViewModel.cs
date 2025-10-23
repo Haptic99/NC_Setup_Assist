@@ -165,7 +165,8 @@ namespace NC_Setup_Assist.ViewModels
         {
             if (assignmentVM == null) return;
 
-            var toolManagementVM = new ToolManagementViewModel(selectedTool =>
+            // --- ANGEPASST: _mainViewModel wird übergeben ---
+            var toolManagementVM = new ToolManagementViewModel(_mainViewModel, selectedTool =>
             {
                 assignmentVM.SelectedWerkzeug = selectedTool;
                 _mainViewModel.NavigateBack();

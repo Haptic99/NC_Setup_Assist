@@ -7,34 +7,51 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
+    <UserControl.Resources>
+        <Style x:Key="TileDescriptionStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#666666"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,5,0,0"/>
+        </Style>
+
+        <Style x:Key="TileIconStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="32"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="#007ACC"/>
+        </Style>
+    </UserControl.Resources>
+
     <Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20">
 
-            <TextBlock Text="NC-Setup-Assist" 
-                       FontSize="36" 
-                       FontWeight="Bold" 
-                       Margin="0,0,0,30" 
-                       HorizontalAlignment="Center"
-                       Foreground="#333333"/>
+            <StackPanel Margin="0,0,0,30" HorizontalAlignment="Center">
+                <TextBlock Text="NC-Setup-Assist" 
+                           FontSize="36" 
+                           FontWeight="Bold" 
+                           HorizontalAlignment="Center"
+                           Foreground="#333333"/>
+                <TextBlock Text="NC Machine Setup Assistant"
+                           FontSize="18"
+                           HorizontalAlignment="Center"
+                           Foreground="#444444"/>
+            </StackPanel>
 
             <UniformGrid Columns="3" 
                          Rows="1" 
                          HorizontalAlignment="Center" 
                          VerticalAlignment="Center" 
                          Width="650"
-                         Height="150">
-
+                         Height="180">
                 <Button Command="{Binding CreateNewProjectCommand}" 
                         Style="{StaticResource ModernTileButton}"
                         Margin="10" 
                         ToolTip="Ein neues Projekt mit NC-Code starten.">
                     <StackPanel>
-                        <TextBlock Text="&#x25A0;"  
-                                   FontSize="32" 
-                                   FontWeight="Bold"
-                                   Margin="0,0,0,10" 
-                                   HorizontalAlignment="Center"
-                                   Foreground="#007ACC"/>
+                        <TextBlock Text="&#xE7C3;" Style="{StaticResource TileIconStyle}"/>
                         <TextBlock Text="Neues Projekt" 
                                    HorizontalAlignment="Center" 
                                    FontWeight="SemiBold"/>
@@ -46,11 +63,7 @@
                         Margin="10" 
                         ToolTip="Bestehende Projekte ansehen und bearbeiten.">
                     <StackPanel>
-                        <TextBlock Text="&#x1F4C1;" 
-                                   FontSize="32" 
-                                   Margin="0,0,0,10" 
-                                   HorizontalAlignment="Center"
-                                   Foreground="#007ACC"/>
+                        <TextBlock Text="&#xE8B7;" Style="{StaticResource TileIconStyle}"/>
                         <TextBlock Text="Projekte verwalten" 
                                    HorizontalAlignment="Center" 
                                    FontWeight="SemiBold"/>
@@ -62,11 +75,7 @@
                         Margin="10" 
                         ToolTip="Einstellungen für Werkzeuge und Maschinen.">
                     <StackPanel>
-                        <TextBlock Text="&#x2699;" 
-                                   FontSize="32" 
-                                   Margin="0,0,0,10" 
-                                   HorizontalAlignment="Center"
-                                   Foreground="#007ACC"/>
+                        <TextBlock Text="&#xE713;" Style="{StaticResource TileIconStyle}"/>
                         <TextBlock Text="Einstellungen" 
                                    HorizontalAlignment="Center" 
                                    FontWeight="SemiBold"/>

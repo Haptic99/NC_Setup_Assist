@@ -5,59 +5,127 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:NC_Setup_Assist.Views"
              mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800"
+             d:DesignHeight="600" d:DesignWidth="800"
              HorizontalAlignment="Center" VerticalAlignment="Center">
 
-    <StackPanel Width="400">
-        <TextBlock Text="Neues Projekt erstellen" 
-                   FontSize="18" 
+    <UserControl.Resources>
+        <Style x:Key="ButtonIconStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="FormLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="Foreground" Value="#333333"/>
+        </Style>
+    </UserControl.Resources>
+
+    <StackPanel Width="500">
+
+        <TextBlock Text="Neues CNC-Projekt erstellen" 
+                   FontSize="20" 
                    FontWeight="Bold" 
-                   Margin="0,0,0,20"
+                   Margin="0,0,0,5"
+                   HorizontalAlignment="Center"
                    Foreground="#333333"/>
+        <TextBlock Text="Konfigurieren Sie Ihr Projekt durch Auswahl des NC-Programms und der Maschinenparameter."
+                   FontSize="14"
+                   Foreground="#666666"
+                   TextWrapping="Wrap"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"
+                   Margin="0,0,0,20"/>
 
-        <TextBlock Text="NC-Programm Datei:" Margin="0,0,0,5"/>
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+        <Border Background="White" 
+                BorderBrush="#DDDDDD" 
+                BorderThickness="1" 
+                CornerRadius="8" 
+                Padding="25">
+            <StackPanel>
 
-            <TextBox Grid.Column="0" 
-                     Text="{Binding NcFilePath, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" 
-                     IsReadOnly="True" 
-                     Margin="0,0,5,0"
-                     Style="{StaticResource BaseTextBoxStyle}"/>
+                <TextBlock Text="NC-Programm Datei:" Style="{StaticResource FormLabelStyle}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="1" 
-                    Content="..." 
-                    Command="{Binding BrowseNcFileCommand}" 
-                    Style="{StaticResource SecondaryButton}"
-                    Width="30"/>
-        </Grid>
+                    <TextBox Grid.Column="0" 
+                             Text="{Binding NcFilePath, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" 
+                             IsReadOnly="True" 
+                             Margin="0,0,10,0"
+                             Style="{StaticResource BaseTextBoxStyle}"/>
 
-        <TextBlock Text="Projektname:" Margin="0,10,0,5"/>
+                    <Button Grid.Column="1" 
+                            Command="{Binding BrowseNcFileCommand}" 
+                            Style="{StaticResource AccentButton}"
+                            Width="110">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE898;" Style="{StaticResource ButtonIconStyle}" FontSize="16"/>
+                            <TextBlock Text="Auswählen"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
 
-        <TextBox Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}"
-                 Style="{StaticResource BaseTextBoxStyle}"/>
+                <TextBlock Text="Projektname:" Style="{StaticResource FormLabelStyle}" Margin="0,15,0,5"/>
+                <TextBox Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource BaseTextBoxStyle}"/>
 
-        <TextBlock Text="Standort:" Margin="0,10,0,5"/>
-        <ComboBox ItemsSource="{Binding Standorte}"
-                  SelectedItem="{Binding SelectedStandort, Mode=TwoWay}"
-                  DisplayMemberPath="Name"
-                  Margin="0,0,0,10"
-                  ToolTip="Wählen Sie einen Standort aus."/>
+                <TextBlock Text="Standort:" Style="{StaticResource FormLabelStyle}" Margin="0,15,0,5"/>
+                <ComboBox ItemsSource="{Binding Standorte}"
+                          SelectedItem="{Binding SelectedStandort, Mode=TwoWay}"
+                          DisplayMemberPath="Name"
+                          ToolTip="Wählen Sie einen Standort aus."/>
 
-        <TextBlock Text="Maschine:" Margin="0,0,0,5"/>
-        <ComboBox ItemsSource="{Binding Maschinen}"
-                  SelectedItem="{Binding SelectedMaschine, Mode=TwoWay}"
-                  DisplayMemberPath="Name"
-                  Margin="0,0,0,20"
-                  ToolTip="Wählen Sie eine Maschine aus"/>
+                <TextBlock Text="Maschine:" Style="{StaticResource FormLabelStyle}" Margin="0,15,0,5"/>
+                <ComboBox ItemsSource="{Binding Maschinen}"
+                          SelectedItem="{Binding SelectedMaschine, Mode=TwoWay}"
+                          DisplayMemberPath="Name"
+                          ToolTip="Wählen Sie eine Maschine aus"/>
 
-        <Button Content="Projekt erstellen"
-                Command="{Binding CreateProjectCommand}"
-                Style="{StaticResource AccentButton}"
-                IsDefault="True"
-                HorizontalAlignment="Right"/>
+                <Button Command="{Binding CreateProjectCommand}"
+                        Style="{StaticResource AccentButton}"
+                        IsDefault="True"
+                        HorizontalAlignment="Right"
+                        Margin="0,25,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE710;" Style="{StaticResource ButtonIconStyle}"/>
+                        <TextBlock Text="Projekt erstellen"/>
+                    </StackPanel>
+                </Button>
+
+            </StackPanel>
+        </Border>
+
+        <Border Background="#F0F8FF" 
+                BorderBrush="#BDE5F8" 
+                BorderThickness="1" 
+                CornerRadius="8" 
+                Padding="15"
+                Margin="0,20,0,0">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" 
+                               Foreground="#007ACC" FontSize="16" VerticalAlignment="Center"/>
+                    <TextBlock Text="Erste Schritte" 
+                               FontWeight="SemiBold" 
+                               FontSize="14"
+                               Foreground="#333333"
+                               Margin="8,0,0,0"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <TextBlock Text="• Wählen Sie Ihre NC-Programmdatei aus, um den Werkzeugbedarf zu analysieren." 
+                           Foreground="#444444" FontSize="12" Margin="0,0,0,3"/>
+                <TextBlock Text="• Wählen Sie Standort und Maschine für einen genauen Werkzeugvergleich." 
+                           Foreground="#444444" FontSize="12" Margin="0,0,0,3"/>
+                <TextBlock Text="• Das System vergleicht die benötigten Werkzeuge mit den Maschinenstandards." 
+                           Foreground="#444444" FontSize="12"/>
+            </StackPanel>
+        </Border>
+
     </StackPanel>
 </UserControl>

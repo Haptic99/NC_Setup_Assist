@@ -115,7 +115,7 @@
 
                 <StackPanel Visibility="{Binding IsPitchRequired, Converter={StaticResource BoolToVis}}"
                             IsEnabled="{Binding IsToolDetailsEnabled}">
-                    <TextBlock Text="Steigung (P):" Margin="0,5,0,0"/>
+                    <TextBlock Text="Steigung (P=...):" Margin="0,5,0,0"/>
                     <TextBox Text="{Binding PitchInputString, UpdateSourceTrigger=PropertyChanged}" 
                              Style="{StaticResource BaseTextBoxStyle}"
                              Margin="0,0,0,5" 
@@ -124,7 +124,7 @@
 
                 <StackPanel Visibility="{Binding IsPlattenwinkelRequired, Converter={StaticResource BoolToVis}}"
                             IsEnabled="{Binding IsToolDetailsEnabled}">
-                    <TextBlock Text="Plattenwinkel (W):" Margin="0,5,0,0"/>
+                    <TextBlock Text="Plattenwinkel (...°):" Margin="0,5,0,0"/>
                     <TextBox Text="{Binding PlattenwinkelInputString, UpdateSourceTrigger=PropertyChanged}" 
                              Style="{StaticResource BaseTextBoxStyle}"
                              Margin="0,0,0,5" 

@@ -18,7 +18,6 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Background" Value="#F9F9F9"/>
         </Style>
-
     </UserControl.Resources>
 
     <Grid Margin="10">
@@ -91,9 +90,9 @@
                               SelectedItem="{Binding SelectedKategorie}"
                               DisplayMemberPath="Name"/>
                     <Button Grid.Column="1" Content="+"
-                            Command="{Binding AddKategorieCommand}"
+                            Command="{Binding NavigateToKategorieManagementCommand}"
                             Style="{StaticResource SmallAddButton}"
-                            ToolTip="Neue Kategorie hinzufügen"/>
+                            ToolTip="Kategorien verwalten"/>
                 </Grid>
 
 
@@ -109,31 +108,40 @@
                               DisplayMemberPath="Name"
                               IsEnabled="{Binding IsUnterkategorieEnabled}"/>
                     <Button Grid.Column="1" Content="+"
-                            Command="{Binding AddUnterkategorieCommand}"
+                            Command="{Binding NavigateToUnterkategorieManagementCommand}"
                             Style="{StaticResource SmallAddButton}"
-                            IsEnabled="{Binding IsUnterkategorieEnabled}"
-                            ToolTip="Neue Unterkategorie hinzufügen"/>
+                            ToolTip="Unterkategorien verwalten"/>
                 </Grid>
 
                 <StackPanel Visibility="{Binding IsPitchRequired, Converter={StaticResource BoolToVis}}"
                             IsEnabled="{Binding IsToolDetailsEnabled}">
-                    <TextBlock Text="Steigung" Margin="0,5,0,0"/>
+                    <TextBlock Text="Steigung (P):" Margin="0,5,0,0"/>
                     <TextBox Text="{Binding PitchInputString, UpdateSourceTrigger=PropertyChanged}" 
                              Style="{StaticResource BaseTextBoxStyle}"
                              Margin="0,0,0,5" 
-                             ToolTip="Nur für Gewindedrehstähle erforderlich.&#x0a;Erlaubt Dezimalzahlen mit Komma oder Punkt."/>
+                             ToolTip="Erforderlich für diesen Typ. Erlaubt Dezimalzahlen (z.B. 1,5)."/>
+                </StackPanel>
+
+                <StackPanel Visibility="{Binding IsPlattenwinkelRequired, Converter={StaticResource BoolToVis}}"
+                            IsEnabled="{Binding IsToolDetailsEnabled}">
+                    <TextBlock Text="Plattenwinkel (W):" Margin="0,5,0,0"/>
+                    <TextBox Text="{Binding PlattenwinkelInputString, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource BaseTextBoxStyle}"
+                             Margin="0,0,0,5" 
+                             ToolTip="Erforderlich für diesen Typ. Erlaubt Dezimalzahlen (z.B. 80)."/>
                 </StackPanel>
 
                 <TextBlock Text="Name:" Margin="0,5,0,0"/>
                 <TextBox Text="{Binding ToolName, UpdateSourceTrigger=PropertyChanged}" 
                          Style="{StaticResource BaseTextBoxStyle}" 
                          Margin="0,0,0,5"
-                         IsEnabled="{Binding IsToolDetailsEnabled}"/>
+                         IsEnabled="{Binding IsToolDetailsEnabled}"
+                         ToolTip="Der Name wird automatisch generiert, kann aber überschrieben werden."/>
 
                 <TextBlock Text="Beschreibung:" Margin="0,5,0,0"/>
                 <TextBox Text="{Binding EditingTool.Beschreibung, UpdateSourceTrigger=PropertyChanged}" 
                          Style="{StaticResource BaseTextBoxStyle}"
-                         Height="80" 
+                         Height="60" 
                          TextWrapping="Wrap" 
                          AcceptsReturn="True" 
                          VerticalScrollBarVisibility="Auto"

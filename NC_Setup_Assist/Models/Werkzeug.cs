@@ -12,8 +12,14 @@ namespace NC_Setup_Assist.Models
         public string Name { get; set; } = null!; // <-- Behebt die Warnung für Name
         public string? Beschreibung { get; set; }
 
-        // NEU: Eigenschaft für die Gewindesteigung (nullable)
+        // Eigenschaft für die Gewindesteigung (nullable)
         public double? Steigung { get; set; }
+
+        // --- NEUE EIGENSCHAFT ---
+        /// <summary>
+        /// Der Plattenwinkel des Werkzeugs (z.B. 80, 55 Grad).
+        /// </summary>
+        public double? Plattenwinkel { get; set; }
 
         // Beziehung zur Unterkategorie
         public int WerkzeugUnterkategorieID { get; set; }

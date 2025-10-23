@@ -8,8 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Globalization; // NEU: Für die robuste Parselogik
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -17,16 +18,15 @@ namespace NC_Setup_Assist.ViewModels
 {
     public partial class ToolManagementViewModel : ViewModelBase
     {
-        // --- NEU: MainViewModel für Navigation ---
         private readonly MainViewModel _mainViewModel;
 
-        // --- Listen für die Daten ---
+        // Listen
         private List<Werkzeug> _allTools = new List<Werkzeug>();
         public ObservableCollection<Werkzeug> FilteredWerkzeuge { get; private set; }
         public ObservableCollection<WerkzeugKategorie> Kategorien { get; private set; }
         public ObservableCollection<WerkzeugUnterkategorie> Unterkategorien { get; private set; }
 
-        // --- Eigenschaften für Zustände und Auswahlen ---
+        // Zustände und Auswahlen
         [ObservableProperty]
         private Werkzeug? _selectedTool;
 
@@ -43,32 +43,37 @@ namespace NC_Setup_Assist.ViewModels
         private WerkzeugUnterkategorie? _selectedUnterkategorie;
 
         [ObservableProperty]
-        private bool _isPitchRequired;
-
-        [ObservableProperty]
-        private string? _pitchInputString;
-
-        [ObservableProperty]
         private string? _searchTerm;
 
-        // --- NEU: Eigenschaften zur Workflow-Steuerung ---
+        // Workflow-Steuerung
+        [ObservableProperty]
+        private string? _toolName;
 
         [ObservableProperty]
-        private string? _toolName; // Bindet an die Name-Textbox
+        private bool _isUnterkategorieEnabled;
 
         [ObservableProperty]
-        private bool _isUnterkategorieEnabled; // Steuert das Unterkategorie-Dropdown
+        private bool _isToolDetailsEnabled;
+
+        // --- DYNAMISCHE EIGENSCHAFTEN ---
+        [ObservableProperty]
+        private bool _isPitchRequired; // Gesteuert durch Unterkategorie
 
         [ObservableProperty]
-        private bool _isToolDetailsEnabled; // Steuert Name, Steigung, Beschreibung
+        private string? _pitchInputString; // Wert für Steigung
 
-        // --- NEU: Für den Auswahlmodus ---
+        [ObservableProperty]
+        private bool _isPlattenwinkelRequired; // NEU: Gesteuert durch Unterkategorie
+
+        [ObservableProperty]
+        private string? _plattenwinkelInputString; // NEU: Wert für Winkel
+
+        // Auswahlmodus
         private readonly Action<Werkzeug>? _onToolSelectedCallback;
         [ObservableProperty]
         private bool _isSelectionMode;
 
 
-        // --- ANGEPASSTER KONSTRUKTOR (Nimmt jetzt MainViewModel) ---
         public ToolManagementViewModel(MainViewModel mainViewModel)
         {
             _mainViewModel = mainViewModel;
@@ -83,7 +88,6 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
-        // --- ANGEPASSTER KONSTRUKTOR (Für Auswahlmodus) ---
         public ToolManagementViewModel(MainViewModel mainViewModel, Action<Werkzeug> onToolSelectedCallback) : this(mainViewModel)
         {
             _onToolSelectedCallback = onToolSelectedCallback;
@@ -113,35 +117,30 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
-        // --- NEUE METHODE: Callback zum Aktualisieren der Dropdowns ---
         private void RefreshKategorienData()
         {
-            // Selektionen merken
             var oldKatId = SelectedKategorie?.WerkzeugKategorieID;
             var oldUnterKatId = SelectedUnterkategorie?.WerkzeugUnterkategorieID;
 
-            // Kategorien neu laden
             LoadKategorien();
 
-            // Alte Auswahl wiederherstellen
             if (oldKatId.HasValue)
             {
                 SelectedKategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == oldKatId.Value);
             }
 
-            // Wenn die Hauptkategorie wiederhergestellt wurde, wurde OnSelectedKategorieChanged ausgelöst
-            // und die Unterkategorien wurden neu geladen. Jetzt auch die Unterkategorie wiederherstellen.
             if (SelectedKategorie != null && oldUnterKatId.HasValue)
             {
+                // OnSelectedKategorieChanged lädt die Unterkategorien neu
                 SelectedUnterkategorie = Unterkategorien.FirstOrDefault(u => u.WerkzeugUnterkategorieID == oldUnterKatId.Value);
             }
         }
 
         private void ApplyFilter()
         {
+            // (Unverändert)
             if (string.IsNullOrWhiteSpace(SearchTerm))
             {
-                // Wenn das Suchfeld leer ist, zeige alle Werkzeuge an
                 FilteredWerkzeuge.Clear();
                 foreach (var tool in _allTools)
                 {
@@ -150,7 +149,6 @@ namespace NC_Setup_Assist.ViewModels
             }
             else
             {
-                // Wenn Text im Suchfeld steht, filtere danach
                 var filtered = _allTools.Where(w =>
                     (w.Name?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (w.Unterkategorie?.Name?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
@@ -173,6 +171,7 @@ namespace NC_Setup_Assist.ViewModels
 
         partial void OnSelectedToolChanged(Werkzeug? value)
         {
+            // (Unverändert)
             if (value?.Unterkategorie?.Kategorie != null)
             {
                 SelectedKategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == value.Unterkategorie.Kategorie.WerkzeugKategorieID);
@@ -187,14 +186,16 @@ namespace NC_Setup_Assist.ViewModels
 
         partial void OnSelectedKategorieChanged(WerkzeugKategorie? value)
         {
+            // (Unverändert, lädt Unterkategorien)
             using var context = new NcSetupContext();
             Unterkategorien.Clear();
             SelectedUnterkategorie = null;
             if (value != null)
             {
+                // WICHTIG: Die neuen bool-Eigenschaften müssen mitgeladen werden!
                 var subs = context.WerkzeugUnterkategorien
                                    .Where(s => s.WerkzeugKategorieID == value.WerkzeugKategorieID)
-                                   .OrderBy(s => s.Name) // Sortieren
+                                   .OrderBy(s => s.Name)
                                    .ToList();
                 foreach (var sub in subs)
                 {
@@ -202,50 +203,53 @@ namespace NC_Setup_Assist.ViewModels
                 }
             }
 
-            // NEU: Workflow-Steuerung
-            if (value != null)
+            IsUnterkategorieEnabled = value != null;
+            if (!IsUnterkategorieEnabled)
             {
-                IsUnterkategorieEnabled = true;
-            }
-            else
-            {
-                IsUnterkategorieEnabled = false;
-                IsToolDetailsEnabled = false; // Wenn Kategorie zurückgesetzt wird, alles sperren
+                IsToolDetailsEnabled = false;
             }
         }
 
+        // --- STARK ANGEPASST ---
         partial void OnSelectedUnterkategorieChanged(WerkzeugUnterkategorie? value)
         {
-            // 1. Sichtbarkeit der Steigung prüfen
-            IsPitchRequired = (value?.Name == "Gewindedrehstahl Aussen" ||
-                               value?.Name == "Gewindedrehstahl Innen");
+            // 1. Sichtbarkeit der dynamischen Felder steuern
+            IsPitchRequired = (value?.BenötigtSteigung == true);
+            IsPlattenwinkelRequired = (value?.BenötigtPlattenwinkel == true);
 
-            // NEU: Workflow-Steuerung
+            // 2. Workflow-Steuerung
             if (value != null)
             {
                 IsToolDetailsEnabled = true;
-                UpdateToolName(); // Neuen Namen generieren
+                // Wenn wir ein Werkzeug bearbeiten, werden die Werte aus EditTool() gesetzt.
+                // Wenn wir ein NEUES Werkzeug erstellen, bleiben sie leer.
+                if (EditingTool?.WerkzeugID == 0)
+                {
+                    PitchInputString = string.Empty;
+                    PlattenwinkelInputString = string.Empty;
+                }
+                UpdateToolName(); // Namen generieren
             }
             else
             {
                 IsToolDetailsEnabled = false;
                 ToolName = string.Empty;
             }
-
-            if (EditingTool != null)
-            {
-                // In dieser Version wird EditingTool.Steigung nur beim Speichern gesetzt.
-                // Hier nur die Unterkategorie setzen.
-            }
         }
 
-        // NEU: Reagiert auf Eingabe der Steigung
+        // Reagiert auf Eingabe der Steigung
         partial void OnPitchInputStringChanged(string? value)
         {
             UpdateToolName();
         }
 
-        // NEU: Methode zur Namensgenerierung
+        // NEU: Reagiert auf Eingabe des Winkels
+        partial void OnPlattenwinkelInputStringChanged(string? value)
+        {
+            UpdateToolName();
+        }
+
+        // --- ANGEPASSTE METHODE ZUR NAMENSGENERIERUNG ---
         private void UpdateToolName()
         {
             if (EditingTool == null || SelectedUnterkategorie == null)
@@ -253,19 +257,31 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            // Wenn es sich um einen Gewindestahl handelt
+            // Benutze den Namen der Unterkategorie als Basis
+            string baseName = SelectedUnterkategorie.Name;
+            var sb = new StringBuilder(baseName);
+
+            // Füge Steigung hinzu, wenn nötig
             if (IsPitchRequired)
             {
-                // Ersetze Komma durch Punkt für die Anzeige
-                string pitchDisplay = (PitchInputString ?? "").Replace(',', '.');
+                string pitchDisplay = (PitchInputString ?? "").Trim().Replace(',', '.');
+                if (!string.IsNullOrEmpty(pitchDisplay))
+                {
+                    sb.Append($" P={pitchDisplay}");
+                }
+            }
 
-                ToolName = $"{SelectedUnterkategorie.Name} P= {pitchDisplay}";
-            }
-            else
+            // NEU: Füge Plattenwinkel hinzu, wenn nötig
+            if (IsPlattenwinkelRequired)
             {
-                // Für alle anderen Werkzeuge
-                ToolName = SelectedUnterkategorie.Name;
+                string winkelDisplay = (PlattenwinkelInputString ?? "").Trim().Replace(',', '.');
+                if (!string.IsNullOrEmpty(winkelDisplay))
+                {
+                    sb.Append($" W={winkelDisplay}");
+                }
             }
+
+            ToolName = sb.ToString();
         }
 
         #endregion
@@ -276,15 +292,17 @@ namespace NC_Setup_Assist.ViewModels
         {
             EditingTool = new Werkzeug();
             EditingTool.Steigung = null;
+            EditingTool.Plattenwinkel = null; // NEU
 
-            ToolName = string.Empty; // NEU
+            ToolName = string.Empty;
             PitchInputString = string.Empty;
+            PlattenwinkelInputString = string.Empty; // NEU
             SelectedKategorie = null;
             SelectedUnterkategorie = null;
             IsInEditMode = true;
             IsPitchRequired = false;
+            IsPlattenwinkelRequired = false; // NEU
 
-            // NEU: Workflow-Status setzen
             IsUnterkategorieEnabled = false;
             IsToolDetailsEnabled = false;
         }
@@ -306,80 +324,90 @@ namespace NC_Setup_Assist.ViewModels
                     Name = SelectedTool.Name,
                     Beschreibung = SelectedTool.Beschreibung,
                     Steigung = SelectedTool.Steigung,
+                    Plattenwinkel = SelectedTool.Plattenwinkel, // NEU
                     Unterkategorie = SelectedTool.Unterkategorie,
                     WerkzeugUnterkategorieID = SelectedTool.WerkzeugUnterkategorieID
                 };
 
-                ToolName = EditingTool.Name; // NEU
+                ToolName = EditingTool.Name;
 
-                PitchInputString = EditingTool.Steigung?.ToString(CultureInfo.InvariantCulture);
-                if (PitchInputString != null)
-                {
-                    PitchInputString = PitchInputString.Replace('.', ',');
-                }
+                // Lade die Werte in die Input-Strings
+                PitchInputString = EditingTool.Steigung?.ToString("G", CultureInfo.CurrentCulture);
+                PlattenwinkelInputString = EditingTool.Plattenwinkel?.ToString("G", CultureInfo.CurrentCulture); // NEU
 
+                // Löst das Laden der Dropdowns und das Anzeigen der Felder aus
                 SelectedKategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == SelectedTool.Unterkategorie.WerkzeugKategorieID);
-                SelectedUnterkategorie = SelectedTool.Unterkategorie;
+                SelectedUnterkategorie = Unterkategorien.FirstOrDefault(u => u.WerkzeugUnterkategorieID == SelectedTool.WerkzeugUnterkategorieID);
 
                 IsInEditMode = true;
-
-                // NEU: Beim Bearbeiten alles aktivieren
                 IsUnterkategorieEnabled = true;
                 IsToolDetailsEnabled = true;
             }
         }
 
+        // Helper-Funktion zum Parsen
+        private bool ParseNullableDouble(string input, bool isRequired, string fieldName, out double? result)
+        {
+            result = null;
+            string rawInput = input?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrEmpty(rawInput))
+            {
+                if (isRequired)
+                {
+                    MessageBox.Show($"Für diesen Werkzeugtyp ist die Angabe '{fieldName}' erforderlich.", "Fehlende Eingabe");
+                    return false;
+                }
+                return true; // Leer und nicht erforderlich -> OK
+            }
+
+            string normalizedInput = rawInput.Replace(',', '.');
+            if (double.TryParse(normalizedInput, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double parsedValue))
+            {
+                result = parsedValue;
+                return true;
+            }
+            else
+            {
+                MessageBox.Show($"Der Wert für '{fieldName}' ist keine gültige Zahl.", "Fehlerhafte Eingabe", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+
         [RelayCommand]
         private void SaveTool()
         {
-            if (EditingTool == null || SelectedUnterkategorie == null || string.IsNullOrWhiteSpace(ToolName)) // NEU: ToolName geprüft
+            if (EditingTool == null || SelectedUnterkategorie == null || string.IsNullOrWhiteSpace(ToolName))
             {
                 MessageBox.Show("Bitte wählen Sie eine Kategorie, einen Typ aus und geben Sie einen Namen ein.", "Fehlende Eingabe");
                 return;
             }
 
-            // --- NEUE ROBUSTE VALIDIERUNG DER STEIGUNG ---
-            double? finalPitch = null;
-            string rawInput = PitchInputString?.Trim() ?? string.Empty;
-
-            if (!string.IsNullOrEmpty(rawInput))
+            // --- NEUE VALIDIERUNG ---
+            double? finalPitch;
+            if (!ParseNullableDouble(PitchInputString, IsPitchRequired, "Steigung", out finalPitch))
             {
-                string normalizedInput = rawInput.Replace(',', '.');
-
-                if (double.TryParse(normalizedInput, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double parsedValue))
-                {
-                    finalPitch = parsedValue;
-                }
-                else
-                {
-                    MessageBox.Show("Die eingegebene Steigung ist keine gültige Dezimalzahl (erlaubt sind nur Zahlen, Komma oder Punkt).", "Fehlerhafte Eingabe", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
+                return; // Validierung fehlgeschlagen
             }
 
-            if (IsPitchRequired)
+            double? finalPlattenwinkel;
+            if (!ParseNullableDouble(PlattenwinkelInputString, IsPlattenwinkelRequired, "Plattenwinkel", out finalPlattenwinkel))
             {
-                if (finalPitch == null || finalPitch.Value <= 0)
-                {
-                    MessageBox.Show("Für Gewindedrehstähle muss die Steigung (Pitch) als Wert größer 0 angegeben werden.", "Fehlende Steigung");
-                    return;
-                }
+                return; // Validierung fehlgeschlagen
             }
+            // --------------------------
 
-            // 4. Den finalen, validierten Wert in das Modell schreiben
             EditingTool.Steigung = finalPitch;
-            EditingTool.Name = ToolName; // NEU: ToolName explizit zuweisen
-
-            // ---------------------------------------------
+            EditingTool.Plattenwinkel = finalPlattenwinkel; // NEU
+            EditingTool.Name = ToolName;
 
             using var context = new NcSetupContext();
 
             if (EditingTool.WerkzeugID == 0)
             {
                 EditingTool.WerkzeugUnterkategorieID = SelectedUnterkategorie.WerkzeugUnterkategorieID;
-                EditingTool.Unterkategorie = SelectedUnterkategorie;
-                context.WerkzeugUnterkategorien.Attach(EditingTool.Unterkategorie);
-
+                context.WerkzeugUnterkategorien.Attach(SelectedUnterkategorie); // Wichtig!
                 context.Werkzeuge.Add(EditingTool);
             }
             else
@@ -390,6 +418,7 @@ namespace NC_Setup_Assist.ViewModels
                     toolToUpdate.Name = EditingTool.Name;
                     toolToUpdate.Beschreibung = EditingTool.Beschreibung;
                     toolToUpdate.Steigung = EditingTool.Steigung;
+                    toolToUpdate.Plattenwinkel = EditingTool.Plattenwinkel; // NEU
                     toolToUpdate.WerkzeugUnterkategorieID = SelectedUnterkategorie.WerkzeugUnterkategorieID;
                 }
             }
@@ -398,12 +427,9 @@ namespace NC_Setup_Assist.ViewModels
             LoadTools();
             IsInEditMode = false;
             EditingTool = null;
-            ToolName = string.Empty; // NEU
+            ToolName = string.Empty;
             SelectedTool = null;
-            SelectedKategorie = null;
-            SelectedUnterkategorie = null;
-            IsPitchRequired = false;
-            PitchInputString = string.Empty;
+            Cancel(); // Ruft Cancel auf, um alle Felder zurückzusetzen
         }
 
         [RelayCommand]
@@ -413,11 +439,13 @@ namespace NC_Setup_Assist.ViewModels
             IsInEditMode = false;
             SelectedKategorie = null;
             SelectedUnterkategorie = null;
-            IsPitchRequired = false;
-            PitchInputString = string.Empty;
 
-            // NEU: Workflow-Status zurücksetzen
+            IsPitchRequired = false;
+            IsPlattenwinkelRequired = false; // NEU
+            PitchInputString = string.Empty;
+            PlattenwinkelInputString = string.Empty; // NEU
             ToolName = string.Empty;
+
             IsUnterkategorieEnabled = false;
             IsToolDetailsEnabled = false;
         }
@@ -443,20 +471,18 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
-        // --- NEUE COMMANDS FÜR KATEGORIE-MANAGEMENT ---
+        // --- NEUE NAVIGATION COMMANDS ---
 
         [RelayCommand]
-        private void AddKategorie()
+        private void NavigateToKategorieManagement()
         {
-            // Öffnet die neue Ansicht und übergibt die Refresh-Methode als Callback
-            _mainViewModel.NavigateTo(new WerkzeugKategorieManagementViewModel(RefreshKategorienData));
+            _mainViewModel.NavigateTo(new KategorieManagementViewModel(RefreshKategorienData));
         }
 
         [RelayCommand]
-        private void AddUnterkategorie()
+        private void NavigateToUnterkategorieManagement()
         {
-            // Öffnet die neue Ansicht und übergibt die Refresh-Methode als Callback
-            _mainViewModel.NavigateTo(new WerkzeugKategorieManagementViewModel(RefreshKategorienData));
+            _mainViewModel.NavigateTo(new UnterkategorieManagementViewModel(RefreshKategorienData));
         }
 
         #endregion

@@ -14,5 +14,16 @@ namespace NC_Setup_Assist.Models
         public int WerkzeugKategorieID { get; set; }
         [ForeignKey("WerkzeugKategorieID")]
         public WerkzeugKategorie Kategorie { get; set; } = null!;
+
+        // --- NEUE EIGENSCHAFTEN ---
+        /// <summary>
+        /// Definiert, ob dieser Werkzeugtyp die Angabe einer Steigung erfordert (z.B. Gewindebohrer).
+        /// </summary>
+        public bool BenötigtSteigung { get; set; }
+
+        /// <summary>
+        /// Definiert, ob dieser Werkzeugtyp die Angabe eines Plattenwinkels erfordert (z.B. Drehstähle).
+        /// </summary>
+        public bool BenötigtPlattenwinkel { get; set; }
     }
 }

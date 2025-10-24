@@ -44,6 +44,7 @@ namespace NC_Setup_Assist.Services
             string vlmon1 = string.Empty;
             string vlmon2 = string.Empty;
             bool nat = false;
+            bool sb = false;
 
             #region Regex Definitionen
             var g50Regex = new Regex(@"G50\s+S(\d+)");
@@ -60,6 +61,8 @@ namespace NC_Setup_Assist.Services
             var xValueRegex = new Regex(@"\bX(-?[\d\.]+)", RegexOptions.IgnoreCase);
             var g71Regex = new Regex(@"G71", RegexOptions.IgnoreCase);
             var fRegex = new Regex(@"F(-?[\d\.]+)");
+            var sbRegex = new Regex(@"SB=(-?[\d\.]+)");
+            var g101Regex = new Regex(@"G101", RegexOptions.IgnoreCase);
             #endregion
 
             foreach (var line in lines)
@@ -158,7 +161,6 @@ namespace NC_Setup_Assist.Services
 
                         // Finde das letzte *echte* Werkzeug (nicht nur einen Kommentar)
                         var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
-
                         if (lastTool != null)
                         {
                             if (currentXValue < xValue)
@@ -166,7 +168,7 @@ namespace NC_Setup_Assist.Services
                                 // AUSSENGEWINDE
                                 if (aussenGewindeTool != null)
                                 {
-                                    lastTool.ZugehoerigesWerkzeug = aussenGewindeTool;
+                                    // lastTool.ZugehoerigesWerkzeug = aussenGewindeTool; // <-- DIESE ZEILE ENTFERNEN ODER AUSKOMMENTIEREN
                                     lastTool.WerkzeugID = aussenGewindeTool.WerkzeugID;
                                     lastTool.Kommentar = "Favorit (Gewinde Aussen)"; // Markierung
                                 }
@@ -176,7 +178,7 @@ namespace NC_Setup_Assist.Services
                                 // INNENGEWINDE
                                 if (innenGewindeTool != null)
                                 {
-                                    lastTool.ZugehoerigesWerkzeug = innenGewindeTool;
+                                    // lastTool.ZugehoerigesWerkzeug = innenGewindeTool; // <-- DIESE ZEILE ENTFERNEN ODER AUSKOMMENTIEREN
                                     lastTool.WerkzeugID = innenGewindeTool.WerkzeugID;
                                     lastTool.Kommentar = "Favorit (Gewinde Innen)"; // Markierung
                                 }
@@ -186,10 +188,25 @@ namespace NC_Setup_Assist.Services
                     xValue = double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture);
                 }
 
+                var sbMatch = sbRegex.Match(line);
+                if (sbMatch.Success)
+                {
+                    sb = true;
+                }
+
+                var g101Match = g101Regex.Match(line);
+                if (g101Match.Success && sb == true)
+                {
+                    //In der AnalysisView.xaml sollte eine weitere Spalte hinzugefügt werden
+                    //um "" (nichts), "↓" und "←" darzustellen. bei einem g101, mit einem sbMatch,
+                    //sollte "←" beim letzten Werkzeug hinzugefügt werden.
+                }
+
                 var natMatch = natRegex.Match(line);
                 if (natMatch.Success)
                 {
                     nat = true;
+                    sb = false;
                 }
 
                 // --- ZULETZT DIE WERKZEUGVERARBEITUNG ---

@@ -4,6 +4,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using NC_Setup_Assist.Data; // NEU
+using Microsoft.EntityFrameworkCore; // NEU
 
 namespace NC_Setup_Assist.Services
 {
@@ -16,6 +18,19 @@ namespace NC_Setup_Assist.Services
             {
                 return werkzeugEinsaetze;
             }
+
+            // NEU: DbContext und Favoriten-Werkzeuge laden
+            using var context = new NcSetupContext();
+            const double requiredPitch = 0.75;
+
+            var aussenGewindeTool = context.Werkzeuge
+                .Include(w => w.Unterkategorie)
+                .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Aussen" && w.Steigung == requiredPitch);
+
+            var innenGewindeTool = context.Werkzeuge
+                .Include(w => w.Unterkategorie)
+                .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Innen" && w.Steigung == requiredPitch);
+            // ---
 
             var lines = File.ReadAllLines(filePath);
             string currentRevolverStation = "";
@@ -42,7 +57,7 @@ namespace NC_Setup_Assist.Services
             var korbZurückRegex = new Regex(@"\bM76\b");
             var toolRegex = new Regex(@"\bT(\d{2})(\d{2})?");
             var natRegex = new Regex(@"NAT(\d+)");
-            var xValueRegex = new Regex(@"x(-?[\d\.]+)");
+            var xValueRegex = new Regex(@"\bX(-?[\d\.]+)", RegexOptions.IgnoreCase);
             var g71Regex = new Regex(@"G71", RegexOptions.IgnoreCase);
             var fRegex = new Regex(@"F(-?[\d\.]+)");
             #endregion
@@ -139,52 +154,36 @@ namespace NC_Setup_Assist.Services
                     if (g71Match.Success)
                     {
                         var fMatch = fRegex.Match(line);
-                        if (double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture) < xValue)
+                        double currentXValue = double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+
+                        // Finde das letzte *echte* Werkzeug (nicht nur einen Kommentar)
+                        var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
+
+                        if (lastTool != null)
                         {
-                            //Wenn ich den Parser laufen lasse und er hier ankommt, sprich
-
-                            //- xValue gefunden
-                            //- g71 gefunden
-                            //- Jetztiger x-Wert kleiner als der, der zuvor ausgelesen wurde
-
-                            //Dann sollte jetzt beim letzt ausgelesenen Werkzeug in der Liste, Das Werkzeug, Wenn Vorhanden, mit der
-                            //Unterkategorie "Gewindedrehstahl Aussen" und der Steigung "0.75" bei der Spalte Werkzeug hinzugefügt werden.
-
-                            //Bei der späteren zuweisung der restlichen Stationen, sollte dieser "Favorit", wie ich ihn nenne, auch noch
-                            //geändert werden können.
-
-                            //Die Werkzeuge die als Standard zugewiesen werden, also auf der Maschine, haben die kleinere Priorität.
-                            //Also sollte das Favoritenwerkzeug, wenn es im programm gefunden wird, dass Standardwerkzeug überschreiben
-                            //auf dieser Station.
-
-                            //Bei der späteren zuweisung im ToolAssignmentComparisonView.xaml Fenster. sollten die Standardwerkzeuge
-                            //und die Favoritenwerkzeuge irgendwie unterscheidbar sein. Eventuelle die Standardwerkzege grün hinterlegt,
-                            //die Favoriten blau und die noch nicht zugewisenen, und alle die geändert wurden von der vorlage aus Gelb.rot
-                        }
-                        else if(double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture) >= xValue);
-                        {
-                            //Wenn ich den Parser laufen lasse und er hier ankommt, sprich
-
-                            //- xValue gefunden
-                            //- g71 gefunden
-                            //- Jetztiger x-Wert grösser als der, der zuvor ausgelesen wurde
-
-                            //Dann sollte jetzt beim letzt ausgelesenen Werkzeug in der Liste, Das Werkzeug, Wenn Vorhanden, mit der
-                            //Unterkategorie "Gewindedrehstahl Innen" und der Steigung "0.75" bei der Spalte Werkzeug hinzugefügt werden.
-
-                            //Bei der späteren zuweisung der restlichen Stationen, sollte dieser "Favorit", wie ich ihn nenne, auch noch
-                            //geändert werden können.
-
-                            //Die Werkzeuge die als Standard zugewiesen werden, also auf der Maschine, haben die kleinere Priorität.
-                            //Also sollte das Favoritenwerkzeug, wenn es im programm gefunden wird, dass Standardwerkzeug überschreiben
-                            //auf dieser Station.
-
-                            //Bei der späteren zuweisung im ToolAssignmentComparisonView.xaml Fenster. sollten die Standardwerkzeuge
-                            //und die Favoritenwerkzeuge irgendwie unterscheidbar sein. Eventuelle die Standardwerkzege grün hinterlegt,
-                            //die Favoriten blau und die noch nicht zugewisenen, und alle die geändert wurden von der vorlage aus Gelb.rot
+                            if (currentXValue < xValue)
+                            {
+                                // AUSSENGEWINDE
+                                if (aussenGewindeTool != null)
+                                {
+                                    lastTool.ZugehoerigesWerkzeug = aussenGewindeTool;
+                                    lastTool.WerkzeugID = aussenGewindeTool.WerkzeugID;
+                                    lastTool.Kommentar = "Favorit (Gewinde Aussen)"; // Markierung
+                                }
+                            }
+                            else if (currentXValue >= xValue)
+                            {
+                                // INNENGEWINDE
+                                if (innenGewindeTool != null)
+                                {
+                                    lastTool.ZugehoerigesWerkzeug = innenGewindeTool;
+                                    lastTool.WerkzeugID = innenGewindeTool.WerkzeugID;
+                                    lastTool.Kommentar = "Favorit (Gewinde Innen)"; // Markierung
+                                }
+                            }
                         }
                     }
-                    xValue = double.Parse(xValueMatch.Groups[1].Value);
+                    xValue = double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture);
                 }
 
                 var natMatch = natRegex.Match(line);

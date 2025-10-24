@@ -17,16 +17,18 @@ namespace NC_Setup_Assist.ViewModels
         public string Korrektur { get; }
         public string ToolNameBefore { get; }
         public string ToolNameAfter { get; }
+        public string AssignmentStatus { get; } // NEU
 
         // Indikator für die Zuweisung: True, wenn manuell zugewiesen ODER als Standardwerkzeug erkannt.
-        public bool IsAssigned => ToolNameAfter != "Unzugewiesen";
+        public bool IsAssigned => AssignmentStatus != "Unassigned"; // Angepasst
 
-        public ToolComparisonItem(string station, string korrektur, string before, string after)
+        public ToolComparisonItem(string station, string korrektur, string before, string after, string status) // Angepasst
         {
             Station = station;
             Korrektur = korrektur;
             ToolNameBefore = before;
             ToolNameAfter = after;
+            AssignmentStatus = status; // NEU
         }
     }
 
@@ -75,7 +77,7 @@ namespace NC_Setup_Assist.ViewModels
             var allUniqueTools = context.WerkzeugEinsaetze
                 .Where(e => e.NCProgrammID == _programm.NCProgrammID && !string.IsNullOrEmpty(e.RevolverStation))
                 .Include(e => e.ZugehoerigesWerkzeug) // Lade das aktuell zugewiesene Werkzeug
-                .Select(e => new { e.RevolverStation, e.KorrekturNummer, ZugewiesenesWerkzeug = e.ZugehoerigesWerkzeug })
+                .Select(e => new { e.RevolverStation, e.KorrekturNummer, ZugewiesenesWerkzeug = e.ZugehoerigesWerkzeug, e.Kommentar }) // <-- Kommentar hinzugefügt
                 .AsEnumerable() // Wechsle zu In-Memory-Verarbeitung
                 .GroupBy(e => new { e.RevolverStation, e.KorrekturNummer })
                 .Select(g => g.First())
@@ -102,23 +104,42 @@ namespace NC_Setup_Assist.ViewModels
 
                 // --- Bestimme "After" Status (Final zugewiesen) ---
                 string toolAfterName;
+                string assignmentStatus; // NEU
+
                 if (uniqueTool.ZugewiesenesWerkzeug != null)
                 {
-                    // 1. Manuelle Zuweisung in DB gefunden (höchste Priorität)
                     toolAfterName = uniqueTool.ZugewiesenesWerkzeug.Name;
-                }
-                else
-                {
-                    // 2. Keine manuelle Zuweisung, prüfe auf Standardwerkzeug (Fall-Through von toolBeforeName)
-                    if (stdTool != null)
+
+                    // NEU: Status bestimmen
+                    if (uniqueTool.Kommentar?.StartsWith("Favorit") == true)
                     {
-                        // Standardwerkzeug gefunden -> Wird als zugewiesen betrachtet.
-                        toolAfterName = $"{stdTool.Name}";
+                        assignmentStatus = "Favorite"; // Blau
+                    }
+                    else if (stdTool != null && stdTool.WerkzeugID == uniqueTool.ZugewiesenesWerkzeug.WerkzeugID)
+                    {
+                        // Manuell zugewiesen, aber es ist dasselbe wie das Standardwerkzeug
+                        assignmentStatus = "Standard"; // Grün
                     }
                     else
                     {
-                        // 3. Weder manuell zugewiesen noch Standard
+                        // Manuell zugewiesen, und es ist NICHT das Standardwerkzeug
+                        assignmentStatus = "Manual"; // Gelb/Rot
+                    }
+                }
+                else
+                {
+                    // Keine manuelle/parser-Zuweisung
+                    if (stdTool != null)
+                    {
+                        // Standardwerkzeug gefunden
+                        toolAfterName = $"{stdTool.Name}";
+                        assignmentStatus = "Standard"; // Grün
+                    }
+                    else
+                    {
+                        // Weder manuell zugewiesen noch Standard
                         toolAfterName = "Unzugewiesen";
+                        assignmentStatus = "Unassigned"; // Gelb
                     }
                 }
 
@@ -126,7 +147,8 @@ namespace NC_Setup_Assist.ViewModels
                     uniqueTool.RevolverStation!,
                     korrekturKey,
                     toolBeforeName,
-                    toolAfterName
+                    toolAfterName,
+                    assignmentStatus // NEU
                 ));
             }
         }
@@ -170,6 +192,11 @@ namespace NC_Setup_Assist.ViewModels
             foreach (var einsatz in einsaetzeToUpdate)
             {
                 einsatz.WerkzeugID = werkzeugId;
+                // WICHTIG: Entferne die "Favorit"-Markierung, da es jetzt eine manuelle Zuweisung ist
+                if (einsatz.Kommentar?.StartsWith("Favorit") == true)
+                {
+                    einsatz.Kommentar = null;
+                }
             }
             context.SaveChanges();
 

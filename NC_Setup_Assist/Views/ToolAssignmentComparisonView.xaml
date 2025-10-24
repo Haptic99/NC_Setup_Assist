@@ -21,15 +21,22 @@
                     <Setter Property="Background" Value="#EFEFEF"/>
                 </Trigger>
 
-                <DataTrigger Binding="{Binding IsAssigned}" Value="False">
+                <DataTrigger Binding="{Binding AssignmentStatus}" Value="Unassigned">
                     <Setter Property="Background" Value="#FFFACD"/>
                     <Setter Property="Foreground" Value="Black"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding IsAssigned}" Value="True">
+                <DataTrigger Binding="{Binding AssignmentStatus}" Value="Standard">
                     <Setter Property="Background" Value="#D0F0C0"/>
                     <Setter Property="Foreground" Value="#006400"/>
                 </DataTrigger>
-
+                <DataTrigger Binding="{Binding AssignmentStatus}" Value="Favorite">
+                    <Setter Property="Background" Value="#DCEFFF"/>
+                    <Setter Property="Foreground" Value="#005A9C"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding AssignmentStatus}" Value="Manual">
+                    <Setter Property="Background" Value="#FFDDDD"/>
+                    <Setter Property="Foreground" Value="#A00000"/>
+                </DataTrigger>
                 <Trigger Property="IsSelected" Value="True">
                     <Setter Property="Background" Value="#E0F0FF"/>
                     <Setter Property="Foreground" Value="Black"/>
@@ -107,7 +114,7 @@
                            Foreground="#333333"/>
                 <ListView ItemsSource="{Binding ComparisonItems}" 
                           AlternationCount="2" 
-                          ItemContainerStyle="{StaticResource AssignmentStatusItemStyle}"
+                           ItemContainerStyle="{StaticResource AssignmentStatusItemStyle}"
                           x:Name="ComparisonListView">
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="MouseDoubleClick">

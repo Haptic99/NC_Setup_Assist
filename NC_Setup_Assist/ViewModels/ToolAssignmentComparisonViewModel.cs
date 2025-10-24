@@ -19,11 +19,13 @@ namespace NC_Setup_Assist.ViewModels
         public string ToolNameAfter { get; }
         public string AssignmentStatus { get; } // NEU
         public string? BearbeitungsArt { get; } // NEU (für Fräsen-Filter)
+        public string ToolSubCategory { get; } // NEU: Eigenschaft für die Unterkategorie
 
         // Indikator für die Zuweisung: True, wenn manuell zugewiesen ODER als Standardwerkzeug erkannt.
         public bool IsAssigned => AssignmentStatus != "Unassigned"; // Angepasst
 
-        public ToolComparisonItem(string station, string korrektur, string before, string after, string status, string? bearbeitungsArt) // Angepasst
+        // Konstruktor angepasst
+        public ToolComparisonItem(string station, string korrektur, string before, string after, string status, string? bearbeitungsArt, string toolSubCategory) // Angepasst
         {
             Station = station;
             Korrektur = korrektur;
@@ -31,6 +33,7 @@ namespace NC_Setup_Assist.ViewModels
             ToolNameAfter = after;
             AssignmentStatus = status; // NEU
             BearbeitungsArt = bearbeitungsArt; // NEU
+            ToolSubCategory = toolSubCategory; // NEU
         }
     }
 
@@ -66,7 +69,7 @@ namespace NC_Setup_Assist.ViewModels
             var standardTools = context.StandardWerkzeugZuweisungen
                                         .Where(z => z.MaschineID == _programm.MaschineID)
                                         .Include(z => z.ZugehoerigesWerkzeug)
-                                            .ThenInclude(w => w!.Unterkategorie)
+                                            .ThenInclude(w => w!.Unterkategorie) // Wichtig: Unterkategorie mitladen
                                         .ToList();
 
             var standardToolLookup = standardTools.ToDictionary(
@@ -76,10 +79,11 @@ namespace NC_Setup_Assist.ViewModels
 
             // 2. Lade alle eindeutigen Werkzeugeinsätze des Programms, diesmal DIREKT aus der DB,
             // um den aktuellen Zuweisungsstatus zu sehen.
-            var allUniqueTools = context.WerkzeugEinsaetze
+            // ÄNDERUNG: .Include für ZugehoerigesWerkzeug.Unterkategorie hinzugefügt
+            var allUniqueToolsEntities = context.WerkzeugEinsaetze
                 .Where(e => e.NCProgrammID == _programm.NCProgrammID && !string.IsNullOrEmpty(e.RevolverStation))
-                .Include(e => e.ZugehoerigesWerkzeug) // Lade das aktuell zugewiesene Werkzeug
-                .Select(e => new { e.RevolverStation, e.KorrekturNummer, ZugewiesenesWerkzeug = e.ZugehoerigesWerkzeug, e.Kommentar, e.BearbeitungsArt }) // <-- BearbeitungsArt hinzugefügt
+                .Include(e => e.ZugehoerigesWerkzeug)
+                    .ThenInclude(w => w!.Unterkategorie) // Lade das zugewiesene Werkzeug und dessen Unterkategorie
                 .AsEnumerable() // Wechsle zu In-Memory-Verarbeitung
                 .GroupBy(e => new { e.RevolverStation, e.KorrekturNummer })
                 .Select(g => g.First())
@@ -87,7 +91,7 @@ namespace NC_Setup_Assist.ViewModels
 
 
             // 3. Verarbeite die Vergleichsdaten
-            foreach (var uniqueTool in allUniqueTools.OrderBy(t => t.RevolverStation).ThenBy(t => t.KorrekturNummer))
+            foreach (var uniqueTool in allUniqueToolsEntities.OrderBy(t => t.RevolverStation).ThenBy(t => t.KorrekturNummer))
             {
                 string stationKey = uniqueTool.RevolverStation!.TrimStart('0');
                 string korrekturKey = uniqueTool.KorrekturNummer ?? "";
@@ -107,17 +111,20 @@ namespace NC_Setup_Assist.ViewModels
                 // --- Bestimme "After" Status (Final zugewiesen) ---
                 string toolAfterName;
                 string assignmentStatus; // NEU
+                string toolSubCategory; // NEU
 
-                if (uniqueTool.ZugewiesenesWerkzeug != null)
+                if (uniqueTool.ZugehoerigesWerkzeug != null)
                 {
-                    toolAfterName = uniqueTool.ZugewiesenesWerkzeug.Name;
+                    toolAfterName = uniqueTool.ZugehoerigesWerkzeug.Name;
+                    // NEU: Unterkategorie-Name holen
+                    toolSubCategory = uniqueTool.ZugehoerigesWerkzeug.Unterkategorie?.Name ?? "k.A.";
 
                     // NEU: Status bestimmen
                     if (uniqueTool.Kommentar?.StartsWith("Favorit") == true)
                     {
                         assignmentStatus = "Favorite"; // Blau
                     }
-                    else if (stdTool != null && stdTool.WerkzeugID == uniqueTool.ZugewiesenesWerkzeug.WerkzeugID)
+                    else if (stdTool != null && stdTool.WerkzeugID == uniqueTool.ZugehoerigesWerkzeug.WerkzeugID)
                     {
                         // Manuell zugewiesen, aber es ist dasselbe wie das Standardwerkzeug
                         assignmentStatus = "Standard"; // Grün
@@ -135,12 +142,15 @@ namespace NC_Setup_Assist.ViewModels
                     {
                         // Standardwerkzeug gefunden
                         toolAfterName = $"{stdTool.Name}";
+                        // NEU: Unterkategorie-Name holen
+                        toolSubCategory = stdTool.Unterkategorie?.Name ?? "k.A.";
                         assignmentStatus = "Standard"; // Grün
                     }
                     else
                     {
                         // Weder manuell zugewiesen noch Standard
                         toolAfterName = "Unzugewiesen";
+                        toolSubCategory = "---"; // NEU
                         assignmentStatus = "Unassigned"; // Gelb
                     }
                 }
@@ -151,7 +161,8 @@ namespace NC_Setup_Assist.ViewModels
                     toolBeforeName,
                     toolAfterName,
                     assignmentStatus, // NEU
-                    uniqueTool.BearbeitungsArt // NEU
+                    uniqueTool.BearbeitungsArt, // NEU
+                    toolSubCategory // NEU
                 ));
             }
         }

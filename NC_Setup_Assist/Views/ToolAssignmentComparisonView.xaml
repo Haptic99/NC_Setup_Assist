@@ -75,7 +75,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" 
-                   Text="Werkzeugzuweisung Vergleich" 
+                    Text="Werkzeugzuweisung Vergleich" 
                    FontSize="18" 
                    FontWeight="Bold" 
                    Margin="0,0,0,10"
@@ -116,18 +116,25 @@
                           AlternationCount="2" 
                            ItemContainerStyle="{StaticResource AssignmentStatusItemStyle}"
                           x:Name="ComparisonListView">
+
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="MouseDoubleClick">
                             <i:InvokeCommandAction Command="{Binding AssignToolCommand}"
-                                                   CommandParameter="{Binding ElementName=ComparisonListView, Path=SelectedItem}"/>
+                                                 CommandParameter="{Binding ElementName=ComparisonListView, Path=SelectedItem}"/>
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
 
+
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Station" DisplayMemberBinding="{Binding Station}" Width="80"/>
-                            <GridViewColumn Header="Korrektur" DisplayMemberBinding="{Binding Korrektur}" Width="80"/>
-                            <GridViewColumn Header="Status / Werkzeug" DisplayMemberBinding="{Binding ToolNameAfter}" Width="Auto"/>
+                            <GridViewColumn Header="Station" DisplayMemberBinding="{Binding Station}" Width="60"/>
+                            <GridViewColumn Header="Korrektur" DisplayMemberBinding="{Binding Korrektur}" Width="60"/>
+
+                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding AssignmentStatus}" Width="80"/>
+
+                            <GridViewColumn Header="Werkzeug" DisplayMemberBinding="{Binding ToolNameAfter}" Width="150"/>
+
+                            <GridViewColumn Header="Kategorie/Typ" DisplayMemberBinding="{Binding ToolSubCategory}" Width="150"/>
                         </GridView>
                     </ListView.View>
                 </ListView>

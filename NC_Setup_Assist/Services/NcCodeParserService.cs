@@ -88,11 +88,23 @@ namespace NC_Setup_Assist.Services
                 var callOlns5Match = callOlns5Regex.Match(line);
                 if (callOlns5Match.Success && !string.IsNullOrEmpty(abstechwerkzeugStangenanfang))
                 {
-                    string station = abstechwerkzeugStangenanfang.Substring(0, 2);
-                    string korrektur = abstechwerkzeugStangenanfang.Substring(2, 2);
+                    string abstechStation = abstechwerkzeugStangenanfang.Substring(0, 2);
+                    string abstechkorrektur = abstechwerkzeugStangenanfang.Substring(2, 2);
                     werkzeugEinsaetze.Add(new WerkzeugEinsatz
                     {
-                        Kommentar = $"Teil abstechen: WZ {station} / Korr. {korrektur}",
+                        RevolverStation = abstechStation,
+                        KorrekturNummer = (abstechStation != abstechkorrektur) ? abstechkorrektur : null,
+                        Kommentar = $"Teil abstechen",
+                        Reihenfolge = reihenfolgeCounter++
+                    });
+
+                    string anschlagStation = anschlagWerkzeug.Substring(0, 2);
+                    string anschlagKorrektur = anschlagWerkzeug.Substring(2, 2);
+                    werkzeugEinsaetze.Add(new WerkzeugEinsatz
+                    {
+                        RevolverStation = anschlagStation,
+                        KorrekturNummer = (anschlagStation != anschlagKorrektur) ? anschlagKorrektur : null,
+                        Kommentar = $"Rohsteil herausziehen",
                         Reihenfolge = reihenfolgeCounter++
                     });
                 }

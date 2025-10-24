@@ -88,6 +88,7 @@ namespace NC_Setup_Assist.ViewModels
             if (SelectedUnterkategorie == null) return;
 
             using var context = new NcSetupContext();
+            // 1. Lade das Objekt, das wir bearbeiten wollen (inkl. der Kategorie-Information)
             EditingUnterkategorie = context.WerkzeugUnterkategorien
                                            .Include(u => u.Kategorie)
                                            .FirstOrDefault(u => u.WerkzeugUnterkategorieID == SelectedUnterkategorie.WerkzeugUnterkategorieID);
@@ -95,6 +96,8 @@ namespace NC_Setup_Assist.ViewModels
             // Stelle sicher, dass die Kategorie-Instanz aus der ComboBox-Liste stammt
             if (EditingUnterkategorie != null)
             {
+                // 2. KORREKTUR: Finde die Kategorie-Instanz in der ComboBox-Quellliste ("Kategorien")
+                //    indem du den Fremdschlüssel (WerkzeugKategorieID) des geladenen Objekts verwendest.
                 EditingUnterkategorie.Kategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == EditingUnterkategorie.WerkzeugKategorieID);
             }
 

@@ -39,5 +39,91 @@ namespace NC_Setup_Assist.Data
             // 4. Verwende diesen festen, professionellen Pfad
             optionsBuilder.UseSqlite($"Data Source={dbPath}");
         }
+
+        // --- NEUE METHODE FÜR DAS DATA SEEDING ---
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // 1. WerkzeugKategorien (Basierend auf image_18a09a.png)
+            modelBuilder.Entity<WerkzeugKategorie>().HasData(
+                new WerkzeugKategorie { WerkzeugKategorieID = 1, Name = "Fräser" },
+                new WerkzeugKategorie { WerkzeugKategorieID = 2, Name = "Bohrer" },
+                new WerkzeugKategorie { WerkzeugKategorieID = 3, Name = "Drehwerkzeug" }
+            );
+
+            // 2. WerkzeugUnterkategorien (Basierend auf image_18a15b.png, mit neuen IDs 1-4)
+            modelBuilder.Entity<WerkzeugUnterkategorie>().HasData(
+                new WerkzeugUnterkategorie
+                {
+                    WerkzeugUnterkategorieID = 1, // Alt: 3
+                    Name = "Gewindedrehstahl Aussen",
+                    WerkzeugKategorieID = 3,
+                    BenötigtPlattenwinkel = false,
+                    BenötigtSteigung = true
+                },
+                new WerkzeugUnterkategorie
+                {
+                    WerkzeugUnterkategorieID = 2, // Alt: 4
+                    Name = "Gewindedrehstahl Innen",
+                    WerkzeugKategorieID = 3,
+                    BenötigtPlattenwinkel = false,
+                    BenötigtSteigung = true
+                },
+                new WerkzeugUnterkategorie
+                {
+                    WerkzeugUnterkategorieID = 3, // Alt: 38
+                    Name = "Messerst.",
+                    WerkzeugKategorieID = 3,
+                    BenötigtPlattenwinkel = true,
+                    BenötigtSteigung = false
+                },
+                new WerkzeugUnterkategorie
+                {
+                    WerkzeugUnterkategorieID = 4, // Alt: 41
+                    Name = "Abstechstähle", // Name aus Bild übernommen (ggf. "Abstechstäle" korrigieren)
+                    WerkzeugKategorieID = 3,
+                    BenötigtPlattenwinkel = false,
+                    BenötigtSteigung = false
+                }
+            );
+
+            // 3. Werkzeuge (Basierend auf image_18a47f.png, mit angepassten Unterkategorie-IDs)
+            modelBuilder.Entity<Werkzeug>().HasData(
+                new Werkzeug
+                {
+                    WerkzeugID = 1,
+                    Name = "Gewindedrehstahl Aussen P=0.75",
+                    Steigung = 0.75,
+                    Plattenwinkel = null,
+                    WerkzeugUnterkategorieID = 1 // Alt: 3
+                },
+                new Werkzeug
+                {
+                    WerkzeugID = 2,
+                    Name = "Messerst. 80°",
+                    Steigung = null,
+                    Plattenwinkel = 80.0,
+                    WerkzeugUnterkategorieID = 3 // Alt: 38
+                },
+                new Werkzeug
+                {
+                    WerkzeugID = 3,
+                    Name = "Messerst. 35° gekr.",
+                    Steigung = null,
+                    Plattenwinkel = 35.0,
+                    WerkzeugUnterkategorieID = 3 // Alt: 38
+                },
+                new Werkzeug
+                {
+                    WerkzeugID = 4,
+                    Name = "Abstechst. B=3mm", // Name aus Bild übernommen (ggf. "Abstech" korrigieren)
+                    Steigung = null,
+                    Plattenwinkel = null,
+                    WerkzeugUnterkategorieID = 4 // Alt: 41
+                }
+            );
+        }
+        // --- ENDE NEUE METHODE ---
     }
 }

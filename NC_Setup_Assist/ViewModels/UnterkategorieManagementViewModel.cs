@@ -155,6 +155,15 @@ namespace NC_Setup_Assist.ViewModels
         {
             if (SelectedUnterkategorie == null) return;
 
+            // --- NEUE PRÜFUNG ---
+            if (SelectedUnterkategorie.WerkzeugUnterkategorieID <= 4)
+            {
+                MessageBox.Show($"Die Unterkategorie '{SelectedUnterkategorie.Name}' ist eine Standardkategorie und kann nicht gelöscht werden.",
+                                "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            // --- ENDE PRÜFUNG ---
+
             using (var context = new NcSetupContext())
             {
                 bool isUsed = context.Werkzeuge.Any(w => w.WerkzeugUnterkategorieID == SelectedUnterkategorie.WerkzeugUnterkategorieID);

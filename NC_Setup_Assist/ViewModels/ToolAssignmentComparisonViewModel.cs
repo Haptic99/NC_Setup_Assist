@@ -150,8 +150,20 @@ namespace NC_Setup_Assist.ViewModels
                     {
                         // Weder manuell zugewiesen noch Standard
                         toolAfterName = "Unzugewiesen";
-                        toolSubCategory = "---"; // NEU
                         assignmentStatus = "Unassigned"; // Gelb
+
+                        // --- KORREKTUR ---
+                        // Wenn die Bearbeitungsart vom Parser erkannt wurde (z.B. "Fräsen"),
+                        // zeigen wir diese als Kategorie/Typ an, anstatt "---".
+                        if (!string.IsNullOrEmpty(uniqueTool.BearbeitungsArt))
+                        {
+                            toolSubCategory = uniqueTool.BearbeitungsArt;
+                        }
+                        else
+                        {
+                            toolSubCategory = "---";
+                        }
+                        // --- ENDE KORREKTUR ---
                     }
                 }
 

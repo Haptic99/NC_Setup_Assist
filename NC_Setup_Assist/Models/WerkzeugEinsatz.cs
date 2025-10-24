@@ -24,6 +24,13 @@ namespace NC_Setup_Assist.Models
         /// Ein optionaler Kommentar, z.B. für Spindeldrehzahl-Anpassungen.
         /// </summary>
         public string? Kommentar { get; set; }
+
+        // --- NEU (basierend auf G101/SB-Anfrage) ---
+        /// <summary>
+        /// Speichert die Bearbeitungsart, z.B. "Fräsen" oder "Drehen".
+        /// Wird vom Parser (G101/SB) gesetzt.
+        /// </summary>
+        public string? BearbeitungsArt { get; set; }
         // ------------------------------------
 
         public int NCProgrammID { get; set; }

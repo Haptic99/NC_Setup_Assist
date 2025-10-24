@@ -197,15 +197,17 @@ namespace NC_Setup_Assist.Services
                 var g101Match = g101Regex.Match(line);
                 if (g101Match.Success && sb == true)
                 {
-                    //In der AnalysisView.xaml sollte eine weitere Spalte hinzugefügt werden
-                    //um "" (nichts), "↓" und "←" darzustellen. bei einem g101, mit einem sbMatch,
-                    //sollte "←" beim letzten Werkzeug hinzugefügt werden.
+                    // HINZUGEFÜGT: Setze BearbeitungsArt für Fräswerkzeug (G101 + SB=true)
+                    var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
+                    if (lastTool != null)
+                    {
+                        // "←" Symbol wird in der AnalysisView (XAML) basierend auf dieser Eigenschaft angezeigt.
+                        // "Fräsen" wird für die spätere Filterlogik gespeichert.
+                        lastTool.BearbeitungsArt = "Fräsen";
+                    }
 
-                    //Zusätzlich sollte gespeichert werden, das dies ein Fräswerkzeug ist.
-                    //Wenn dann später die Werkzeuge zugewiesen werden, dann
-                    //kann anhand dieser Information der passende filter gesetzt werden.
-                    //der bei der ToolAssignmentComparisonView.xaml noch hinzugefügt werden muss.
-                    //bzw. in der ToolManagementView.xaml sollte das hinzugefügt werden.
+                    // Der Rest der Anforderung (Spalte in AnalysisView.xaml, Filter in ToolManagementView.xaml)
+                    // muss in den entsprechenden Dateien umgesetzt werden.
                 }
 
                 var natMatch = natRegex.Match(line);

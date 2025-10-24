@@ -18,17 +18,19 @@ namespace NC_Setup_Assist.ViewModels
         public string ToolNameBefore { get; }
         public string ToolNameAfter { get; }
         public string AssignmentStatus { get; } // NEU
+        public string? BearbeitungsArt { get; } // NEU (für Fräsen-Filter)
 
         // Indikator für die Zuweisung: True, wenn manuell zugewiesen ODER als Standardwerkzeug erkannt.
         public bool IsAssigned => AssignmentStatus != "Unassigned"; // Angepasst
 
-        public ToolComparisonItem(string station, string korrektur, string before, string after, string status) // Angepasst
+        public ToolComparisonItem(string station, string korrektur, string before, string after, string status, string? bearbeitungsArt) // Angepasst
         {
             Station = station;
             Korrektur = korrektur;
             ToolNameBefore = before;
             ToolNameAfter = after;
             AssignmentStatus = status; // NEU
+            BearbeitungsArt = bearbeitungsArt; // NEU
         }
     }
 
@@ -77,7 +79,7 @@ namespace NC_Setup_Assist.ViewModels
             var allUniqueTools = context.WerkzeugEinsaetze
                 .Where(e => e.NCProgrammID == _programm.NCProgrammID && !string.IsNullOrEmpty(e.RevolverStation))
                 .Include(e => e.ZugehoerigesWerkzeug) // Lade das aktuell zugewiesene Werkzeug
-                .Select(e => new { e.RevolverStation, e.KorrekturNummer, ZugewiesenesWerkzeug = e.ZugehoerigesWerkzeug, e.Kommentar }) // <-- Kommentar hinzugefügt
+                .Select(e => new { e.RevolverStation, e.KorrekturNummer, ZugewiesenesWerkzeug = e.ZugehoerigesWerkzeug, e.Kommentar, e.BearbeitungsArt }) // <-- BearbeitungsArt hinzugefügt
                 .AsEnumerable() // Wechsle zu In-Memory-Verarbeitung
                 .GroupBy(e => new { e.RevolverStation, e.KorrekturNummer })
                 .Select(g => g.First())
@@ -148,7 +150,8 @@ namespace NC_Setup_Assist.ViewModels
                     korrekturKey,
                     toolBeforeName,
                     toolAfterName,
-                    assignmentStatus // NEU
+                    assignmentStatus, // NEU
+                    uniqueTool.BearbeitungsArt // NEU
                 ));
             }
         }
@@ -161,6 +164,7 @@ namespace NC_Setup_Assist.ViewModels
 
             string station = item.Station;
             string korrektur = item.Korrektur;
+            string? filterArt = item.BearbeitungsArt; // NEU
 
             // Navigation zum ToolManagementViewModel (Auswahlmodus)
             // --- KORREKTUR HINZUGEFÜGT: _mainViewModel als erstes Argument übergeben ---
@@ -171,7 +175,7 @@ namespace NC_Setup_Assist.ViewModels
 
                 // Zurück zur Vergleichsansicht
                 _mainViewModel.NavigateBack();
-            });
+            }, filterArt); // NEU: filterArt übergeben
 
             _mainViewModel.NavigateTo(toolManagementVM);
         }

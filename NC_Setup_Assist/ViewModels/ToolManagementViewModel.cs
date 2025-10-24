@@ -72,6 +72,7 @@ namespace NC_Setup_Assist.ViewModels
         private readonly Action<Werkzeug>? _onToolSelectedCallback;
         [ObservableProperty]
         private bool _isSelectionMode;
+        private readonly string? _initialFilter; // NEU
 
 
         public ToolManagementViewModel(MainViewModel mainViewModel)
@@ -88,10 +89,26 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
-        public ToolManagementViewModel(MainViewModel mainViewModel, Action<Werkzeug> onToolSelectedCallback) : this(mainViewModel)
+        // ANGEPASSTER Konstruktor für Auswahlmodus (ersetzt den alten)
+        public ToolManagementViewModel(MainViewModel mainViewModel, Action<Werkzeug> onToolSelectedCallback, string? initialFilter = null) : this(mainViewModel)
         {
             _onToolSelectedCallback = onToolSelectedCallback;
             IsSelectionMode = true;
+            _initialFilter = initialFilter;
+
+            // NEU: Wenn ein Filter gesetzt ist, wende ihn an.
+            if (!string.IsNullOrEmpty(_initialFilter))
+            {
+                // Finde die Kategorie, die dem Filter "Fräsen" entspricht.
+                // Annahme: Der Filter-String "Fräsen" entspricht einem Kategorienamen.
+                var matchingKategorie = Kategorien.FirstOrDefault(k => k.Name.Equals(_initialFilter, StringComparison.OrdinalIgnoreCase));
+                if (matchingKategorie != null)
+                {
+                    SelectedKategorie = matchingKategorie;
+                    // Das Setzen von SelectedKategorie löst OnSelectedKategorieChanged aus,
+                    // was wiederum ApplyFilter() aufruft.
+                }
+            }
         }
 
         #region Lade- und Filter-Logik
@@ -138,30 +155,38 @@ namespace NC_Setup_Assist.ViewModels
 
         private void ApplyFilter()
         {
-            // (Unverändert)
-            if (string.IsNullOrWhiteSpace(SearchTerm))
+            IEnumerable<Werkzeug> tempFiltered = _allTools;
+
+            // 1. Filter nach Kategorie
+            if (SelectedKategorie != null)
             {
-                FilteredWerkzeuge.Clear();
-                foreach (var tool in _allTools)
-                {
-                    FilteredWerkzeuge.Add(tool);
-                }
+                tempFiltered = tempFiltered.Where(w => w.Unterkategorie?.Kategorie?.WerkzeugKategorieID == SelectedKategorie.WerkzeugKategorieID);
             }
-            else
+
+            // 2. Filter nach Unterkategorie
+            if (SelectedUnterkategorie != null)
             {
-                var filtered = _allTools.Where(w =>
+                tempFiltered = tempFiltered.Where(w => w.WerkzeugUnterkategorieID == SelectedUnterkategorie.WerkzeugUnterkategorieID);
+            }
+
+            // 3. Filter nach Suchbegriff
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                tempFiltered = tempFiltered.Where(w =>
                     (w.Name?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (w.Unterkategorie?.Name?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (w.Beschreibung?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-                ).ToList();
+                );
+            }
 
-                FilteredWerkzeuge.Clear();
-                foreach (var tool in filtered)
-                {
-                    FilteredWerkzeuge.Add(tool);
-                }
+            // Liste aktualisieren
+            FilteredWerkzeuge.Clear();
+            foreach (var tool in tempFiltered.ToList())
+            {
+                FilteredWerkzeuge.Add(tool);
             }
         }
+
 
         partial void OnSearchTermChanged(string? value) => ApplyFilter();
 
@@ -189,7 +214,7 @@ namespace NC_Setup_Assist.ViewModels
             // (Unverändert, lädt Unterkategorien)
             using var context = new NcSetupContext();
             Unterkategorien.Clear();
-            SelectedUnterkategorie = null;
+            SelectedUnterkategorie = null; // WICHTIG: Unterkategorie zurücksetzen
             if (value != null)
             {
                 var subs = context.WerkzeugUnterkategorien
@@ -207,6 +232,8 @@ namespace NC_Setup_Assist.ViewModels
             {
                 IsToolDetailsEnabled = false;
             }
+
+            ApplyFilter(); // NEU: Filter anwenden
         }
 
         partial void OnSelectedUnterkategorieChanged(WerkzeugUnterkategorie? value)
@@ -230,7 +257,10 @@ namespace NC_Setup_Assist.ViewModels
                 IsToolDetailsEnabled = false;
                 ToolName = string.Empty;
             }
+
+            ApplyFilter(); // NEU: Filter anwenden
         }
+
 
         partial void OnPitchInputStringChanged(string? value)
         {

@@ -22,7 +22,7 @@ namespace NC_Setup_Assist.Services
             int reihenfolgeCounter = 1;
 
             int maximaleAbstechdrehzahl = 0;
-            int xValue = 0;
+            double xValue = 0;
             string abstechwerkzeugStangenanfang = string.Empty;
             string anschlagWerkzeug = string.Empty;
             double abstechPositionZ = 0;
@@ -42,6 +42,9 @@ namespace NC_Setup_Assist.Services
             var korbZurückRegex = new Regex(@"\bM76\b");
             var toolRegex = new Regex(@"\bT(\d{2})(\d{2})?");
             var natRegex = new Regex(@"NAT(\d+)");
+            var xValueRegex = new Regex(@"x(-?[\d\.]+)");
+            var g71Regex = new Regex(@"G71", RegexOptions.IgnoreCase);
+            var fRegex = new Regex(@"F(-?[\d\.]+)");
             #endregion
 
             foreach (var line in lines)
@@ -127,6 +130,61 @@ namespace NC_Setup_Assist.Services
                 {
                     vlmon1 = vlmonMatch.Groups[1].Value;
                     vlmon2 = vlmonMatch.Groups[2].Value;
+                }
+
+                var xValueMatch = xValueRegex.Match(line);
+                if (xValueMatch.Success)
+                {
+                    var g71Match = g71Regex.Match(line);
+                    if (g71Match.Success)
+                    {
+                        var fMatch = fRegex.Match(line);
+                        if (double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture) < xValue)
+                        {
+                            //Wenn ich den Parser laufen lasse und er hier ankommt, sprich
+
+                            //- xValue gefunden
+                            //- g71 gefunden
+                            //- Jetztiger x-Wert kleiner als der, der zuvor ausgelesen wurde
+
+                            //Dann sollte jetzt beim letzt ausgelesenen Werkzeug in der Liste, Das Werkzeug, Wenn Vorhanden, mit der
+                            //Unterkategorie "Gewindedrehstahl Aussen" und der Steigung "0.75" bei der Spalte Werkzeug hinzugefügt werden.
+
+                            //Bei der späteren zuweisung der restlichen Stationen, sollte dieser "Favorit", wie ich ihn nenne, auch noch
+                            //geändert werden können.
+
+                            //Die Werkzeuge die als Standard zugewiesen werden, also auf der Maschine, haben die kleinere Priorität.
+                            //Also sollte das Favoritenwerkzeug, wenn es im programm gefunden wird, dass Standardwerkzeug überschreiben
+                            //auf dieser Station.
+
+                            //Bei der späteren zuweisung im ToolAssignmentComparisonView.xaml Fenster. sollten die Standardwerkzeuge
+                            //und die Favoritenwerkzeuge irgendwie unterscheidbar sein. Eventuelle die Standardwerkzege grün hinterlegt,
+                            //die Favoriten blau und die noch nicht zugewisenen, und alle die geändert wurden von der vorlage aus Gelb.rot
+                        }
+                        else if(double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture) >= xValue);
+                        {
+                            //Wenn ich den Parser laufen lasse und er hier ankommt, sprich
+
+                            //- xValue gefunden
+                            //- g71 gefunden
+                            //- Jetztiger x-Wert grösser als der, der zuvor ausgelesen wurde
+
+                            //Dann sollte jetzt beim letzt ausgelesenen Werkzeug in der Liste, Das Werkzeug, Wenn Vorhanden, mit der
+                            //Unterkategorie "Gewindedrehstahl Innen" und der Steigung "0.75" bei der Spalte Werkzeug hinzugefügt werden.
+
+                            //Bei der späteren zuweisung der restlichen Stationen, sollte dieser "Favorit", wie ich ihn nenne, auch noch
+                            //geändert werden können.
+
+                            //Die Werkzeuge die als Standard zugewiesen werden, also auf der Maschine, haben die kleinere Priorität.
+                            //Also sollte das Favoritenwerkzeug, wenn es im programm gefunden wird, dass Standardwerkzeug überschreiben
+                            //auf dieser Station.
+
+                            //Bei der späteren zuweisung im ToolAssignmentComparisonView.xaml Fenster. sollten die Standardwerkzeuge
+                            //und die Favoritenwerkzeuge irgendwie unterscheidbar sein. Eventuelle die Standardwerkzege grün hinterlegt,
+                            //die Favoriten blau und die noch nicht zugewisenen, und alle die geändert wurden von der vorlage aus Gelb.rot
+                        }
+                    }
+                    xValue = double.Parse(xValueMatch.Groups[1].Value);
                 }
 
                 var natMatch = natRegex.Match(line);

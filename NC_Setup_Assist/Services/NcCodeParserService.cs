@@ -200,6 +200,12 @@ namespace NC_Setup_Assist.Services
                     //In der AnalysisView.xaml sollte eine weitere Spalte hinzugefügt werden
                     //um "" (nichts), "↓" und "←" darzustellen. bei einem g101, mit einem sbMatch,
                     //sollte "←" beim letzten Werkzeug hinzugefügt werden.
+
+                    //Zusätzlich sollte gespeichert werden, das dies ein Fräswerkzeug ist.
+                    //Wenn dann später die Werkzeuge zugewiesen werden, dann
+                    //kann anhand dieser Information der passende filter gesetzt werden.
+                    //der bei der ToolAssignmentComparisonView.xaml noch hinzugefügt werden muss.
+                    //bzw. in der ToolManagementView.xaml sollte das hinzugefügt werden.
                 }
 
                 var natMatch = natRegex.Match(line);

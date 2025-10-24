@@ -100,21 +100,17 @@ namespace NC_Setup_Assist.Services
                 var korbVorMatch = korbVorRegex.Match(line);
                 if (korbVorMatch.Success)
                 {
-                    werkzeugEinsaetze.Add(new WerkzeugEinsatz
-                    {
-                        Kommentar = "Korb Vor (M77)",
-                        Reihenfolge = reihenfolgeCounter++
-                    });
+
                 }
 
                 var korbZurückMatch = korbZurückRegex.Match(line);
                 if (korbZurückMatch.Success)
                 {
-                    werkzeugEinsaetze.Add(new WerkzeugEinsatz
-                    {
-                        Kommentar = "Korb Zurück (M76)",
-                        Reihenfolge = reihenfolgeCounter++
-                    });
+                    var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
+
+                    //Nun sollte hier eine Weitere Spalte hinzugefügt werden und zwar Korb On / Off.
+                    //Diese sollte anzeigen ob man den Korb bei diesem Werkzeug verwendet. Bzw. beim letzten eintrag dem man findet.
+                    //Den wenn der Korb zurückgezogen wird. Dann muss es auf dem letzten Werkzeugaufruf gewesen sein.
                 }
 
                 // --- DANN DIE VARIABLEN-ZUWEISUNGEN ---

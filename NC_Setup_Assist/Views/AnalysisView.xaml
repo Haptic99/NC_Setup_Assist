@@ -112,7 +112,7 @@ DisplayMemberBinding="{Binding Reihenfolge}" Width="30"/>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding BearbeitungsArt}" Value="Fräsen">
+                                                        <DataTrigger Binding="{Binding BearbeitungsArt}" Value="Fräser">
                                                             <Setter Property="Visibility" Value="Visible"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>

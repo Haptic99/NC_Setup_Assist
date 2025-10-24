@@ -170,7 +170,6 @@ namespace NC_Setup_Assist.Services
                                 {
                                     // lastTool.ZugehoerigesWerkzeug = aussenGewindeTool; // <-- DIESE ZEILE ENTFERNEN ODER AUSKOMMENTIEREN
                                     lastTool.WerkzeugID = aussenGewindeTool.WerkzeugID;
-                                    lastTool.Kommentar = "Favorit (Gewinde Aussen)"; // Markierung
                                 }
                             }
                             else if (currentXValue >= xValue)
@@ -180,7 +179,6 @@ namespace NC_Setup_Assist.Services
                                 {
                                     // lastTool.ZugehoerigesWerkzeug = innenGewindeTool; // <-- DIESE ZEILE ENTFERNEN ODER AUSKOMMENTIEREN
                                     lastTool.WerkzeugID = innenGewindeTool.WerkzeugID;
-                                    lastTool.Kommentar = "Favorit (Gewinde Innen)"; // Markierung
                                 }
                             }
                         }
@@ -203,7 +201,7 @@ namespace NC_Setup_Assist.Services
                     {
                         // "←" Symbol wird in der AnalysisView (XAML) basierend auf dieser Eigenschaft angezeigt.
                         // "Fräsen" wird für die spätere Filterlogik gespeichert.
-                        lastTool.BearbeitungsArt = "Fräsen";
+                        lastTool.BearbeitungsArt = "Fräser";
                     }
 
                     // Der Rest der Anforderung (Spalte in AnalysisView.xaml, Filter in ToolManagementView.xaml)

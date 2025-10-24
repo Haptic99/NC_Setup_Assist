@@ -30,6 +30,10 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private WerkzeugUnterkategorie? _editingUnterkategorie;
 
+        // --- NEUE EIGENSCHAFT (statt EditingUnterkategorie.Kategorie) ---
+        [ObservableProperty]
+        private WerkzeugKategorie? _editingKategorie;
+
         [ObservableProperty]
         private bool _isInEditMode;
 
@@ -72,11 +76,11 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void NewUnterkategorie()
         {
-            EditingUnterkategorie = new WerkzeugUnterkategorie
-            {
-                // Wähle die gefilterte Kategorie vor, falls eine ausgewählt ist
-                Kategorie = SelectedKategorieFilter ?? Kategorien.FirstOrDefault()
-            };
+            EditingUnterkategorie = new WerkzeugUnterkategorie();
+
+            // Setze die separate ViewModel-Eigenschaft
+            EditingKategorie = SelectedKategorieFilter ?? Kategorien.FirstOrDefault();
+
             IsInEditMode = true;
         }
 
@@ -88,17 +92,15 @@ namespace NC_Setup_Assist.ViewModels
             if (SelectedUnterkategorie == null) return;
 
             using var context = new NcSetupContext();
-            // 1. Lade das Objekt, das wir bearbeiten wollen (inkl. der Kategorie-Information)
+            // 1. Lade das Objekt, das wir bearbeiten wollen
             EditingUnterkategorie = context.WerkzeugUnterkategorien
-                                           .Include(u => u.Kategorie)
                                            .FirstOrDefault(u => u.WerkzeugUnterkategorieID == SelectedUnterkategorie.WerkzeugUnterkategorieID);
 
             // Stelle sicher, dass die Kategorie-Instanz aus der ComboBox-Liste stammt
             if (EditingUnterkategorie != null)
             {
-                // 2. KORREKTUR: Finde die Kategorie-Instanz in der ComboBox-Quellliste ("Kategorien")
-                //    indem du den Fremdschlüssel (WerkzeugKategorieID) des geladenen Objekts verwendest.
-                EditingUnterkategorie.Kategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == EditingUnterkategorie.WerkzeugKategorieID);
+                // 2. KORREKTUR: Setze die separate ViewModel-Eigenschaft für die ComboBox
+                EditingKategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == EditingUnterkategorie.WerkzeugKategorieID);
             }
 
             IsInEditMode = true;
@@ -109,7 +111,7 @@ namespace NC_Setup_Assist.ViewModels
         {
             if (EditingUnterkategorie == null ||
                 string.IsNullOrWhiteSpace(EditingUnterkategorie.Name) ||
-                EditingUnterkategorie.Kategorie == null)
+                EditingKategorie == null) // <-- Prüfe die ViewModel-Eigenschaft
             {
                 MessageBox.Show("Bitte Name und Hauptkategorie angeben.", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
@@ -117,8 +119,8 @@ namespace NC_Setup_Assist.ViewModels
 
             using var context = new NcSetupContext();
 
-            // Wichtig: Die Kategorie-ID setzen, nicht die Navigationseigenschaft
-            EditingUnterkategorie.WerkzeugKategorieID = EditingUnterkategorie.Kategorie.WerkzeugKategorieID;
+            // Wichtig: Die Kategorie-ID von der ViewModel-Eigenschaft setzen
+            EditingUnterkategorie.WerkzeugKategorieID = EditingKategorie.WerkzeugKategorieID;
             EditingUnterkategorie.Kategorie = null!; // Navigationseigenschaft nullen, um Konflikte zu vermeiden
 
             if (EditingUnterkategorie.WerkzeugUnterkategorieID == 0) // Neu
@@ -133,6 +135,8 @@ namespace NC_Setup_Assist.ViewModels
 
             IsInEditMode = false;
             EditingUnterkategorie = null;
+            EditingKategorie = null; // <-- Setze die VM-Eigenschaft zurück
+
             // Liste neu laden
             OnSelectedKategorieFilterChanged(SelectedKategorieFilter);
             _onDataChangedCallback?.Invoke();
@@ -142,6 +146,7 @@ namespace NC_Setup_Assist.ViewModels
         private void Cancel()
         {
             EditingUnterkategorie = null;
+            EditingKategorie = null; // <-- Setze die VM-Eigenschaft zurück
             IsInEditMode = false;
         }
 

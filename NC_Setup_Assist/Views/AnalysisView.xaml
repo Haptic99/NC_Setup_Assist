@@ -98,8 +98,7 @@ Bearbeitung"
                     <ListView.View>
                         <GridView>
 
-                            <GridViewColumn Header="Nr."
-DisplayMemberBinding="{Binding Reihenfolge}" Width="30"/>
+                            <GridViewColumn Header="Nr." DisplayMemberBinding="{Binding Reihenfolge}" Width="30"/>
                             <GridViewColumn Header="X" DisplayMemberBinding="{Binding Anzahl}" Width="30"/>
                             <GridViewColumn Header="Station" DisplayMemberBinding="{Binding RevolverStation}" Width="50"/>
                             <GridViewColumn Header="Korrektur" DisplayMemberBinding="{Binding KorrekturNummer}" Width="60"/>
@@ -123,7 +122,16 @@ DisplayMemberBinding="{Binding Reihenfolge}" Width="30"/>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
-
+                            <GridViewColumn Header="Korb" Width="40">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding VerwendetKorb}" 
+                                                  IsHitTestVisible="False" 
+                                                  HorizontalAlignment="Center"
+                                                  ToolTip="Teilefänger (Korb) wurde verwendet."/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
                             <GridViewColumn Header="Werkzeug" DisplayMemberBinding="{Binding ZugehoerigesWerkzeug.Name}" Width="200"/>
                             <GridViewColumn Header="Kommentar" DisplayMemberBinding="{Binding Kommentar}" Width="Auto"/>
                         </GridView>
@@ -137,7 +145,7 @@ DisplayMemberBinding="{Binding Reihenfolge}" Width="30"/>
                 Content="Werkzeugzuweisung starten" 
                 Command="{Binding StartToolAssignmentCommand}"
              
-   Style="{StaticResource AccentButton}"
+                Style="{StaticResource AccentButton}"
                 HorizontalAlignment="Right" 
                 Margin="0,10,0,0" 
                 ToolTip="Zeigt den Vergleich des aktuellen Zustands mit den Standardwerkzeugen."/>

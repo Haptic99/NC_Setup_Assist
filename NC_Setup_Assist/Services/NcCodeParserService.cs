@@ -100,17 +100,21 @@ namespace NC_Setup_Assist.Services
                 var korbVorMatch = korbVorRegex.Match(line);
                 if (korbVorMatch.Success)
                 {
-
+                    // M77 (Korb vor) - Aktuell keine Aktion erforderlich
                 }
 
                 var korbZurückMatch = korbZurückRegex.Match(line);
                 if (korbZurückMatch.Success)
                 {
+                    // --- LOGIK FÜR KORB (M76) ---
+                    // Finde den letzten *echten* Werkzeugeintrag (nicht nur einen Kommentar)
                     var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
-
-                    //Nun sollte hier eine Weitere Spalte hinzugefügt werden und zwar Korb On / Off.
-                    //Diese sollte anzeigen ob man den Korb bei diesem Werkzeug verwendet. Bzw. beim letzten eintrag dem man findet.
-                    //Den wenn der Korb zurückgezogen wird. Dann muss es auf dem letzten Werkzeugaufruf gewesen sein.
+                    if (lastTool != null)
+                    {
+                        // Setze die Eigenschaft für die UI-Anzeige
+                        lastTool.VerwendetKorb = true;
+                    }
+                    // --- ENDE LOGIK ---
                 }
 
                 // --- DANN DIE VARIABLEN-ZUWEISUNGEN ---

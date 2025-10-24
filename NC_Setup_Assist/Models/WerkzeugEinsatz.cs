@@ -33,6 +33,13 @@ namespace NC_Setup_Assist.Models
         public string? BearbeitungsArt { get; set; }
         // ------------------------------------
 
+        // --- NEU (BASIEREND AUF KORB-ANFRAGE) ---
+        /// <summary>
+        /// True, wenn der Teilefänger (Korb) bei diesem Werkzeug verwendet wurde (M76).
+        /// </summary>
+        public bool VerwendetKorb { get; set; }
+        // ------------------------------------
+
         public int NCProgrammID { get; set; }
         [ForeignKey("NCProgrammID")]
         public NCProgramm ZugehoerigesProgramm { get; set; } = null!;

@@ -208,17 +208,11 @@ namespace NC_Setup_Assist.ViewModels
 
         partial void OnSelectedToolChanged(Werkzeug? value)
         {
-            // (Unverändert)
-            if (value?.Unterkategorie?.Kategorie != null)
-            {
-                SelectedKategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == value.Unterkategorie.Kategorie.WerkzeugKategorieID);
-                SelectedUnterkategorie = value.Unterkategorie;
-            }
-            else
-            {
-                SelectedKategorie = null;
-                SelectedUnterkategorie = null;
-            }
+            // --- KORREKTUR (aus vorheriger Antwort) ---
+            // Der Rumpf dieser Methode wurde entfernt.
+            // Das Auswählen eines Werkzeugs in der Liste ändert die Filter-Dropdowns nicht mehr.
+            // Die Dropdowns werden nur noch im 'EditTool'-Befehl gesetzt.
+            // --- ENDE KORREKTUR ---
         }
 
         partial void OnSelectedKategorieChanged(WerkzeugKategorie? value)
@@ -347,26 +341,38 @@ namespace NC_Setup_Assist.ViewModels
             IsToolDetailsEnabled = false;
         }
 
+        // --- HIER BEGINNT DIE ÄNDERUNG ---
+
         [RelayCommand]
-        private void EditTool()
+        private void EditTool(Werkzeug? toolFromClick) // Parameter hinzugefügt
         {
-            if (SelectedTool == null) return;
+            // Wir verwenden das Werkzeug aus dem Klick oder fallen auf das ausgewählte Werkzeug zurück
+            var toolToEdit = toolFromClick ?? SelectedTool;
+
+            if (toolToEdit == null) return; // Schutz-Check
+
+            // Wichtig: Stellen Sie sicher, dass das SelectedTool synchronisiert ist
+            if (toolFromClick != null)
+            {
+                SelectedTool = toolToEdit;
+            }
 
             if (IsSelectionMode)
             {
-                _onToolSelectedCallback?.Invoke(SelectedTool);
+                _onToolSelectedCallback?.Invoke(toolToEdit); // toolToEdit verwenden
             }
             else
             {
+                // Erstelle die Kopie basierend auf toolToEdit
                 EditingTool = new Werkzeug
                 {
-                    WerkzeugID = SelectedTool.WerkzeugID,
-                    Name = SelectedTool.Name,
-                    Beschreibung = SelectedTool.Beschreibung,
-                    Steigung = SelectedTool.Steigung,
-                    Plattenwinkel = SelectedTool.Plattenwinkel,
-                    Unterkategorie = SelectedTool.Unterkategorie,
-                    WerkzeugUnterkategorieID = SelectedTool.WerkzeugUnterkategorieID
+                    WerkzeugID = toolToEdit.WerkzeugID,
+                    Name = toolToEdit.Name,
+                    Beschreibung = toolToEdit.Beschreibung,
+                    Steigung = toolToEdit.Steigung,
+                    Plattenwinkel = toolToEdit.Plattenwinkel,
+                    Unterkategorie = toolToEdit.Unterkategorie,
+                    WerkzeugUnterkategorieID = toolToEdit.WerkzeugUnterkategorieID
                 };
 
                 ToolName = EditingTool.Name;
@@ -374,20 +380,17 @@ namespace NC_Setup_Assist.ViewModels
                 PitchInputString = EditingTool.Steigung?.ToString("G", CultureInfo.CurrentCulture);
                 PlattenwinkelInputString = EditingTool.Plattenwinkel?.ToString("G", CultureInfo.CurrentCulture);
 
-                // --- ANGEPASSTE LOGIK ZUR VERHINDERUNG DES ABSTURZES ---
-                // Verhindert NullReferenceException, falls 'Kategorie' (z.B. bei Seed-Daten) nicht geladen wurde
-                if (SelectedTool.Unterkategorie?.Kategorie != null)
+
+                if (toolToEdit.Unterkategorie?.Kategorie != null)
                 {
-                    // Normaler Weg: Die Navigationseigenschaft ist geladen
-                    SelectedKategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == SelectedTool.Unterkategorie.Kategorie.WerkzeugKategorieID);
+                    // Normaler Weg
+                    SelectedKategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == toolToEdit.Unterkategorie.Kategorie.WerkzeugKategorieID);
                 }
                 else
                 {
                     // Fallback, falls die Navigationseigenschaft fehlt.
-                    // Lade die Unterkategorie-Daten manuell, um die übergeordnete Kategorie-ID zu finden.
-                    // (Wir können nicht 'Unterkategorien' durchsuchen, da diese Liste zu diesem Zeitpunkt leer sein könnte)
                     using var context = new NcSetupContext();
-                    var unterkat = context.WerkzeugUnterkategorien.Find(SelectedTool.WerkzeugUnterkategorieID);
+                    var unterkat = context.WerkzeugUnterkategorien.Find(toolToEdit.WerkzeugUnterkategorieID);
                     if (unterkat != null)
                     {
                         SelectedKategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == unterkat.WerkzeugKategorieID);
@@ -397,18 +400,18 @@ namespace NC_Setup_Assist.ViewModels
                         SelectedKategorie = null; // Sollte nicht passieren
                     }
                 }
-                // --- ENDE DER KORREKTUR ---
 
-
-                // Diese Zuweisung funktioniert jetzt, da 'SelectedKategorie' (oben) 'OnSelectedKategorieChanged' auslöst
-                // und die 'Unterkategorien'-Liste korrekt füllt, BEVOR diese Zeile ausgeführt wird.
-                SelectedUnterkategorie = Unterkategorien.FirstOrDefault(u => u.WerkzeugUnterkategorieID == SelectedTool.WerkzeugUnterkategorieID);
+                // Diese Zuweisung funktioniert jetzt
+                SelectedUnterkategorie = Unterkategorien.FirstOrDefault(u => u.WerkzeugUnterkategorieID == toolToEdit.WerkzeugUnterkategorieID);
 
                 IsInEditMode = true;
                 IsUnterkategorieEnabled = true;
                 IsToolDetailsEnabled = true;
             }
         }
+
+        // --- HIER ENDET DIE ÄNDERUNG ---
+
 
         // Helper-Funktion zum Parsen
         private bool ParseNullableDouble(string input, bool isRequired, string fieldName, out double? result)

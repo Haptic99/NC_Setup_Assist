@@ -7,7 +7,6 @@
              xmlns:vm="clr-namespace:NC_Setup_Assist.ViewModels"
              xmlns:conv="clr-namespace:NC_Setup_Assist.Converters"
         
-
      xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
@@ -19,6 +18,7 @@
         <Style x:Key="SearchTextBoxStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseTextBoxStyle}">
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Background" Value="#F9F9F9"/>
+
 
 
         </Style>
@@ -41,11 +41,13 @@
                        Foreground="#333333"/>
 
 
+
             <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
+
 
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -70,14 +72,14 @@
                           DisplayMemberPath="Name"
                           Margin="5,0,0,0"
                  
-         IsEnabled="{Binding IsUnterkategorieEnabled}"
+          IsEnabled="{Binding IsUnterkategorieEnabled}"
                           ToolTip="Filtert die Liste nach der Unterkategorie (Typ)."/>
             </Grid>
 
 
             <ListView x:Name="ToolsListView" ItemsSource="{Binding FilteredWerkzeuge}"
                       SelectedItem="{Binding SelectedTool, Mode=TwoWay}"
-        
+       
               IsEnabled="{Binding IsInEditMode, 
                                           
 Converter={StaticResource InverseBoolToVis}}"
@@ -85,9 +87,11 @@ Converter={StaticResource InverseBoolToVis}}"
 
                 <i:Interaction.Triggers>
 
+
                     <i:EventTrigger EventName="MouseDoubleClick">
                         <i:InvokeCommandAction Command="{Binding EditToolCommand}" 
                                                CommandParameter="{Binding ElementName=ToolsListView, Path=SelectedItem}"/>
+
 
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
@@ -97,21 +101,25 @@ Converter={StaticResource InverseBoolToVis}}"
                     <Style TargetType="ListViewItem">
                         <Setter Property="Padding" Value="5"/>
 
+
                         <Setter Property="BorderThickness" Value="0,0,0,1"/>
                         <Setter Property="BorderBrush" Value="#EEEEEE"/>
 
                         <Style.Triggers>
-                            <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                            <Trigger Property="ItemsControl.AlternationIndex" 
+ Value="1">
 
                                 <Setter Property="Background" Value="#F8F8F8"/>
 
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
 
+
                                 <Setter Property="Background" Value="#E0F0FF"/>
 
                                 <Setter Property="Foreground" Value="Black"/>
                             </Trigger>
+
 
                         </Style.Triggers>
                     </Style>
@@ -121,11 +129,13 @@ Converter={StaticResource InverseBoolToVis}}"
                 <ListView.View>
                     <GridView>
 
+
                         <GridViewColumn Header="ID" DisplayMemberBinding="{Binding WerkzeugID}" Width="50"/>
                         <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150"/>
 
                         <GridViewColumn Header="Typ" DisplayMemberBinding="{Binding Unterkategorie.Name}" Width="150"/>
                         <GridViewColumn Header="Beschreibung" DisplayMemberBinding="{Binding Beschreibung}" Width="Auto"/>
+
 
                     </GridView>
                 </ListView.View>
@@ -136,7 +146,8 @@ Converter={StaticResource InverseBoolToVis}}"
         <Grid Grid.Column="1" Visibility="{Binding IsSelectionMode, Converter={StaticResource InverseBoolToVis}}">
 
             <StackPanel Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Werkzeug bearbeiten" Style="{StaticResource HeaderTextStyle}"/>
+                <TextBlock Text="Werkzeug bearbeiten" 
+ Style="{StaticResource HeaderTextStyle}"/>
 
 
                 <TextBlock Text="Kategorie:" Margin="0,5,0,0"/>
@@ -144,19 +155,22 @@ Converter={StaticResource InverseBoolToVis}}"
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
+
                         <ColumnDefinition Width="Auto"/>
 
                     </Grid.ColumnDefinitions>
                     <ComboBox Grid.Column="0" Margin="0,0,5,5"
    
                            ItemsSource="{Binding Kategorien}"
-                              
+                      
+         
 SelectedItem="{Binding SelectedKategorie}"
                               DisplayMemberPath="Name"/>
 
                     <Button Grid.Column="1" Content="+"
                             Command="{Binding NavigateToKategorieManagementCommand}"
-                  
+          
+         
           Style="{StaticResource SmallAddButton}"
                             ToolTip="Kategorien verwalten"/>
 
@@ -164,6 +178,7 @@ SelectedItem="{Binding SelectedKategorie}"
 
 
                 <TextBlock Text="Unterkategorie / Typ:" Margin="0,5,0,0"/>
+
                 <Grid>
 
                     <Grid.ColumnDefinitions>
@@ -172,69 +187,75 @@ SelectedItem="{Binding SelectedKategorie}"
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
+
                     <ComboBox Grid.Column="0" Margin="0,0,5,5"
                               ItemsSource="{Binding Unterkategorien}"
        
                        SelectedItem="{Binding SelectedUnterkategorie}" 
-                              DisplayMemberPath="Name"
+                         
+      DisplayMemberPath="Name"
    
                            IsEnabled="{Binding IsUnterkategorieEnabled}"/>
 
                     <Button Grid.Column="1" Content="+"
                             Command="{Binding NavigateToUnterkategorieManagementCommand}"
-                     
+             
+         
        Style="{StaticResource SmallAddButton}"
                             ToolTip="Unterkategorien verwalten"/>
 
                 </Grid>
 
                 <StackPanel Visibility="{Binding IsRadiusRequired, Converter={StaticResource BoolToVis}}"
-                            IsEnabled="{Binding IsToolDetailsEnabled}">
+                   
+          IsEnabled="{Binding IsToolDetailsEnabled}">
                     <TextBlock Text="Radius (R=...):" Margin="0,5,0,0"/>
 
                     <TextBox Text="{Binding RadiusInputString, UpdateSourceTrigger=PropertyChanged}" 
                              Style="{StaticResource BaseTextBoxStyle}"
-                     
+             
+         
         Margin="0,0,0,5" 
                              ToolTip="Erforderlich für diesen Typ.
-Erlaubt Dezimalzahlen (z.B. 1,5)."/>
+ Erlaubt Dezimalzahlen (z.B. 1,5)."/>
                 </StackPanel>
 
                 <StackPanel Visibility="{Binding IsPitchRequired, Converter={StaticResource BoolToVis}}"
                             IsEnabled="{Binding IsToolDetailsEnabled}">
                     <TextBlock Text="Steigung (P=...):" Margin="0,5,0,0"/>
 
+
                     <TextBox Text="{Binding PitchInputString, UpdateSourceTrigger=PropertyChanged}" 
                              Style="{StaticResource BaseTextBoxStyle}"
                      
         Margin="0,0,0,5" 
-                             ToolTip="Erforderlich für diesen Typ.
+                         
+     ToolTip="Erforderlich für diesen Typ.
 Erlaubt Dezimalzahlen (z.B. 1,5)."/>
                 </StackPanel>
 
-                <StackPanel Visibility="{Binding IsPlattenwinkelRequired, Converter={StaticResource BoolToVis}}"
+                <StackPanel Visibility="{Binding IsSpitzenwinkelRequired, Converter={StaticResource BoolToVis}}"
                             IsEnabled="{Binding IsToolDetailsEnabled}">
-                    <TextBlock Text="Plattenwinkel (...°):" Margin="0,5,0,0"/>
+                    <TextBlock Text="Spitzenwinkel (...°):" Margin="0,5,0,0"/>
 
-
-                    <TextBox Text="{Binding PlattenwinkelInputString, UpdateSourceTrigger=PropertyChanged}" 
+                    <TextBox Text="{Binding SpitzenwinkelInputString, UpdateSourceTrigger=PropertyChanged}" 
                              Style="{StaticResource BaseTextBoxStyle}"
                              Margin="0,0,0,5" 
-                         
-
-    ToolTip="Erforderlich für diesen Typ. Erlaubt Dezimalzahlen (z.B. 80)."/>
+                             ToolTip="Erforderlich für diesen Typ.
+Erlaubt Dezimalzahlen (z.B. 80)."/>
                 </StackPanel>
-
                 <TextBlock Text="Name:" Margin="0,5,0,0"/>
                 <TextBox Text="{Binding ToolName, UpdateSourceTrigger=PropertyChanged}" 
                          Style="{StaticResource BaseTextBoxStyle}" 
         
 
-                 Margin="0,0,0,5"
+        
+          Margin="0,0,0,5"
                          IsEnabled="{Binding IsToolDetailsEnabled}"
                          ToolTip="Der Name wird automatisch generiert, kann aber überschrieben werden."/>
 
                 <TextBlock Text="Beschreibung:" Margin="0,5,0,0"/>
+
 
 
                 <TextBox Text="{Binding EditingTool.Beschreibung, UpdateSourceTrigger=PropertyChanged}" 
@@ -243,10 +264,12 @@ Erlaubt Dezimalzahlen (z.B. 1,5)."/>
                          TextWrapping="Wrap" 
         
 
-                 AcceptsReturn="True" 
+        
+          AcceptsReturn="True" 
                          VerticalScrollBarVisibility="Auto"
                          Margin="0,0,0,10"
                          IsEnabled="{Binding IsToolDetailsEnabled}"/>
+
 
 
 
@@ -258,7 +281,8 @@ Erlaubt Dezimalzahlen (z.B. 1,5)."/>
 
 
 
-            <StackPanel VerticalAlignment="Top"
+            <StackPanel 
+ VerticalAlignment="Top"
                         Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
 
                 <TextBlock Text="Aktionen" FontWeight="Bold" Margin="0,0,0,10" FontSize="16" Foreground="#333333"/>
@@ -267,31 +291,36 @@ Erlaubt Dezimalzahlen (z.B. 1,5)."/>
                 <TextBox Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" 
     
 
-                     Style="{StaticResource BaseTextBoxStyle}"
+        
+              Style="{StaticResource BaseTextBoxStyle}"
                          Margin="0,0,0,15"
                          Width="200"
                          HorizontalAlignment="Left"
    
 
-                      ToolTip="Suche nach Name, Typ oder Beschreibung"/>
+        
+               ToolTip="Suche nach Name, Typ oder Beschreibung"/>
 
                 <Button Content="Werkzeug auswählen" Command="{Binding EditToolCommand}" 
                         Style="{StaticResource AccentButton}" 
                         Width="200" 
  
 
-                       HorizontalAlignment="Left" 
+        
+                HorizontalAlignment="Left" 
                         Visibility="{Binding IsSelectionMode, Converter={StaticResource BoolToVis}}"/>
 
                 <StackPanel Visibility="{Binding IsSelectionMode, Converter={StaticResource InverseBoolToVis}}">
                     <Button Content="Neues Werkzeug anlegen" Command="{Binding NewToolCommand}" 
    
 
-                         Width="200" HorizontalAlignment="Left" Style="{StaticResource AccentButton}" Margin="0,0,0,5"/>
+        
+                  Width="200" HorizontalAlignment="Left" Style="{StaticResource AccentButton}" Margin="0,0,0,5"/>
 
                     <Button Content="Werkzeug bearbeiten" Command="{Binding EditToolCommand}" 
                             CommandParameter="{Binding SelectedTool}"
-                            Width="200" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Margin="0,10,0,5"/>
+                         
+    Width="200" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Margin="0,10,0,5"/>
                     <Button Content="Werkzeug löschen" Command="{Binding DeleteToolCommand}" 
                             Width="200" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Margin="0,15,0,0"/>
                 </StackPanel>

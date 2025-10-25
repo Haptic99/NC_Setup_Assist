@@ -69,10 +69,10 @@ namespace NC_Setup_Assist.ViewModels
         private string? _pitchInputString; // Wert für Steigung
 
         [ObservableProperty]
-        private bool _isPlattenwinkelRequired; // NEU: Gesteuert durch Unterkategorie
+        private bool _isSpitzenwinkelRequired; // KORRIGIERT: Gesteuert durch Unterkategorie
 
         [ObservableProperty]
-        private string? _plattenwinkelInputString; // NEU: Wert für Winkel
+        private string? _spitzenwinkelInputString; // KORRIGIERT: Wert für Winkel
 
         // Auswahlmodus
         private readonly Action<Werkzeug>? _onToolSelectedCallback;
@@ -272,7 +272,7 @@ namespace NC_Setup_Assist.ViewModels
         {
             IsRadiusRequired = (value?.BenötigtRadius == true);
             IsPitchRequired = (value?.BenötigtSteigung == true);
-            IsPlattenwinkelRequired = (value?.BenötigtPlattenwinkel == true);
+            IsSpitzenwinkelRequired = (value?.BenötigtSpitzenwinkel == true); // KORRIGIERT
 
             if (value != null)
             {
@@ -281,7 +281,7 @@ namespace NC_Setup_Assist.ViewModels
                 {
                     RadiusInputString = string.Empty;
                     PitchInputString = string.Empty;
-                    PlattenwinkelInputString = string.Empty;
+                    SpitzenwinkelInputString = string.Empty; // KORRIGIERT
                 }
                 UpdateToolName();
             }
@@ -304,7 +304,7 @@ namespace NC_Setup_Assist.ViewModels
             UpdateToolName();
         }
 
-        partial void OnPlattenwinkelInputStringChanged(string? value)
+        partial void OnSpitzenwinkelInputStringChanged(string? value) // KORRIGIERT
         {
             UpdateToolName();
         }
@@ -339,9 +339,9 @@ namespace NC_Setup_Assist.ViewModels
                     }
                 }
 
-                if (IsPlattenwinkelRequired)
+                if (IsSpitzenwinkelRequired) // KORRIGIERT
                 {
-                    string winkelDisplay = (PlattenwinkelInputString ?? "").Trim().Replace(',', '.');
+                    string winkelDisplay = (SpitzenwinkelInputString ?? "").Trim().Replace(',', '.'); // KORRIGIERT
                     if (!string.IsNullOrEmpty(winkelDisplay))
                     {
                         sb.Append($" {winkelDisplay}°");
@@ -361,19 +361,19 @@ namespace NC_Setup_Assist.ViewModels
             EditingTool = new Werkzeug
             {
                 Steigung = null,
-                Plattenwinkel = null
+                Spitzenwinkel = null // KORRIGIERT
             };
 
             ToolName = string.Empty;
             RadiusInputString = string.Empty;
             PitchInputString = string.Empty;
-            PlattenwinkelInputString = string.Empty;
+            SpitzenwinkelInputString = string.Empty; // KORRIGIERT
             SelectedKategorie = null;
             SelectedUnterkategorie = null;
             IsInEditMode = true;
             IsRadiusRequired = false;
             IsPitchRequired = false;
-            IsPlattenwinkelRequired = false;
+            IsSpitzenwinkelRequired = false; // KORRIGIERT
 
             IsUnterkategorieEnabled = false;
             IsToolDetailsEnabled = false;
@@ -404,7 +404,7 @@ namespace NC_Setup_Assist.ViewModels
                     Name = toolToEdit.Name,
                     Beschreibung = toolToEdit.Beschreibung,
                     Steigung = toolToEdit.Steigung,
-                    Plattenwinkel = toolToEdit.Plattenwinkel,
+                    Spitzenwinkel = toolToEdit.Spitzenwinkel, // KORRIGIERT
                     Radius = toolToEdit.Radius, // Radius-Kopie hinzugefügt
                     Unterkategorie = toolToEdit.Unterkategorie,
                     WerkzeugUnterkategorieID = toolToEdit.WerkzeugUnterkategorieID
@@ -414,7 +414,7 @@ namespace NC_Setup_Assist.ViewModels
 
                 RadiusInputString = EditingTool.Radius?.ToString("G", CultureInfo.CurrentCulture);
                 PitchInputString = EditingTool.Steigung?.ToString("G", CultureInfo.CurrentCulture);
-                PlattenwinkelInputString = EditingTool.Plattenwinkel?.ToString("G", CultureInfo.CurrentCulture);
+                SpitzenwinkelInputString = EditingTool.Spitzenwinkel?.ToString("G", CultureInfo.CurrentCulture); // KORRIGIERT
 
 
                 if (toolToEdit.Unterkategorie?.Kategorie != null)
@@ -494,15 +494,15 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            double? finalPlattenwinkel;
-            if (!ParseNullableDouble(PlattenwinkelInputString, IsPlattenwinkelRequired, "Plattenwinkel", out finalPlattenwinkel))
+            double? finalSpitzenwinkel; // KORRIGIERT
+            if (!ParseNullableDouble(SpitzenwinkelInputString, IsSpitzenwinkelRequired, "Spitzenwinkel", out finalSpitzenwinkel)) // KORRIGIERT
             {
                 return;
             }
 
             EditingTool.Radius = finalRadius;
             EditingTool.Steigung = finalPitch;
-            EditingTool.Plattenwinkel = finalPlattenwinkel;
+            EditingTool.Spitzenwinkel = finalSpitzenwinkel; // KORRIGIERT
             EditingTool.Name = ToolName;
 
             using var context = new NcSetupContext();
@@ -521,7 +521,7 @@ namespace NC_Setup_Assist.ViewModels
                     toolToUpdate.Name = EditingTool.Name;
                     toolToUpdate.Beschreibung = EditingTool.Beschreibung;
                     toolToUpdate.Steigung = EditingTool.Steigung;
-                    toolToUpdate.Plattenwinkel = EditingTool.Plattenwinkel;
+                    toolToUpdate.Spitzenwinkel = EditingTool.Spitzenwinkel; // KORRIGIERT
                     toolToUpdate.Radius = EditingTool.Radius; // Radius-Update hinzugefügt
                     toolToUpdate.WerkzeugUnterkategorieID = SelectedUnterkategorie.WerkzeugUnterkategorieID;
                 }
@@ -544,10 +544,10 @@ namespace NC_Setup_Assist.ViewModels
 
             IsRadiusRequired = false;
             IsPitchRequired = false;
-            IsPlattenwinkelRequired = false;
+            IsSpitzenwinkelRequired = false; // KORRIGIERT
             RadiusInputString = string.Empty;
             PitchInputString = string.Empty;
-            PlattenwinkelInputString = string.Empty;
+            SpitzenwinkelInputString = string.Empty; // KORRIGIERT
             ToolName = string.Empty;
 
             IsUnterkategorieEnabled = false;

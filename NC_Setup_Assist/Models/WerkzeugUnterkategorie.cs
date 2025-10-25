@@ -25,5 +25,7 @@ namespace NC_Setup_Assist.Models
         /// Definiert, ob dieser Werkzeugtyp die Angabe eines Plattenwinkels erfordert (z.B. Drehstähle).
         /// </summary>
         public bool BenötigtPlattenwinkel { get; set; }
+
+        public bool BenötigtRadius { get; set; }
     }
 }

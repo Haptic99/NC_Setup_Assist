@@ -188,9 +188,20 @@ SelectedItem="{Binding SelectedKategorie}"
 
                 </Grid>
 
+                <StackPanel Visibility="{Binding IsRadiusRequired, Converter={StaticResource BoolToVis}}"
+                            IsEnabled="{Binding IsToolDetailsEnabled}">
+                    <TextBlock Text="Radius (R=...):" Margin="0,5,0,0"/>
+
+                    <TextBox Text="{Binding RadiusInputString, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource BaseTextBoxStyle}"
+                     
+        Margin="0,0,0,5" 
+                             ToolTip="Erforderlich für diesen Typ.
+Erlaubt Dezimalzahlen (z.B. 1,5)."/>
+                </StackPanel>
+
                 <StackPanel Visibility="{Binding IsPitchRequired, Converter={StaticResource BoolToVis}}"
-                           
- IsEnabled="{Binding IsToolDetailsEnabled}">
+                            IsEnabled="{Binding IsToolDetailsEnabled}">
                     <TextBlock Text="Steigung (P=...):" Margin="0,5,0,0"/>
 
                     <TextBox Text="{Binding PitchInputString, UpdateSourceTrigger=PropertyChanged}" 

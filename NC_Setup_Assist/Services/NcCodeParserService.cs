@@ -21,20 +21,11 @@ namespace NC_Setup_Assist.Services
 
             // NEU: DbContext und Favoriten-Werkzeuge laden
             using var context = new NcSetupContext();
-            const double requiredPitch = 0.75;
-
-            var aussenGewindeTool = context.Werkzeuge
-                .Include(w => w.Unterkategorie)
-                .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Aussen" && w.Steigung == requiredPitch);
-
-            var innenGewindeTool = context.Werkzeuge
-                .Include(w => w.Unterkategorie)
-                .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Innen" && w.Steigung == requiredPitch);
-            // ---
 
             var lines = File.ReadAllLines(filePath);
             string currentRevolverStation = "";
             int reihenfolgeCounter = 1;
+            int natAnzahl = 0;
 
             int maximaleAbstechdrehzahl = 0;
             double xValue = 0;
@@ -57,12 +48,13 @@ namespace NC_Setup_Assist.Services
             var korbVorRegex = new Regex(@"\bM77\b");
             var korbZurückRegex = new Regex(@"\bM76\b");
             var toolRegex = new Regex(@"\bT(\d{2})(\d{2})?");
-            var natRegex = new Regex(@"NAT(\d+)");
+            var natRegex = new Regex(@"NAT(\d{2})");
             var xValueRegex = new Regex(@"\bX(-?[\d\.]+)", RegexOptions.IgnoreCase);
             var g71Regex = new Regex(@"G71", RegexOptions.IgnoreCase);
             var fRegex = new Regex(@"F(-?[\d\.]+)");
             var sbRegex = new Regex(@"SB=(-?[\d\.]+)");
             var g101Regex = new Regex(@"G101", RegexOptions.IgnoreCase);
+            var callOplRegex = new Regex(@"CALL OPL", RegexOptions.IgnoreCase);
             #endregion
 
             foreach (var line in lines)
@@ -162,36 +154,46 @@ namespace NC_Setup_Assist.Services
                     vlmon2 = vlmonMatch.Groups[2].Value;
                 }
 
-                var xValueMatch = xValueRegex.Match(line);
+var xValueMatch = xValueRegex.Match(line);
                 if (xValueMatch.Success)
                 {
                     var g71Match = g71Regex.Match(line);
-                    if (g71Match.Success)
+                    if (g71Match.Success) // G71 (Gewinde) gefunden
                     {
                         var fMatch = fRegex.Match(line);
                         double currentXValue = double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture);
-
-                        // Finde das letzte *echte* Werkzeug (nicht nur einen Kommentar)
                         var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
-                        if (lastTool != null)
+
+                        // Prüfen, ob alle nötigen Infos da sind (letztes Werkzeug, F-Wert für Steigung)
+                        if (lastTool != null && fMatch.Success)
                         {
-                            if (currentXValue < xValue)
+                            // 1. Steigung (Pitch) aus F-Wert parsen
+                            if (double.TryParse(fMatch.Groups[1].Value, System.Globalization.NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double parsedPitch))
                             {
-                                // AUSSENGEWINDE
-                                if (aussenGewindeTool != null)
+                                Werkzeug? foundTool = null;
+                                
+                                // 2. Bestimmen, ob Aussen- oder Innengewinde (basierend auf deiner X-Wert-Logik)
+                                if (currentXValue < xValue)
                                 {
-                                    // lastTool.ZugehoerigesWerkzeug = aussenGewindeTool; // <-- DIESE ZEILE ENTFERNEN ODER AUSKOMMENTIEREN
-                                    lastTool.WerkzeugID = aussenGewindeTool.WerkzeugID;
+                                    // AUSSENGEWINDE suchen
+                                    foundTool = context.Werkzeuge
+                                        .Include(w => w.Unterkategorie)
+                                        .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Aussen" && w.Steigung == parsedPitch);
                                 }
-                            }
-                            else if (currentXValue >= xValue)
-                            {
-                                // INNENGEWINDE
-                                if (innenGewindeTool != null)
+                                else if (currentXValue >= xValue)
                                 {
-                                    // lastTool.ZugehoerigesWerkzeug = innenGewindeTool; // <-- DIESE ZEILE ENTFERNEN ODER AUSKOMMENTIEREN
-                                    lastTool.WerkzeugID = innenGewindeTool.WerkzeugID;
+                                    // INNENGEWINDE suchen
+                                    foundTool = context.Werkzeuge
+                                        .Include(w => w.Unterkategorie)
+                                        .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Innen" && w.Steigung == parsedPitch);
                                 }
+
+                                // 3. Nur zuweisen, wenn ein Werkzeug mit EXAKT passender Steigung gefunden wurde
+                                if (foundTool != null)
+                                {
+                                    lastTool.WerkzeugID = foundTool.WerkzeugID;
+                                }
+                                // Wenn foundTool == null, wird kein "Favorit" zugewiesen.
                             }
                         }
                     }
@@ -220,9 +222,28 @@ namespace NC_Setup_Assist.Services
                     // muss in den entsprechenden Dateien umgesetzt werden.
                 }
 
+                var callOplMatch = callOplRegex.Match(line);
+                if (callOplMatch.Success)
+                {
+                    Werkzeug? foundTool = null;
+
+                    //foundTool = context.Werkzeuge
+                    //        .Include(w => w.Unterkategorie)
+                    //        .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Aussen" && w.Steigung == parsedPitch);
+
+                    //if (foundTool != null)
+                    //{
+                    //    lastTool.WerkzeugID = foundTool.WerkzeugID;
+                    //}
+                }
+
                 var natMatch = natRegex.Match(line);
                 if (natMatch.Success)
                 {
+                    if (nat == true)
+                    {
+                        natAnzahl++;
+                    }
                     nat = true;
                     sb = false;
                 }
@@ -267,15 +288,17 @@ namespace NC_Setup_Assist.Services
                         {
                             if (nat == true)
                             {
-                                lastTool.Anzahl++;
+                                lastTool.Anzahl += natAnzahl + 1;
                             }
                             nat = false;
+                            natAnzahl = 0;
                             continue;
                         }
                         else if (lastTool != null && toolMatch.Groups[2].Value == lastTool.RevolverStation)
                         {
                             lastTool.Anzahl++;
                             nat = false;
+                            natAnzahl = 0;
                             continue;
                         }
                         else if (lastTool != null)
@@ -288,7 +311,7 @@ namespace NC_Setup_Assist.Services
                             };
 
                             // Wenn Gruppe1 != Gruppe2 -> Gruppe1 als Korrekturnummer setzen (falls parsebar)
-                            if (toolMatch.Groups[1].Value != toolMatch.Groups[2].Value)
+                                if (toolMatch.Groups[1].Value != toolMatch.Groups[2].Value)
                             {
                                 neuesWerkzeug.KorrekturNummer = toolMatch.Groups[1].Value;
                             }
@@ -303,6 +326,7 @@ namespace NC_Setup_Assist.Services
 
 
                         nat = false;
+                        natAnzahl = 0;
                     }
                     else if (lastTool != null && lastTool != null && toolMatch.Groups[2].Value == lastTool.RevolverStation)
                     {

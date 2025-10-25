@@ -52,11 +52,11 @@ namespace NC_Setup_Assist.Data
                 new WerkzeugKategorie { WerkzeugKategorieID = 3, Name = "Drehwerkzeug" }
             );
 
-            // 2. WerkzeugUnterkategorien (Basierend auf image_18a15b.png, mit neuen IDs 1-4)
+            // 2. WerkzeugUnterkategorien
             modelBuilder.Entity<WerkzeugUnterkategorie>().HasData(
                 new WerkzeugUnterkategorie
                 {
-                    WerkzeugUnterkategorieID = 1, // Alt: 3
+                    WerkzeugUnterkategorieID = 1,
                     Name = "Gewindedrehstahl Aussen",
                     WerkzeugKategorieID = 3,
                     BenötigtPlattenwinkel = false,
@@ -64,7 +64,7 @@ namespace NC_Setup_Assist.Data
                 },
                 new WerkzeugUnterkategorie
                 {
-                    WerkzeugUnterkategorieID = 2, // Alt: 4
+                    WerkzeugUnterkategorieID = 2,
                     Name = "Gewindedrehstahl Innen",
                     WerkzeugKategorieID = 3,
                     BenötigtPlattenwinkel = false,
@@ -72,7 +72,7 @@ namespace NC_Setup_Assist.Data
                 },
                 new WerkzeugUnterkategorie
                 {
-                    WerkzeugUnterkategorieID = 3, // Alt: 38
+                    WerkzeugUnterkategorieID = 3,
                     Name = "Messerst.",
                     WerkzeugKategorieID = 3,
                     BenötigtPlattenwinkel = true,
@@ -80,9 +80,17 @@ namespace NC_Setup_Assist.Data
                 },
                 new WerkzeugUnterkategorie
                 {
-                    WerkzeugUnterkategorieID = 4, // Alt: 41
-                    Name = "Abstechstähle", // Name aus Bild übernommen (ggf. "Abstechstäle" korrigieren)
+                    WerkzeugUnterkategorieID = 4,
+                    Name = "Abstechstähle",
                     WerkzeugKategorieID = 3,
+                    BenötigtPlattenwinkel = false,
+                    BenötigtSteigung = false
+                },
+                new WerkzeugUnterkategorie
+                {
+                    WerkzeugUnterkategorieID = 5,
+                    Name = "Kugelfräser",
+                    WerkzeugKategorieID = 1,
                     BenötigtPlattenwinkel = false,
                     BenötigtSteigung = false
                 }
@@ -121,6 +129,14 @@ namespace NC_Setup_Assist.Data
                     Steigung = null,
                     Plattenwinkel = null,
                     WerkzeugUnterkategorieID = 4 // Alt: 41
+                },
+                new Werkzeug
+                {
+                    WerkzeugID = 5,
+                    Name = "Gravurstichel Ø1, R0.5",
+                    Steigung = null,
+                    Plattenwinkel = null,
+                    WerkzeugUnterkategorieID = 5
                 }
             );
         }

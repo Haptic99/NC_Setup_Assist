@@ -57,6 +57,12 @@ namespace NC_Setup_Assist.ViewModels
 
         // --- DYNAMISCHE EIGENSCHAFTEN ---
         [ObservableProperty]
+        private bool _isRadiusRequired; // Gesteuert durch Unterkategorie
+
+        [ObservableProperty]
+        private string? _radiusInputString; // Wert für Radius
+
+        [ObservableProperty]
         private bool _isPitchRequired; // Gesteuert durch Unterkategorie
 
         [ObservableProperty]
@@ -245,6 +251,7 @@ namespace NC_Setup_Assist.ViewModels
         partial void OnSelectedUnterkategorieChanged(WerkzeugUnterkategorie? value)
         {
             // (Unverändert)
+            IsRadiusRequired = (value?.BenötigtRadius == true);
             IsPitchRequired = (value?.BenötigtSteigung == true);
             IsPlattenwinkelRequired = (value?.BenötigtPlattenwinkel == true);
 
@@ -253,6 +260,7 @@ namespace NC_Setup_Assist.ViewModels
                 IsToolDetailsEnabled = true;
                 if (EditingTool?.WerkzeugID == 0) // Nur bei "Neu" zurücksetzen
                 {
+                    RadiusInputString = string.Empty;
                     PitchInputString = string.Empty;
                     PlattenwinkelInputString = string.Empty;
                 }
@@ -267,6 +275,10 @@ namespace NC_Setup_Assist.ViewModels
             ApplyFilter(); // NEU: Filter anwenden
         }
 
+        partial void OnRadiusInputStringChanged(string? value)
+        {
+            UpdateToolName();
+        }
 
         partial void OnPitchInputStringChanged(string? value)
         {
@@ -292,6 +304,15 @@ namespace NC_Setup_Assist.ViewModels
             {
                 string baseName = SelectedUnterkategorie.Name;
                 var sb = new StringBuilder(baseName);
+
+                if (IsRadiusRequired)
+                {
+                    string radiusDisplay = (RadiusInputString ?? "").Trim().Replace(',', '.');
+                    if (!string.IsNullOrEmpty(radiusDisplay))
+                    {
+                        sb.Append($" P={radiusDisplay}");
+                    }
+                }
 
                 if (IsPitchRequired)
                 {
@@ -329,11 +350,13 @@ namespace NC_Setup_Assist.ViewModels
             };
 
             ToolName = string.Empty;
+            RadiusInputString = string.Empty;
             PitchInputString = string.Empty;
             PlattenwinkelInputString = string.Empty;
             SelectedKategorie = null;
             SelectedUnterkategorie = null;
             IsInEditMode = true;
+            IsRadiusRequired = false;
             IsPitchRequired = false;
             IsPlattenwinkelRequired = false;
 
@@ -377,6 +400,7 @@ namespace NC_Setup_Assist.ViewModels
 
                 ToolName = EditingTool.Name;
 
+                RadiusInputString = EditingTool.Radius?.ToString("G", CultureInfo.CurrentCulture);
                 PitchInputString = EditingTool.Steigung?.ToString("G", CultureInfo.CurrentCulture);
                 PlattenwinkelInputString = EditingTool.Plattenwinkel?.ToString("G", CultureInfo.CurrentCulture);
 
@@ -454,18 +478,26 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            double? finalPitch;
-            if (!ParseNullableDouble(PitchInputString, IsPitchRequired, "Steigung", out finalPitch))
+            double? finalRadius;
+            if (!ParseNullableDouble(RadiusInputString, IsRadiusRequired, "Radius", out finalRadius))
             {
                 return;
             }
 
+            double? finalPitch;
+ 
+            if (!ParseNullableDouble(PitchInputString, IsPitchRequired, "Steigung", out finalPitch))
+            {
+                return;
+            }
+                                
             double? finalPlattenwinkel;
             if (!ParseNullableDouble(PlattenwinkelInputString, IsPlattenwinkelRequired, "Plattenwinkel", out finalPlattenwinkel))
             {
                 return;
             }
 
+            EditingTool.Radius = finalRadius;
             EditingTool.Steigung = finalPitch;
             EditingTool.Plattenwinkel = finalPlattenwinkel;
             EditingTool.Name = ToolName;
@@ -509,8 +541,10 @@ namespace NC_Setup_Assist.ViewModels
             SelectedKategorie = null;
             SelectedUnterkategorie = null;
 
+            IsRadiusRequired = false;
             IsPitchRequired = false;
             IsPlattenwinkelRequired = false;
+            RadiusInputString = string.Empty;
             PitchInputString = string.Empty;
             PlattenwinkelInputString = string.Empty;
             ToolName = string.Empty;
@@ -535,7 +569,7 @@ namespace NC_Setup_Assist.ViewModels
             if (SelectedTool == null) return;
 
             // --- NEUE PRÜFUNG ---
-            var standardToolIds = new List<int> { 315, 316, 317, 319 };
+            var standardToolIds = new List<int> { 1,2,3,4,5 };
             if (standardToolIds.Contains(SelectedTool.WerkzeugID))
             {
                 MessageBox.Show($"Das Werkzeug '{SelectedTool.Name}' ist ein Standardwerkzeug und kann nicht gelöscht werden.",

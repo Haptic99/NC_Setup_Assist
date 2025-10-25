@@ -111,7 +111,7 @@ Bearbeitung"
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding BearbeitungsArt}" Value="Fräser">
+                                                        <DataTrigger Binding="{Binding BearbeitungsArt}" Value="←">
                                                             <Setter Property="Visibility" Value="Visible"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>

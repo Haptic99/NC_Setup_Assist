@@ -67,6 +67,13 @@
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="200"/>
+                        <GridViewColumn Header="Radius?" Width="80">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding BenötigtRadius}" IsHitTestVisible="False" HorizontalAlignment="Center"/>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
                         <GridViewColumn Header="Steigung?" Width="80">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
@@ -102,6 +109,9 @@
                           Margin="0,0,0,10"/>
 
                 <TextBlock Text="Benötigte Eigenschaften:" Margin="0,10,0,5" FontWeight="SemiBold"/>
+                <CheckBox IsChecked="{Binding EditingUnterkategorie.BenötigtRadius}"
+                          Content="Radius (R=)"
+                          Margin="0,0,0,5"/>
                 <CheckBox IsChecked="{Binding EditingUnterkategorie.BenötigtSteigung}"
                           Content="Steigung (P=)"
                           Margin="0,0,0,5"/>

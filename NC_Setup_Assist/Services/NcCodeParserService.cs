@@ -215,7 +215,7 @@ var xValueMatch = xValueRegex.Match(line);
                     {
                         // "←" Symbol wird in der AnalysisView (XAML) basierend auf dieser Eigenschaft angezeigt.
                         // "Fräsen" wird für die spätere Filterlogik gespeichert.
-                        lastTool.BearbeitungsArt = "Fräser";
+                        lastTool.BearbeitungsArt = "←";
                     }
 
                     // Der Rest der Anforderung (Spalte in AnalysisView.xaml, Filter in ToolManagementView.xaml)
@@ -225,16 +225,14 @@ var xValueMatch = xValueRegex.Match(line);
                 var callOplMatch = callOplRegex.Match(line);
                 if (callOplMatch.Success)
                 {
-                    Werkzeug? foundTool = null;
+                    var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
 
-                    //foundTool = context.Werkzeuge
-                    //        .Include(w => w.Unterkategorie)
-                    //        .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Aussen" && w.Steigung == parsedPitch);
-
-                    //if (foundTool != null)
-                    //{
-                    //    lastTool.WerkzeugID = foundTool.WerkzeugID;
-                    //}
+                    if (lastTool != null)
+                    {
+                        // Weise die WerkzeugID 5 (Gravurstichel) fest zu
+                        lastTool.WerkzeugID = 5;
+                        lastTool.BearbeitungsArt = "←";
+                    }
                 }
 
                 var natMatch = natRegex.Match(line);

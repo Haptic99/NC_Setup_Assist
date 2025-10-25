@@ -310,7 +310,7 @@ namespace NC_Setup_Assist.ViewModels
                     string radiusDisplay = (RadiusInputString ?? "").Trim().Replace(',', '.');
                     if (!string.IsNullOrEmpty(radiusDisplay))
                     {
-                        sb.Append($" P={radiusDisplay}");
+                        sb.Append($" R={radiusDisplay}");
                     }
                 }
 

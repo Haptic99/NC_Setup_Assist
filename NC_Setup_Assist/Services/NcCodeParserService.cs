@@ -85,17 +85,17 @@ namespace NC_Setup_Assist.Services
                     werkzeugEinsaetze.Add(new WerkzeugEinsatz
                     {
                         RevolverStation = abstechStation,
-                        KorrekturNummer = (abstechStation != abstechkorrektur) ? abstechkorrektur : null,
+                        KorrekturNummer = (abstechStation != abstechkorrektur) ? abstechkorrektur : null,
                         Kommentar = $"Teil abstechen",
                         Reihenfolge = reihenfolgeCounter++
                     });
 
-                    string anschlagStation = anschlagWerkzeug.Substring(0, 2);
+                    string anschlagStation = anschlagWerkzeug.Substring(0, 2);
                     string anschlagKorrektur = anschlagWerkzeug.Substring(2, 2);
                     werkzeugEinsaetze.Add(new WerkzeugEinsatz
                     {
                         RevolverStation = anschlagStation,
-                        KorrekturNummer = (anschlagStation != anschlagKorrektur) ? anschlagKorrektur : null,
+                        KorrekturNummer = (anschlagStation != anschlagKorrektur) ? anschlagKorrektur : null,
                         Kommentar = $"Rohsteil herausziehen",
                         Reihenfolge = reihenfolgeCounter++
                     });
@@ -154,7 +154,7 @@ namespace NC_Setup_Assist.Services
                     vlmon2 = vlmonMatch.Groups[2].Value;
                 }
 
-var xValueMatch = xValueRegex.Match(line);
+                var xValueMatch = xValueRegex.Match(line);
                 if (xValueMatch.Success)
                 {
                     var g71Match = g71Regex.Match(line);
@@ -171,29 +171,32 @@ var xValueMatch = xValueRegex.Match(line);
                             if (double.TryParse(fMatch.Groups[1].Value, System.Globalization.NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double parsedPitch))
                             {
                                 Werkzeug? foundTool = null;
-                                
+
                                 // 2. Bestimmen, ob Aussen- oder Innengewinde (basierend auf deiner X-Wert-Logik)
                                 if (currentXValue < xValue)
                                 {
                                     // AUSSENGEWINDE suchen
+                                    // WICHTIG: .Include(w => w.Unterkategorie.Kategorie) um beide Namen zu haben
                                     foundTool = context.Werkzeuge
-                                        .Include(w => w.Unterkategorie)
+                                        .Include(w => w.Unterkategorie.Kategorie)
                                         .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Aussen" && w.Steigung == parsedPitch);
                                 }
                                 else if (currentXValue >= xValue)
                                 {
                                     // INNENGEWINDE suchen
                                     foundTool = context.Werkzeuge
-                                        .Include(w => w.Unterkategorie)
+                                        .Include(w => w.Unterkategorie.Kategorie)
                                         .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Innen" && w.Steigung == parsedPitch);
                                 }
 
-                                // 3. Nur zuweisen, wenn ein Werkzeug mit EXAKT passender Steigung gefunden wurde
+                                // 3. Favoriten setzen, wenn ein Werkzeug mit EXAKT passender Steigung gefunden wurde
                                 if (foundTool != null)
                                 {
+                                    // Setze die Favoriten basierend auf dem gefundenen Werkzeug
                                     lastTool.WerkzeugID = foundTool.WerkzeugID;
+                                    lastTool.FavoritKategorie = foundTool.Unterkategorie.Kategorie.Name; // z.B. "Drehwerkzeug"
+                                    lastTool.FavoritUnterkategorie = foundTool.Unterkategorie.Name; // z.B. "Gewindedrehstahl Aussen"
                                 }
-                                // Wenn foundTool == null, wird kein "Favorit" zugewiesen.
                             }
                         }
                     }
@@ -209,17 +212,14 @@ var xValueMatch = xValueRegex.Match(line);
                 var g101Match = g101Regex.Match(line);
                 if (g101Match.Success && sb == true)
                 {
-                    // HINZUGEFÜGT: Setze BearbeitungsArt für Fräswerkzeug (G101 + SB=true)
+                    // HINZUGEFÜGT: Setze FräserAusrichtung und FavoritKategorie
                     var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
                     if (lastTool != null)
                     {
-                        // "←" Symbol wird in der AnalysisView (XAML) basierend auf dieser Eigenschaft angezeigt.
-                        // "Fräsen" wird für die spätere Filterlogik gespeichert.
-                        lastTool.BearbeitungsArt = "←";
+                        lastTool.FräserAusrichtung = "←";
+                        lastTool.FavoritKategorie = "Fräser";
+                        lastTool.FavoritUnterkategorie = null; // Es ist nur "Fräsen", nicht spezifisch
                     }
-
-                    // Der Rest der Anforderung (Spalte in AnalysisView.xaml, Filter in ToolManagementView.xaml)
-                    // muss in den entsprechenden Dateien umgesetzt werden.
                 }
 
                 var callOplMatch = callOplRegex.Match(line);
@@ -229,9 +229,13 @@ var xValueMatch = xValueRegex.Match(line);
 
                     if (lastTool != null)
                     {
-                        // Weise die WerkzeugID 5 (Gravurstichel) fest zu
+                        // Weise die Favoriten für "Gravurstichel" (ID 5 -> "Kugelfräser" / "Fräser") zu
+                        // Entferne die alte WerkzeugID-Zuweisung
+                        // lastTool.WerkzeugID = 5; // ALT
                         lastTool.WerkzeugID = 5;
-                        lastTool.BearbeitungsArt = "←";
+                        lastTool.FräserAusrichtung = "←";
+                        lastTool.FavoritKategorie = "Fräser";
+                        lastTool.FavoritUnterkategorie = "Kugelfräser";
                     }
                 }
 
@@ -309,7 +313,7 @@ var xValueMatch = xValueRegex.Match(line);
                             };
 
                             // Wenn Gruppe1 != Gruppe2 -> Gruppe1 als Korrekturnummer setzen (falls parsebar)
-                                if (toolMatch.Groups[1].Value != toolMatch.Groups[2].Value)
+                            if (toolMatch.Groups[1].Value != toolMatch.Groups[2].Value)
                             {
                                 neuesWerkzeug.KorrekturNummer = toolMatch.Groups[1].Value;
                             }

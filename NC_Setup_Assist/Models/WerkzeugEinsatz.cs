@@ -19,19 +19,31 @@ namespace NC_Setup_Assist.Models
 
         public string? KorrekturNummer { get; set; }
 
-        // --- NEUE EIGENSCHAFT HINZUGEFÜGT ---
         /// <summary>
         /// Ein optionaler Kommentar, z.B. für Spindeldrehzahl-Anpassungen.
         /// </summary>
         public string? Kommentar { get; set; }
 
-        // --- NEU (basierend auf G101/SB-Anfrage) ---
+        // --- NEU (UMBENANNT VON BearbeitungsArt) ---
         /// <summary>
-        /// Speichert die Bearbeitungsart, z.B. "Fräsen" oder "Drehen".
+        /// Speichert die Ausrichtung des Fräsers (z.B. "←" oder "↓").
         /// Wird vom Parser (G101/SB) gesetzt.
         /// </summary>
-        public string? BearbeitungsArt { get; set; }
+        public string? FräserAusrichtung { get; set; }
         // ------------------------------------
+
+        // --- NEU (BASIEREND AUF PARSER-ERKENNUNG) ---
+        /// <summary>
+        /// Die vom Parser empfohlene Hauptkategorie (z.B. "Fräser").
+        /// </summary>
+        public string? FavoritKategorie { get; set; }
+
+        /// <summary>
+        /// Die vom Parser empfohlene Unterkategorie (z.B. "Gewindedrehstahl Innen").
+        /// </summary>
+        public string? FavoritUnterkategorie { get; set; }
+        // ------------------------------------
+
 
         // --- NEU (BASIEREND AUF KORB-ANFRAGE) ---
         /// <summary>

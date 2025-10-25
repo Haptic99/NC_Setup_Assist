@@ -6,8 +6,7 @@
              xmlns:local="clr-namespace:NC_Setup_Assist.Views"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d" 
-     
-        d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800">
 
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -17,8 +16,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" 
-                   Text="Analyse &amp; 
-Bearbeitung" 
+                   Text="Analyse &amp; Bearbeitung" 
                    FontSize="18" 
                    FontWeight="Bold" 
                    Margin="0,0,0,10"
@@ -34,32 +32,27 @@ Bearbeitung"
 
             <DockPanel Grid.Column="0" Margin="0,0,5,0">
                 <TextBlock DockPanel.Dock="Top" 
-     
-                      Text="NC-Code" 
+                           Text="NC-Code" 
                            FontWeight="SemiBold" Margin="0,0,0,5"
                            Foreground="#333333"/>
 
                 <TextBox x:Name="NcCodeTextBox" 
-    
-                     Text="{Binding NcCodeContent}"
+                         Text="{Binding NcCodeContent}"
                          IsReadOnly="True"
                          AcceptsReturn="True"
                          FontFamily="Consolas"
-   
-                      VerticalScrollBarVisibility="Auto"
+                         VerticalScrollBarVisibility="Auto"
                          HorizontalScrollBarVisibility="Auto"
                          BorderBrush="#CCCCCC"
                          BorderThickness="1"
-   
-                      Padding="3"/>
+                         Padding="3"/>
             </DockPanel>
 
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="#EEEEEE"/>
 
             <DockPanel Grid.Column="2" Margin="5,0,0,0">
                 <TextBlock DockPanel.Dock="Top" 
-                 
-          Text="Gefundene Werkzeugeinsätze" 
+                           Text="Gefundene Werkzeugeinsätze" 
                            FontWeight="SemiBold" Margin="0,0,0,5"
                            Foreground="#333333"/>
 
@@ -68,42 +61,69 @@ Bearbeitung"
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="MouseDoubleClick">
                             <i:InvokeCommandAction Command="{Binding GoToToolInCodeCommand}"
-                                      
-             CommandParameter="{Binding ElementName=WerkzeugEinsaetzeListView, Path=SelectedItem}"/>
+                                                   CommandParameter="{Binding ElementName=WerkzeugEinsaetzeListView, Path=SelectedItem}"/>
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
 
                     <ListView.ItemContainerStyle>
-
                         <Style TargetType="ListViewItem">
                             <Setter Property="Padding" Value="5"/>
                             <Setter Property="BorderThickness" Value="0,0,0,1"/>
                             <Setter Property="BorderBrush" Value="#EEEEEE"/>
-
                             <Style.Triggers>
                                 <Trigger Property="ItemsControl.AlternationIndex" Value="1">
                                     <Setter Property="Background" Value="#F8F8F8"/>
-
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
                                     <Setter Property="Background" Value="#E0F0FF"/>
-
                                     <Setter Property="Foreground" Value="Black"/>
                                 </Trigger>
                             </Style.Triggers>
-
                         </Style>
                     </ListView.ItemContainerStyle>
 
                     <ListView.View>
                         <GridView>
 
-                            <GridViewColumn Header="Nr." DisplayMemberBinding="{Binding Reihenfolge}" Width="30"/>
-                            <GridViewColumn Header="X" DisplayMemberBinding="{Binding Anzahl}" Width="30"/>
-                            <GridViewColumn Header="Station" DisplayMemberBinding="{Binding RevolverStation}" Width="50"/>
-                            <GridViewColumn Header="Korrektur" DisplayMemberBinding="{Binding KorrekturNummer}" Width="60"/>
+                            <GridView.ColumnHeaderContainerStyle>
+                                <Style TargetType="GridViewColumnHeader">
+                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                </Style>
+                            </GridView.ColumnHeaderContainerStyle>
 
-                            <GridViewColumn Header="Art" Width="30">
+                            <GridViewColumn Header="Nr." Width="Auto">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Reihenfolge}" HorizontalAlignment="Center" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+
+                            <GridViewColumn Header="X" Width="Auto">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Anzahl}" HorizontalAlignment="Center" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+
+                            <GridViewColumn Header="Sta" Width="Auto">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding RevolverStation}" HorizontalAlignment="Center" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+
+                            <GridViewColumn Header="Kor" Width="Auto">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding KorrekturNummer}" HorizontalAlignment="Center" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+
+                            <GridViewColumn Header="Aus" Width="Auto">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock FontWeight="Bold" HorizontalAlignment="Center">
@@ -111,18 +131,16 @@ Bearbeitung"
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding BearbeitungsArt}" Value="←">
+                                                        <DataTrigger Binding="{Binding FräserAusrichtung}" Value="←">
                                                             <Setter Property="Visibility" Value="Visible"/>
                                                             <Setter Property="Text" Value="←"/>
                                                             <Setter Property="ToolTip" Value="Fräsbearbeitung (Frontal)"/>
                                                         </DataTrigger>
-
-                                                        <DataTrigger Binding="{Binding BearbeitungsArt}" Value="↓">
+                                                        <DataTrigger Binding="{Binding FräserAusrichtung}" Value="↓">
                                                             <Setter Property="Visibility" Value="Visible"/>
                                                             <Setter Property="Text" Value="↓"/>
                                                             <Setter Property="ToolTip" Value="Fräsbearbeitung (Vertikal)"/>
                                                         </DataTrigger>
-
                                                     </Style.Triggers>
                                                 </Style>
                                             </TextBlock.Style>
@@ -131,7 +149,7 @@ Bearbeitung"
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
-                            <GridViewColumn Header="Korb" Width="40">
+                            <GridViewColumn Header="Krb" Width="Auto">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <CheckBox IsChecked="{Binding VerwendetKorb}" 
@@ -141,10 +159,12 @@ Bearbeitung"
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Header="Werkzeug" DisplayMemberBinding="{Binding ZugehoerigesWerkzeug.Name}" Width="200"/>
+
+                            <GridViewColumn Header="Fav Kat" DisplayMemberBinding="{Binding FavoritKategorie}" Width="Auto"/>
+                            <GridViewColumn Header="Fav Ukat" DisplayMemberBinding="{Binding FavoritUnterkategorie}" Width="Auto"/>
+                            <GridViewColumn Header="Werkzeug" DisplayMemberBinding="{Binding ZugehoerigesWerkzeug.Name}" Width="Auto"/>
                             <GridViewColumn Header="Kommentar" DisplayMemberBinding="{Binding Kommentar}" Width="Auto"/>
                         </GridView>
-
                     </ListView.View>
                 </ListView>
             </DockPanel>
@@ -153,7 +173,6 @@ Bearbeitung"
         <Button Grid.Row="2" 
                 Content="Werkzeugzuweisung starten" 
                 Command="{Binding StartToolAssignmentCommand}"
-             
                 Style="{StaticResource AccentButton}"
                 HorizontalAlignment="Right" 
                 Margin="0,10,0,0" 

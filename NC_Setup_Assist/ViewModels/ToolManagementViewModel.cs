@@ -78,7 +78,10 @@ namespace NC_Setup_Assist.ViewModels
         private readonly Action<Werkzeug>? _onToolSelectedCallback;
         [ObservableProperty]
         private bool _isSelectionMode;
-        private readonly string? _initialFilter; // NEU
+
+        // --- NEU: Felder für Favoriten-Filter ---
+        private readonly string? _initialFavoritKategorie;
+        private readonly string? _initialFavoritUnterkategorie;
 
 
         public ToolManagementViewModel(MainViewModel mainViewModel)
@@ -96,28 +99,51 @@ namespace NC_Setup_Assist.ViewModels
         }
 
         // ANGEPASSTER Konstruktor für Auswahlmodus (ersetzt den alten)
-        public ToolManagementViewModel(MainViewModel mainViewModel, Action<Werkzeug> onToolSelectedCallback, string? initialFilter = null) : this(mainViewModel)
+        public ToolManagementViewModel(MainViewModel mainViewModel,
+                                       Action<Werkzeug> onToolSelectedCallback,
+                                       string? favoritKategorie = null,
+                                       string? favoritUnterkategorie = null) : this(mainViewModel)
         {
             _onToolSelectedCallback = onToolSelectedCallback;
             IsSelectionMode = true;
-            _initialFilter = initialFilter;
 
-            // NEU: Wenn ein Filter gesetzt ist, wende ihn an.
-            if (!string.IsNullOrEmpty(_initialFilter))
-            {
-                // Finde die Kategorie, die dem Filter "Fräsen" entspricht.
-                // Annahme: Der Filter-String "Fräsen" entspricht einem Kategorienamen.
-                var matchingKategorie = Kategorien.FirstOrDefault(k => k.Name.Equals(_initialFilter, StringComparison.OrdinalIgnoreCase));
-                if (matchingKategorie != null)
-                {
-                    SelectedKategorie = matchingKategorie;
-                    // Das Setzen von SelectedKategorie löst OnSelectedKategorieChanged aus,
-                    // was wiederum ApplyFilter() aufruft.
-                }
-            }
+            // NEU: Favoriten für Filterung und Cancel() speichern
+            _initialFavoritKategorie = favoritKategorie;
+            _initialFavoritUnterkategorie = favoritUnterkategorie;
+
+            // NEU: Initialen Favoriten-Filter anwenden
+            ApplyFavoritFilter(_initialFavoritKategorie, _initialFavoritUnterkategorie);
         }
 
         #region Lade- und Filter-Logik
+
+        // NEU: Private Methode zum Anwenden des Favoriten-Filters
+        private void ApplyFavoritFilter(string? favoritKategorie, string? favoritUnterkategorie)
+        {
+            if (!string.IsNullOrEmpty(favoritUnterkategorie) && !string.IsNullOrEmpty(favoritKategorie))
+            {
+                // 1. Setze Hauptkategorie (löst OnSelectedKategorieChanged aus -> lädt Unterkategorien)
+                SelectedKategorie = Kategorien.FirstOrDefault(k =>
+                    k.Name.Equals(favoritKategorie, StringComparison.OrdinalIgnoreCase));
+
+                // 2. Setze Unterkategorie (löst OnSelectedUnterkategorieChanged aus -> wendet Filter an)
+                SelectedUnterkategorie = Unterkategorien.FirstOrDefault(u =>
+                    u.Name.Equals(favoritUnterkategorie, StringComparison.OrdinalIgnoreCase));
+            }
+            else if (!string.IsNullOrEmpty(favoritKategorie))
+            {
+                // Nur Hauptkategorie setzen
+                SelectedKategorie = Kategorien.FirstOrDefault(k =>
+                    k.Name.Equals(favoritKategorie, StringComparison.OrdinalIgnoreCase));
+                SelectedUnterkategorie = null; // Stellt sicher, dass der Filter zurückgesetzt wird
+            }
+            else
+            {
+                // Keinen Filter anwenden
+                SelectedKategorie = null;
+                SelectedUnterkategorie = null;
+            }
+        }
 
         private void LoadTools()
         {
@@ -159,37 +185,30 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
-        // --- HIER IST DIE KORREKTUR ---
         private void ApplyFilter()
         {
             IEnumerable<Werkzeug> tempFiltered = _allTools;
 
-            // --- KORREKTUR: Lokale Kopien erstellen, um Race Conditions zu verhindern ---
-            // Wir "frieren" die Werte zu Beginn der Methode ein.
             var currentKategorie = SelectedKategorie;
             var currentUnterkategorie = SelectedUnterkategorie;
             var currentSearchTerm = SearchTerm;
-            // --- ENDE KORREKTUR ---
 
 
             // 1. Filter nach Kategorie
             if (currentKategorie != null)
             {
-                // Verwende die lokale Kopie 'currentKategorie'
                 tempFiltered = tempFiltered.Where(w => w.Unterkategorie?.Kategorie?.WerkzeugKategorieID == currentKategorie.WerkzeugKategorieID);
             }
 
             // 2. Filter nach Unterkategorie
             if (currentUnterkategorie != null)
             {
-                // Verwende die lokale Kopie 'currentUnterkategorie'
                 tempFiltered = tempFiltered.Where(w => w.WerkzeugUnterkategorieID == currentUnterkategorie.WerkzeugUnterkategorieID);
             }
 
             // 3. Filter nach Suchbegriff
             if (!string.IsNullOrWhiteSpace(currentSearchTerm))
             {
-                // Verwende die lokale Kopie 'currentSearchTerm'
                 tempFiltered = tempFiltered.Where(w =>
                     (w.Name?.Contains(currentSearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (w.Unterkategorie?.Name?.Contains(currentSearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
@@ -214,19 +233,20 @@ namespace NC_Setup_Assist.ViewModels
 
         partial void OnSelectedToolChanged(Werkzeug? value)
         {
-            // --- KORREKTUR (aus vorheriger Antwort) ---
-            // Der Rumpf dieser Methode wurde entfernt.
-            // Das Auswählen eines Werkzeugs in der Liste ändert die Filter-Dropdowns nicht mehr.
-            // Die Dropdowns werden nur noch im 'EditTool'-Befehl gesetzt.
-            // --- ENDE KORREKTUR ---
+            // (Rumpf bleibt leer)
         }
 
         partial void OnSelectedKategorieChanged(WerkzeugKategorie? value)
         {
-            // (Unverändert, lädt Unterkategorien)
             using var context = new NcSetupContext();
             Unterkategorien.Clear();
-            SelectedUnterkategorie = null; // WICHTIG: Unterkategorie zurücksetzen
+
+            // Nur zurücksetzen, wenn die Änderung *nicht* Teil des Setzens des Unterkategorie-Filters ist
+            if (SelectedUnterkategorie != null && SelectedUnterkategorie.WerkzeugKategorieID != value?.WerkzeugKategorieID)
+            {
+                SelectedUnterkategorie = null; // WICHTIG: Unterkategorie zurücksetzen
+            }
+
             if (value != null)
             {
                 var subs = context.WerkzeugUnterkategorien
@@ -245,12 +265,11 @@ namespace NC_Setup_Assist.ViewModels
                 IsToolDetailsEnabled = false;
             }
 
-            ApplyFilter(); // NEU: Filter anwenden
+            ApplyFilter();
         }
 
         partial void OnSelectedUnterkategorieChanged(WerkzeugUnterkategorie? value)
         {
-            // (Unverändert)
             IsRadiusRequired = (value?.BenötigtRadius == true);
             IsPitchRequired = (value?.BenötigtSteigung == true);
             IsPlattenwinkelRequired = (value?.BenötigtPlattenwinkel == true);
@@ -272,7 +291,7 @@ namespace NC_Setup_Assist.ViewModels
                 ToolName = string.Empty;
             }
 
-            ApplyFilter(); // NEU: Filter anwenden
+            ApplyFilter();
         }
 
         partial void OnRadiusInputStringChanged(string? value)
@@ -292,14 +311,11 @@ namespace NC_Setup_Assist.ViewModels
 
         private void UpdateToolName()
         {
-            // (Unverändert)
             if (EditingTool == null || SelectedUnterkategorie == null)
             {
                 return;
             }
 
-            // Nur den Namen aktualisieren, wenn es ein NEUES Werkzeug ist ODER
-            // wenn der Benutzer die Unterkategorie eines bestehenden Werkzeugs ändert.
             if (EditingTool.WerkzeugID == 0 || (EditingTool.WerkzeugUnterkategorieID != SelectedUnterkategorie.WerkzeugUnterkategorieID))
             {
                 string baseName = SelectedUnterkategorie.Name;
@@ -342,7 +358,6 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void NewTool()
         {
-            // (Unverändert)
             EditingTool = new Werkzeug
             {
                 Steigung = null,
@@ -364,17 +379,14 @@ namespace NC_Setup_Assist.ViewModels
             IsToolDetailsEnabled = false;
         }
 
-        // --- HIER BEGINNT DIE ÄNDERUNG ---
 
         [RelayCommand]
-        private void EditTool(Werkzeug? toolFromClick) // Parameter hinzugefügt
+        private void EditTool(Werkzeug? toolFromClick)
         {
-            // Wir verwenden das Werkzeug aus dem Klick oder fallen auf das ausgewählte Werkzeug zurück
             var toolToEdit = toolFromClick ?? SelectedTool;
 
-            if (toolToEdit == null) return; // Schutz-Check
+            if (toolToEdit == null) return;
 
-            // Wichtig: Stellen Sie sicher, dass das SelectedTool synchronisiert ist
             if (toolFromClick != null)
             {
                 SelectedTool = toolToEdit;
@@ -382,11 +394,10 @@ namespace NC_Setup_Assist.ViewModels
 
             if (IsSelectionMode)
             {
-                _onToolSelectedCallback?.Invoke(toolToEdit); // toolToEdit verwenden
+                _onToolSelectedCallback?.Invoke(toolToEdit);
             }
             else
             {
-                // Erstelle die Kopie basierend auf toolToEdit
                 EditingTool = new Werkzeug
                 {
                     WerkzeugID = toolToEdit.WerkzeugID,
@@ -394,6 +405,7 @@ namespace NC_Setup_Assist.ViewModels
                     Beschreibung = toolToEdit.Beschreibung,
                     Steigung = toolToEdit.Steigung,
                     Plattenwinkel = toolToEdit.Plattenwinkel,
+                    Radius = toolToEdit.Radius, // Radius-Kopie hinzugefügt
                     Unterkategorie = toolToEdit.Unterkategorie,
                     WerkzeugUnterkategorieID = toolToEdit.WerkzeugUnterkategorieID
                 };
@@ -407,12 +419,10 @@ namespace NC_Setup_Assist.ViewModels
 
                 if (toolToEdit.Unterkategorie?.Kategorie != null)
                 {
-                    // Normaler Weg
                     SelectedKategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == toolToEdit.Unterkategorie.Kategorie.WerkzeugKategorieID);
                 }
                 else
                 {
-                    // Fallback, falls die Navigationseigenschaft fehlt.
                     using var context = new NcSetupContext();
                     var unterkat = context.WerkzeugUnterkategorien.Find(toolToEdit.WerkzeugUnterkategorieID);
                     if (unterkat != null)
@@ -421,11 +431,10 @@ namespace NC_Setup_Assist.ViewModels
                     }
                     else
                     {
-                        SelectedKategorie = null; // Sollte nicht passieren
+                        SelectedKategorie = null;
                     }
                 }
 
-                // Diese Zuweisung funktioniert jetzt
                 SelectedUnterkategorie = Unterkategorien.FirstOrDefault(u => u.WerkzeugUnterkategorieID == toolToEdit.WerkzeugUnterkategorieID);
 
                 IsInEditMode = true;
@@ -434,13 +443,8 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
-        // --- HIER ENDET DIE ÄNDERUNG ---
-
-
-        // Helper-Funktion zum Parsen
         private bool ParseNullableDouble(string input, bool isRequired, string fieldName, out double? result)
         {
-            // (Unverändert)
             result = null;
             string rawInput = input?.Trim() ?? string.Empty;
 
@@ -471,7 +475,6 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void SaveTool()
         {
-            // (Unverändert)
             if (EditingTool == null || SelectedUnterkategorie == null || string.IsNullOrWhiteSpace(ToolName))
             {
                 MessageBox.Show("Bitte wählen Sie eine Kategorie, einen Typ aus und geben Sie einen Namen ein.", "Fehlende Eingabe");
@@ -485,12 +488,12 @@ namespace NC_Setup_Assist.ViewModels
             }
 
             double? finalPitch;
- 
+
             if (!ParseNullableDouble(PitchInputString, IsPitchRequired, "Steigung", out finalPitch))
             {
                 return;
             }
-                                
+
             double? finalPlattenwinkel;
             if (!ParseNullableDouble(PlattenwinkelInputString, IsPlattenwinkelRequired, "Plattenwinkel", out finalPlattenwinkel))
             {
@@ -507,7 +510,7 @@ namespace NC_Setup_Assist.ViewModels
             if (EditingTool.WerkzeugID == 0)
             {
                 EditingTool.WerkzeugUnterkategorieID = SelectedUnterkategorie.WerkzeugUnterkategorieID;
-                context.WerkzeugUnterkategorien.Attach(SelectedUnterkategorie); // Sagen EF, dass Unterkat. existiert
+                EditingTool.Unterkategorie = null!; // Navigationseigenschaft nullen
                 context.Werkzeuge.Add(EditingTool);
             }
             else
@@ -519,6 +522,7 @@ namespace NC_Setup_Assist.ViewModels
                     toolToUpdate.Beschreibung = EditingTool.Beschreibung;
                     toolToUpdate.Steigung = EditingTool.Steigung;
                     toolToUpdate.Plattenwinkel = EditingTool.Plattenwinkel;
+                    toolToUpdate.Radius = EditingTool.Radius; // Radius-Update hinzugefügt
                     toolToUpdate.WerkzeugUnterkategorieID = SelectedUnterkategorie.WerkzeugUnterkategorieID;
                 }
             }
@@ -535,11 +539,8 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void Cancel()
         {
-            // (Unverändert)
             EditingTool = null;
             IsInEditMode = false;
-            SelectedKategorie = null;
-            SelectedUnterkategorie = null;
 
             IsRadiusRequired = false;
             IsPitchRequired = false;
@@ -552,14 +553,15 @@ namespace NC_Setup_Assist.ViewModels
             IsUnterkategorieEnabled = false;
             IsToolDetailsEnabled = false;
 
-            // Wende den Initialfilter (z.B. "Fräsen") wieder an, falls wir im Auswahlmodus sind
-            if (IsSelectionMode && !string.IsNullOrEmpty(_initialFilter))
+            // Wende den Initialfilter (z.B. Favoriten) wieder an, falls wir im Auswahlmodus sind
+            if (IsSelectionMode)
             {
-                var matchingKategorie = Kategorien.FirstOrDefault(k => k.Name.Equals(_initialFilter, StringComparison.OrdinalIgnoreCase));
-                if (matchingKategorie != null)
-                {
-                    SelectedKategorie = matchingKategorie;
-                }
+                ApplyFavoritFilter(_initialFavoritKategorie, _initialFavoritUnterkategorie);
+            }
+            else
+            {
+                SelectedKategorie = null;
+                SelectedUnterkategorie = null;
             }
         }
 
@@ -568,15 +570,13 @@ namespace NC_Setup_Assist.ViewModels
         {
             if (SelectedTool == null) return;
 
-            // --- NEUE PRÜFUNG ---
-            var standardToolIds = new List<int> { 1,2,3,4,5 };
+            var standardToolIds = new List<int> { 1, 2, 3, 4, 5 };
             if (standardToolIds.Contains(SelectedTool.WerkzeugID))
             {
                 MessageBox.Show($"Das Werkzeug '{SelectedTool.Name}' ist ein Standardwerkzeug und kann nicht gelöscht werden.",
                                 "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            // --- ENDE PRÜFUNG ---
 
             var result = MessageBox.Show($"Möchten Sie das Werkzeug '{SelectedTool.Name}' wirklich löschen?",
                                          "Löschen bestätigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
@@ -585,7 +585,6 @@ namespace NC_Setup_Assist.ViewModels
             {
                 using var context = new NcSetupContext();
 
-                // Zuerst prüfen, ob das Werkzeug in StandardWerkzeugZuweisungen verwendet wird
                 bool isStandardTool = context.StandardWerkzeugZuweisungen.Any(z => z.WerkzeugID == SelectedTool.WerkzeugID);
                 if (isStandardTool)
                 {
@@ -593,9 +592,6 @@ namespace NC_Setup_Assist.ViewModels
                                     "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-
-                // (Die Prüfung auf WerkzeugEinsaetze ist dank Cascade Delete nicht zwingend, 
-                // aber die Prüfung auf StandardWerkzeugZuweisungen ist wichtig.)
 
                 var toolToDelete = context.Werkzeuge.Find(SelectedTool.WerkzeugID);
                 if (toolToDelete != null)
@@ -610,14 +606,12 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void NavigateToKategorieManagement()
         {
-            // (Unverändert)
             _mainViewModel.NavigateTo(new KategorieManagementViewModel(RefreshKategorienData));
         }
 
         [RelayCommand]
         private void NavigateToUnterkategorieManagement()
         {
-            // (Unverändert)
             _mainViewModel.NavigateTo(new UnterkategorieManagementViewModel(RefreshKategorienData));
         }
 

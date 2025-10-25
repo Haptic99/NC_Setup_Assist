@@ -3,6 +3,7 @@ using NC_Setup_Assist.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Xml.Linq;
 
 namespace NC_Setup_Assist.Data
 {
@@ -93,6 +94,14 @@ namespace NC_Setup_Assist.Data
                     WerkzeugKategorieID = 1,
                     BenötigtPlattenwinkel = false,
                     BenötigtSteigung = false
+                },
+                new WerkzeugUnterkategorie
+                {
+                    WerkzeugUnterkategorieID = 6,
+                    Name = "HM-Fräser",
+                    WerkzeugKategorieID = 1,
+                    BenötigtPlattenwinkel = false,
+                    BenötigtSteigung = false
                 }
             );
 
@@ -137,6 +146,14 @@ namespace NC_Setup_Assist.Data
                     Steigung = null,
                     Plattenwinkel = null,
                     WerkzeugUnterkategorieID = 5
+                },
+                new Werkzeug
+                {
+                    WerkzeugID = 6,
+                    Name = "HM-Fräser Ø8",
+                    Steigung = null,
+                    Plattenwinkel = null,
+                    WerkzeugUnterkategorieID = 6
                 }
             );
         }

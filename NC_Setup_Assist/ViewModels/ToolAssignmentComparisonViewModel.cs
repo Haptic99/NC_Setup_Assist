@@ -15,25 +15,40 @@ namespace NC_Setup_Assist.ViewModels
     {
         public string Station { get; }
         public string Korrektur { get; }
-        public string ToolNameBefore { get; }
+        // public string ToolNameBefore { get; } // Entfernt
         public string ToolNameAfter { get; }
-        public string AssignmentStatus { get; } // NEU
-        public string? BearbeitungsArt { get; } // NEU (für Fräsen-Filter)
-        public string ToolSubCategory { get; } // NEU: Eigenschaft für die Unterkategorie
+        public string AssignmentStatus { get; }
+        public string? FräserAusrichtung { get; } // Umbenannt
+        public string ToolSubCategory { get; }
+
+        // --- NEUE FELDER ---
+        public string? FavoritKategorie { get; }
+        public string? FavoritUnterkategorie { get; }
+        // -----------------
 
         // Indikator für die Zuweisung: True, wenn manuell zugewiesen ODER als Standardwerkzeug erkannt.
-        public bool IsAssigned => AssignmentStatus != "Unassigned"; // Angepasst
+        public bool IsAssigned => AssignmentStatus != "Unassigned";
 
         // Konstruktor angepasst
-        public ToolComparisonItem(string station, string korrektur, string before, string after, string status, string? bearbeitungsArt, string toolSubCategory) // Angepasst
+        public ToolComparisonItem(string station,
+                                  string korrektur,
+                                  // string before, // Entfernt
+                                  string after,
+                                  string status,
+                                  string? fräserAusrichtung, // Umbenannt
+                                  string toolSubCategory,
+                                  string? favoritKategorie, // Neu
+                                  string? favoritUnterkategorie) // Neu
         {
             Station = station;
             Korrektur = korrektur;
-            ToolNameBefore = before;
+            // ToolNameBefore = before; // Entfernt
             ToolNameAfter = after;
-            AssignmentStatus = status; // NEU
-            BearbeitungsArt = bearbeitungsArt; // NEU
-            ToolSubCategory = toolSubCategory; // NEU
+            AssignmentStatus = status;
+            FräserAusrichtung = fräserAusrichtung; // Umbenannt
+            ToolSubCategory = toolSubCategory;
+            FavoritKategorie = favoritKategorie; // Neu
+            FavoritUnterkategorie = favoritUnterkategorie; // Neu
         }
     }
 
@@ -66,10 +81,11 @@ namespace NC_Setup_Assist.ViewModels
             using var context = new NcSetupContext();
 
             // 1. Lade Standardwerkzeuge der Maschine (für "Before"-Status und als Fallback für "After"-Status)
+            // ANGEPASST: .Kategorie mitladen
             var standardTools = context.StandardWerkzeugZuweisungen
                                         .Where(z => z.MaschineID == _programm.MaschineID)
                                         .Include(z => z.ZugehoerigesWerkzeug)
-                                            .ThenInclude(w => w!.Unterkategorie) // Wichtig: Unterkategorie mitladen
+                                            .ThenInclude(w => w!.Unterkategorie.Kategorie) // Wichtig: Unterkategorie UND Kategorie mitladen
                                         .ToList();
 
             var standardToolLookup = standardTools.ToDictionary(
@@ -79,11 +95,11 @@ namespace NC_Setup_Assist.ViewModels
 
             // 2. Lade alle eindeutigen Werkzeugeinsätze des Programms, diesmal DIREKT aus der DB,
             // um den aktuellen Zuweisungsstatus zu sehen.
-            // ÄNDERUNG: .Include für ZugehoerigesWerkzeug.Unterkategorie hinzugefügt
+            // ANGEPASST: .Kategorie mitladen
             var allUniqueToolsEntities = context.WerkzeugEinsaetze
                 .Where(e => e.NCProgrammID == _programm.NCProgrammID && !string.IsNullOrEmpty(e.RevolverStation))
                 .Include(e => e.ZugehoerigesWerkzeug)
-                    .ThenInclude(w => w!.Unterkategorie) // Lade das zugewiesene Werkzeug und dessen Unterkategorie
+                    .ThenInclude(w => w!.Unterkategorie.Kategorie) // Lade das zugewiesene Werkzeug, dessen Unterkategorie UND Kategorie
                 .AsEnumerable() // Wechsle zu In-Memory-Verarbeitung
                 .GroupBy(e => new { e.RevolverStation, e.KorrekturNummer })
                 .Select(g => g.First())
@@ -91,48 +107,45 @@ namespace NC_Setup_Assist.ViewModels
 
 
             // 3. Verarbeite die Vergleichsdaten
-            foreach (var uniqueTool in allUniqueToolsEntities.OrderBy(t => t.RevolverStation).ThenBy(t => t.KorrekturNummer))
+            foreach (var uniqueTool in allUniqueToolsEntities.OrderBy(t => t.Reihenfolge).ThenBy(t => t.RevolverStation).ThenBy(t => t.KorrekturNummer))
             {
                 string stationKey = uniqueTool.RevolverStation!.TrimStart('0');
                 string korrekturKey = uniqueTool.KorrekturNummer ?? "";
 
                 // --- Bestimme "Before" Status (Standardwerkzeug) ---
-                string toolBeforeName;
+                // string toolBeforeName; // Entfernt
                 Werkzeug? stdTool;
-                if (standardToolLookup.TryGetValue(stationKey, out stdTool))
-                {
-                    toolBeforeName = $"{stdTool!.Name}";
-                }
-                else
-                {
-                    toolBeforeName = "Unbekannt";
-                }
+                standardToolLookup.TryGetValue(stationKey, out stdTool);
+                // if (stdTool != null)
+                // {
+                //    toolBeforeName = $"{stdTool!.Name}"; // Entfernt
+                // }
+                // else
+                // {
+                //    toolBeforeName = "Unbekannt"; // Entfernt
+                // }
 
                 // --- Bestimme "After" Status (Final zugewiesen) ---
                 string toolAfterName;
-                string assignmentStatus; // NEU
-                string toolSubCategory; // NEU
+                string assignmentStatus;
+                string toolSubCategory;
 
                 if (uniqueTool.ZugehoerigesWerkzeug != null)
                 {
                     toolAfterName = uniqueTool.ZugehoerigesWerkzeug.Name;
-                    // NEU: Unterkategorie-Name holen
                     toolSubCategory = uniqueTool.ZugehoerigesWerkzeug.Unterkategorie?.Name ?? "k.A.";
 
-                    // NEU: Status bestimmen
                     if (uniqueTool.Kommentar?.StartsWith("Favorit") == true)
                     {
-                        assignmentStatus = "Favorite"; // Blau
+                        assignmentStatus = "Favorite";
                     }
                     else if (stdTool != null && stdTool.WerkzeugID == uniqueTool.ZugehoerigesWerkzeug.WerkzeugID)
                     {
-                        // Manuell zugewiesen, aber es ist dasselbe wie das Standardwerkzeug
-                        assignmentStatus = "Standard"; // Grün
+                        assignmentStatus = "Standard";
                     }
                     else
                     {
-                        // Manuell zugewiesen, und es ist NICHT das Standardwerkzeug
-                        assignmentStatus = "Manual"; // Gelb/Rot
+                        assignmentStatus = "Manual";
                     }
                 }
                 else
@@ -142,22 +155,24 @@ namespace NC_Setup_Assist.ViewModels
                     {
                         // Standardwerkzeug gefunden
                         toolAfterName = $"{stdTool.Name}";
-                        // NEU: Unterkategorie-Name holen
                         toolSubCategory = stdTool.Unterkategorie?.Name ?? "k.A.";
-                        assignmentStatus = "Standard"; // Grün
+                        assignmentStatus = "Standard";
                     }
                     else
                     {
                         // Weder manuell zugewiesen noch Standard
                         toolAfterName = "Unzugewiesen";
-                        assignmentStatus = "Unassigned"; // Gelb
+                        assignmentStatus = "Unassigned";
 
                         // --- KORREKTUR ---
-                        // Wenn die Bearbeitungsart vom Parser erkannt wurde (z.B. "Fräsen"),
-                        // zeigen wir diese als Kategorie/Typ an, anstatt "---".
-                        if (!string.IsNullOrEmpty(uniqueTool.BearbeitungsArt))
+                        // Zeige Favorit-Vorschläge an, wenn vorhanden
+                        if (!string.IsNullOrEmpty(uniqueTool.FavoritUnterkategorie))
                         {
-                            toolSubCategory = uniqueTool.BearbeitungsArt;
+                            toolSubCategory = $"Vorschlag: {uniqueTool.FavoritUnterkategorie}";
+                        }
+                        else if (!string.IsNullOrEmpty(uniqueTool.FavoritKategorie))
+                        {
+                            toolSubCategory = $"Vorschlag: {uniqueTool.FavoritKategorie}";
                         }
                         else
                         {
@@ -170,11 +185,13 @@ namespace NC_Setup_Assist.ViewModels
                 ComparisonItems.Add(new ToolComparisonItem(
                     uniqueTool.RevolverStation!,
                     korrekturKey,
-                    toolBeforeName,
+                    // toolBeforeName, // Entfernt
                     toolAfterName,
-                    assignmentStatus, // NEU
-                    uniqueTool.BearbeitungsArt, // NEU
-                    toolSubCategory // NEU
+                    assignmentStatus,
+                    uniqueTool.FräserAusrichtung, // Umbenannt
+                    toolSubCategory,
+                    uniqueTool.FavoritKategorie, // Neu
+                    uniqueTool.FavoritUnterkategorie // Neu
                 ));
             }
         }
@@ -187,18 +204,24 @@ namespace NC_Setup_Assist.ViewModels
 
             string station = item.Station;
             string korrektur = item.Korrektur;
-            string? filterArt = item.BearbeitungsArt; // NEU
+
+            // --- NEU: Favoriten aus dem Item holen ---
+            string? favoritKat = item.FavoritKategorie;
+            string? favoritUnterKat = item.FavoritUnterkategorie;
+            // ----------------------------------------
 
             // Navigation zum ToolManagementViewModel (Auswahlmodus)
-            // --- KORREKTUR HINZUGEFÜGT: _mainViewModel als erstes Argument übergeben ---
-            var toolManagementVM = new ToolManagementViewModel(_mainViewModel, selectedTool =>
-            {
-                // Callback-Aktion nach Auswahl des Werkzeugs
-                PerformToolAssignmentUpdate(station, korrektur, selectedTool.WerkzeugID);
-
-                // Zurück zur Vergleichsansicht
-                _mainViewModel.NavigateBack();
-            }, filterArt); // NEU: filterArt übergeben
+            // --- KORREKTUR: MainViewModel als erstes Argument, Favoriten übergeben ---
+            var toolManagementVM = new ToolManagementViewModel(
+                _mainViewModel,
+                selectedTool => // Callback
+                {
+                    PerformToolAssignmentUpdate(station, korrektur, selectedTool.WerkzeugID);
+                    _mainViewModel.NavigateBack();
+                },
+                favoritKat, // NEU
+                favoritUnterKat // NEU
+            );
 
             _mainViewModel.NavigateTo(toolManagementVM);
         }
@@ -224,6 +247,9 @@ namespace NC_Setup_Assist.ViewModels
                 {
                     einsatz.Kommentar = null;
                 }
+                // Favoriten-Vorschläge auch leeren, da Zuweisung erfolgt ist
+                einsatz.FavoritKategorie = null;
+                einsatz.FavoritUnterkategorie = null;
             }
             context.SaveChanges();
 

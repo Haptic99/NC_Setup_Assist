@@ -6,6 +6,7 @@
              xmlns:vm="clr-namespace:NC_Setup_Assist.ViewModels"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d" 
+     
              d:DataContext="{d:DesignInstance vm:ToolAssignmentComparisonViewModel}"
              d:DesignHeight="600" d:DesignWidth="800">
 
@@ -44,27 +45,6 @@
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="StandardAssignmentItemStyle" TargetType="ListViewItem">
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="Padding" Value="5"/>
-            <Style.Triggers>
-                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
-                    <Setter Property="Background" Value="White"/>
-                </Trigger>
-                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                    <Setter Property="Background" Value="#EFEFEF"/>
-                </Trigger>
-
-                <DataTrigger Binding="{Binding ToolNameBefore}" Value="Unbekannt">
-                    <Setter Property="Background" Value="#FFDDDD"/>
-                </DataTrigger>
-
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#E0F0FF"/>
-                    <Setter Property="Foreground" Value="Black"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
     </UserControl.Resources>
 
     <Grid Margin="10">
@@ -75,39 +55,15 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" 
-                    Text="Werkzeugzuweisung Vergleich" 
+                     Text="Werkzeugzuweisung Vergleich" 
                    FontSize="18" 
                    FontWeight="Bold" 
                    Margin="0,0,0,10"
                    Foreground="#333333"/>
 
         <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
 
-            <DockPanel Grid.Column="0" Margin="0,0,5,0">
-                <TextBlock DockPanel.Dock="Top" 
-                           Text="Standardzuweisungen und bekannte Werkzeuge" 
-                           FontWeight="SemiBold" Margin="0,0,0,5"
-                           Foreground="#333333"/>
-                <ListView ItemsSource="{Binding ComparisonItems}" AlternationCount="2"
-                          ItemContainerStyle="{StaticResource StandardAssignmentItemStyle}">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Station" DisplayMemberBinding="{Binding Station}" Width="80"/>
-                            <GridViewColumn Header="Korrektur" DisplayMemberBinding="{Binding Korrektur}" Width="80"/>
-                            <GridViewColumn Header="Standardwerkzeug" DisplayMemberBinding="{Binding ToolNameBefore}" Width="Auto"/>
-                        </GridView>
-                    </ListView.View>
-                </ListView>
-            </DockPanel>
-
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="#EEEEEE"/>
-
-            <DockPanel Grid.Column="2" Margin="5,0,0,0">
+            <DockPanel>
                 <TextBlock DockPanel.Dock="Top" 
                            Text="Alle Zugewiesenen Werkzeuge" 
                            FontWeight="SemiBold" Margin="0,0,0,5"
@@ -120,7 +76,7 @@
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="MouseDoubleClick">
                             <i:InvokeCommandAction Command="{Binding AssignToolCommand}"
-                                                 CommandParameter="{Binding ElementName=ComparisonListView, Path=SelectedItem}"/>
+                                                   CommandParameter="{Binding ElementName=ComparisonListView, Path=SelectedItem}"/>
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
 
@@ -130,18 +86,22 @@
                             <GridViewColumn Header="Station" DisplayMemberBinding="{Binding Station}" Width="60"/>
                             <GridViewColumn Header="Korrektur" DisplayMemberBinding="{Binding Korrektur}" Width="60"/>
 
-                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding AssignmentStatus}" Width="80"/>
+                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding AssignmentStatus}" 
+ Width="80"/>
 
                             <GridViewColumn Header="Werkzeug" DisplayMemberBinding="{Binding ToolNameAfter}" Width="150"/>
 
+                            <GridViewColumn Header="Ausrichtung" DisplayMemberBinding="{Binding FräserAusrichtung}" Width="80"/>
+                            <GridViewColumn Header="Favorit Kategorie" DisplayMemberBinding="{Binding FavoritKategorie}" Width="140"/>
+                            <GridViewColumn Header="Favorit Unterkategorie" DisplayMemberBinding="{Binding FavoritUnterkategorie}" Width="160"/>
                             <GridViewColumn Header="Kategorie/Typ" DisplayMemberBinding="{Binding ToolSubCategory}" Width="150"/>
                         </GridView>
                     </ListView.View>
                 </ListView>
             </DockPanel>
         </Grid>
-
-        <Button Grid.Row="2" Content="Zuweisung abschliessen &amp; Speichern" 
+        <Button Grid.Row="2" Content="Zuweisung abschliessen &amp;
+ Speichern" 
                 Command="{Binding FinishAssignmentCommand}" 
                 Style="{StaticResource AccentButton}"
                 HorizontalAlignment="Right" 

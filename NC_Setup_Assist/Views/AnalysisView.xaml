@@ -106,14 +106,23 @@ Bearbeitung"
                             <GridViewColumn Header="Art" Width="30">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="←" FontWeight="Bold" ToolTip="Fräsbearbeitung (G101)" HorizontalAlignment="Center">
+                                        <TextBlock FontWeight="Bold" HorizontalAlignment="Center">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding BearbeitungsArt}" Value="←">
                                                             <Setter Property="Visibility" Value="Visible"/>
+                                                            <Setter Property="Text" Value="←"/>
+                                                            <Setter Property="ToolTip" Value="Fräsbearbeitung (Frontal)"/>
                                                         </DataTrigger>
+
+                                                        <DataTrigger Binding="{Binding BearbeitungsArt}" Value="↓">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Setter Property="Text" Value="↓"/>
+                                                            <Setter Property="ToolTip" Value="Fräsbearbeitung (Vertikal)"/>
+                                                        </DataTrigger>
+
                                                     </Style.Triggers>
                                                 </Style>
                                             </TextBlock.Style>

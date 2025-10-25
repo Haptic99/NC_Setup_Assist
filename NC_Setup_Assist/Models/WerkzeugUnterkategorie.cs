@@ -15,17 +15,36 @@ namespace NC_Setup_Assist.Models
         [ForeignKey("WerkzeugKategorieID")]
         public WerkzeugKategorie Kategorie { get; set; } = null!;
 
-        // --- NEUE EIGENSCHAFTEN ---
+        // --- NEUE EIGENSCHAFTEN BASIEREND AUF CSV ---
+
+        /// <summary>
+        /// Definiert, ob dieser Werkzeugtyp die Angabe eines Radius erfordert (z.B. Eckenradius).
+        /// </summary>
+        public bool BenötigtRadius { get; set; }
+
         /// <summary>
         /// Definiert, ob dieser Werkzeugtyp die Angabe einer Steigung erfordert (z.B. Gewindebohrer).
         /// </summary>
         public bool BenötigtSteigung { get; set; }
 
         /// <summary>
-        /// Definiert, ob dieser Werkzeugtyp die Angabe eines Plattenwinkels erfordert (z.B. Drehstähle).
+        /// Definiert, ob dieser Werkzeugtyp die Angabe eines Spitzenwinkels erfordert (z.B. Bohrer, Fasenfräser).
         /// </summary>
-        public bool BenötigtPlattenwinkel { get; set; }
+        public bool BenötigtSpitzenwinkel { get; set; }
 
-        public bool BenötigtRadius { get; set; }
+        /// <summary>
+        /// Definiert, ob dieser Werkzeugtyp die Angabe eines Durchmessers erfordert.
+        /// </summary>
+        public bool BenötigtDurchmesser { get; set; }
+
+        /// <summary>
+        /// Definiert, ob dieser Werkzeugtyp die Angabe einer Breite erfordert (z.B. Stechbreite).
+        /// </summary>
+        public bool BenötigtBreite { get; set; }
+
+        /// <summary>
+        /// Definiert, ob dieser Werkzeugtyp die Angabe einer maximalen Stechtiefe erfordert.
+        /// </summary>
+        public bool BenötigtMaxStechtiefe { get; set; }
     }
 }

@@ -34,8 +34,12 @@ namespace NC_Setup_Assist.Services
             double abstechPositionZ = 0;
             string vlmon1 = string.Empty;
             string vlmon2 = string.Empty;
+            bool g81 = false;
+            bool g41 = false;
+            bool g73 = false;
             bool nat = false;
             bool sb = false;
+            bool spindleOn = false;
 
             #region Regex Definitionen
             var g50Regex = new Regex(@"G50\s+S(\d+)");
@@ -55,6 +59,14 @@ namespace NC_Setup_Assist.Services
             var sbRegex = new Regex(@"SB=(-?[\d\.]+)");
             var g101Regex = new Regex(@"G101", RegexOptions.IgnoreCase);
             var callOplRegex = new Regex(@"CALL OPL", RegexOptions.IgnoreCase);
+            var m3Regex = new Regex(@"\bM0?3\b", RegexOptions.IgnoreCase);
+            var m4Regex = new Regex(@"\bM0?4\b", RegexOptions.IgnoreCase);
+            var m5Regex = new Regex(@"\bM0?5\b", RegexOptions.IgnoreCase);
+            var g74Regex = new Regex(@"G74", RegexOptions.IgnoreCase);
+            var g81Regex = new Regex(@"G81", RegexOptions.IgnoreCase);
+            var g41Regex = new Regex(@"G41", RegexOptions.IgnoreCase);
+            var g73Regex = new Regex(@"G73", RegexOptions.IgnoreCase);
+            var g87Regex = new Regex(@"G87", RegexOptions.IgnoreCase);
             #endregion
 
             foreach (var line in lines)
@@ -84,20 +96,26 @@ namespace NC_Setup_Assist.Services
                     string abstechkorrektur = abstechwerkzeugStangenanfang.Substring(2, 2);
                     werkzeugEinsaetze.Add(new WerkzeugEinsatz
                     {
+                        Anzahl = 1,
                         RevolverStation = abstechStation,
                         KorrekturNummer = (abstechStation != abstechkorrektur) ? abstechkorrektur : null,
                         Kommentar = $"Teil abstechen",
-                        Reihenfolge = reihenfolgeCounter++
+                        Reihenfolge = reihenfolgeCounter++,
+                        FavoritKategorie = "Drehwerkzeuge",
+                        FavoritUnterkategorie = "Einstechstahl Aussen",
                     });
 
                     string anschlagStation = anschlagWerkzeug.Substring(0, 2);
                     string anschlagKorrektur = anschlagWerkzeug.Substring(2, 2);
                     werkzeugEinsaetze.Add(new WerkzeugEinsatz
                     {
+                        Anzahl = 1,
                         RevolverStation = anschlagStation,
                         KorrekturNummer = (anschlagStation != anschlagKorrektur) ? anschlagKorrektur : null,
                         Kommentar = $"Rohsteil herausziehen",
-                        Reihenfolge = reihenfolgeCounter++
+                        Reihenfolge = reihenfolgeCounter++,
+                        FavoritKategorie = "Drehwerkzeuge",
+                        FavoritUnterkategorie = "Einstechstahl Aussen",
                     });
                 }
 
@@ -200,6 +218,38 @@ namespace NC_Setup_Assist.Services
                             }
                         }
                     }
+
+                    var g73Match = g73Regex.Match(line);
+                    if (g73Match.Success) // G71 (Gewinde) gefunden
+                    {
+                        var fMatch = fRegex.Match(line);
+                        double currentXValue = double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+                        var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
+
+                        // Prüfen, ob alle nötigen Infos da sind (letztes Werkzeug, F-Wert für Steigung)
+                        if (lastTool != null && fMatch.Success && spindleOn == true)
+                        {
+                            Werkzeug? foundTool = null;
+
+                            // 2. Bestimmen, ob Aussen- oder Innengewinde (basierend auf deiner X-Wert-Logik)
+                            if (currentXValue < xValue)
+                            {
+                                // AUSSENEINSTICH suchen
+                                ; lastTool.FavoritKategorie = "Drehwerkzeuge";
+                                lastTool.FavoritUnterkategorie = "Einstechstahl Aussen";
+                            }
+                            else if (currentXValue >= xValue)
+                            {
+                                // INNENEINSTICH suchen
+                                ; lastTool.FavoritKategorie = "Drehwerkzeuge";
+                                lastTool.FavoritUnterkategorie = "Einstechstahl Innen";
+                            }
+                        }
+                    }
+
+
+
+
                     xValue = double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture);
                 }
 
@@ -217,7 +267,7 @@ namespace NC_Setup_Assist.Services
                     if (lastTool != null)
                     {
                         lastTool.FräserAusrichtung = "←";
-                        lastTool.FavoritKategorie = "Fräser";
+                        lastTool.FavoritKategorie = "Fräswerkzeuge";
                         lastTool.FavoritUnterkategorie = null; // Es ist nur "Fräsen", nicht spezifisch
                     }
                 }
@@ -232,10 +282,55 @@ namespace NC_Setup_Assist.Services
                         // Weise die Favoriten für "Gravurstichel" (ID 5 -> "Kugelfräser" / "Fräser") zu
                         // Entferne die alte WerkzeugID-Zuweisung
                         // lastTool.WerkzeugID = 5; // ALT
-                        lastTool.WerkzeugID = 5;
+                        lastTool.WerkzeugID = 160;
                         lastTool.FräserAusrichtung = "←";
-                        lastTool.FavoritKategorie = "Fräser";
+                        lastTool.FavoritKategorie = "Fräswerkzeuge";
                         lastTool.FavoritUnterkategorie = "Kugelfräser";
+                    }
+                }
+
+                var m3Match = m3Regex.Match(line);
+                var m4Match = m4Regex.Match(line);
+                if (m3Match.Success || m4Match.Success)
+                {
+                    spindleOn = true;
+                }
+
+                var m5Match = m5Regex.Match(line);
+                if (m5Match.Success)
+                {
+                    spindleOn = false;
+                }
+
+                var g74Match = g74Regex.Match(line);
+                if (g74Match.Success && spindleOn == true)
+                {
+                    var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
+                    if (lastTool != null)
+                    {
+                        lastTool.FavoritKategorie = "Bohrwerkzeuge";
+                    }
+                }
+
+                var g81Match = g81Regex.Match(line);
+                if (g81Match.Success)
+                {
+                    g81 = true;
+                }
+
+                var g41Match = g41Regex.Match(line);
+                if (g41Match.Success)
+                {
+                    g41 = true;
+                }
+
+                if (g41 == true && g81 == true && spindleOn == true)
+                {
+                    var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
+                    if (lastTool != null)
+                    {
+                        lastTool.FavoritKategorie = "Drehwerkzeuge";
+                        lastTool.FavoritUnterkategorie = "Innendrehstahl";
                     }
                 }
 
@@ -248,6 +343,8 @@ namespace NC_Setup_Assist.Services
                     }
                     nat = true;
                     sb = false;
+                    g81 = false;
+                    g41 = false;
                 }
 
                 // --- ZULETZT DIE WERKZEUGVERARBEITUNG ---
@@ -294,6 +391,8 @@ namespace NC_Setup_Assist.Services
                             }
                             nat = false;
                             natAnzahl = 0;
+                            g81 = false;
+                            g41 = true;
                             continue;
                         }
                         else if (lastTool != null && toolMatch.Groups[2].Value == lastTool.RevolverStation)
@@ -346,6 +445,11 @@ namespace NC_Setup_Assist.Services
                             continue;
                         }
                         continue;
+                    }
+                    if (toolMatch.Groups[2].Value == "00")
+                    {
+                        g81 = false;
+                        g41 = false;
                     }
                 }
             }

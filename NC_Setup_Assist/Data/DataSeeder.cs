@@ -1,9 +1,10 @@
 ﻿// Data/DataSeeder.cs
+using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Models;
-using System.Collections.Generic;
-using System.Linq;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace NC_Setup_Assist.Data
 {
@@ -211,6 +212,17 @@ namespace NC_Setup_Assist.Data
                 // (im echten Programm besser ein Logging-System oder MessageBox verwenden)
                 Console.WriteLine($"Fehler beim Seeden der Datenbank: {ex.Message}");
             }
+
+
+            new Standort
+            {
+                StandortID = 1,
+                Name = "STB Maschinenbau AG",
+                PLZ = "9032",
+                Stadt = "Engelburg",
+                Strasse = "Breitschachenstrasse",
+                Hausnummer = "56"
+            };
         }
     }
 }

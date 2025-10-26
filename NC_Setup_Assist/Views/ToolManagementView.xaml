@@ -130,10 +130,10 @@ Converter={StaticResource InverseBoolToVis}}"
                     <GridView>
 
 
-                        <GridViewColumn Header="ID" DisplayMemberBinding="{Binding WerkzeugID}" Width="50"/>
-                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150"/>
+                        <GridViewColumn Header="ID" DisplayMemberBinding="{Binding WerkzeugID}" Width="Auto"/>
+                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="Auto"/>
 
-                        <GridViewColumn Header="Typ" DisplayMemberBinding="{Binding Unterkategorie.Name}" Width="150"/>
+                        <GridViewColumn Header="Typ" DisplayMemberBinding="{Binding Unterkategorie.Name}" Width="Auto"/>
                         <GridViewColumn Header="Beschreibung" DisplayMemberBinding="{Binding Beschreibung}" Width="Auto"/>
 
 

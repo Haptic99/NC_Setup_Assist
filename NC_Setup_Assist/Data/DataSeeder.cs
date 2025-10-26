@@ -231,6 +231,49 @@ namespace NC_Setup_Assist.Data
             };
             context.Maschinen.Add(defaultMaschine); // <-- Dieser Befehl hat gefehlt
 
+
+            // --- SCHRITT 6b: Standardwerkzeuge für ES-L8 zuweisen ---
+
+            // Holen Sie sich Referenzen auf die Werkzeuge, die Sie zuweisen möchten.
+            // Diese wurden in Schritt 4 bereits zur 'werkzeuge'-Liste hinzugefügt.
+            // Wir verwenden FirstOrDefault, um Fehler zu vermeiden, falls sich die Namen ändern.
+            var werkzeugSt1 = werkzeuge.FirstOrDefault(w => w.Name == "Aussendrehstahl R0.4");
+            var werkzeugSt2 = werkzeuge.FirstOrDefault(w => w.Name == "Aussendrehstahl R0.8");
+            var werkzeugSt4 = werkzeuge.FirstOrDefault(w => w.Name == "Abstechstahl B3 Tmax15");
+
+            // Erstellen Sie die Zuweisungen für die 'defaultMaschine'
+            // Wir können 'werkzeugSt1' usw. direkt verwenden, auch wenn sie null sind.
+            // EF Core wird die Zuweisung einfach überspringen, wenn das Werkzeug nicht gefunden wurde.
+            if (werkzeugSt1 != null)
+            {
+                context.StandardWerkzeugZuweisungen.Add(new StandardWerkzeugZuweisung
+                {
+                    RevolverStation = 1,
+                    ZugehoerigeMaschine = defaultMaschine, // Verknüpfung mit der Maschine
+                    ZugehoerigesWerkzeug = werkzeugSt1      // Verknüpfung mit dem Werkzeug
+                });
+            }
+
+            if (werkzeugSt2 != null)
+            {
+                context.StandardWerkzeugZuweisungen.Add(new StandardWerkzeugZuweisung
+                {
+                    RevolverStation = 2,
+                    ZugehoerigeMaschine = defaultMaschine,
+                    ZugehoerigesWerkzeug = werkzeugSt2
+                });
+            }
+
+            if (werkzeugSt4 != null)
+            {
+                context.StandardWerkzeugZuweisungen.Add(new StandardWerkzeugZuweisung
+                {
+                    RevolverStation = 4,
+                    ZugehoerigeMaschine = defaultMaschine,
+                    ZugehoerigesWerkzeug = werkzeugSt4
+                });
+            }
+
             // --- Schritt 7 (vorher 6): Alle Änderungen auf einmal speichern ---
             // Dies ist die effizienteste Methode, da alles in einer Transaktion passiert.
             try

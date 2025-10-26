@@ -200,11 +200,42 @@ namespace NC_Setup_Assist.Data
             // --- Schritt 5: Alle erstellten Werkzeuge zur Datenbank hinzufügen ---
             context.Werkzeuge.AddRange(werkzeuge);
 
-            // --- Schritt 6: Alle Änderungen auf einmal speichern ---
+            // --- SCHRITT 6: Standard-Standort hinzufügen (KORRIGIERT) ---
+            var defaultStandort = new Standort
+            {
+                // Die StandortID wird von der Datenbank automatisch vergeben
+                Name = "STB Maschinenbau AG",
+                PLZ = "9032",
+                Stadt = "Engelburg",
+                Strasse = "Breitschachenstrasse",
+                Hausnummer = "56"
+            };
+            context.Standorte.Add(defaultStandort); // <-- Dieser Befehl hat gefehlt
+
+            var defaultHersteller = new Hersteller
+            {
+                // Die StandortID wird von der Datenbank automatisch vergeben
+                HerstellerID = 1,
+                Name = "Okuma",
+            };
+            context.Hersteller.Add(defaultHersteller); // <-- Dieser Befehl hat gefehlt
+
+            var defaultMaschine = new Maschine
+            {
+                // Die StandortID wird von der Datenbank automatisch vergeben
+                HerstellerID = 1,
+                Name = "ES-L8",
+                Seriennummer = "XXYY123",
+                AnzahlStationen = 12,
+                StandortID = 1
+            };
+            context.Maschinen.Add(defaultMaschine); // <-- Dieser Befehl hat gefehlt
+
+            // --- Schritt 7 (vorher 6): Alle Änderungen auf einmal speichern ---
             // Dies ist die effizienteste Methode, da alles in einer Transaktion passiert.
             try
             {
-                context.SaveChanges();
+                context.SaveChanges(); // <-- Speichert jetzt Werkzeuge, Kategorien UND den Standort
             }
             catch (Exception ex)
             {
@@ -212,17 +243,6 @@ namespace NC_Setup_Assist.Data
                 // (im echten Programm besser ein Logging-System oder MessageBox verwenden)
                 Console.WriteLine($"Fehler beim Seeden der Datenbank: {ex.Message}");
             }
-
-
-            new Standort
-            {
-                StandortID = 1,
-                Name = "STB Maschinenbau AG",
-                PLZ = "9032",
-                Stadt = "Engelburg",
-                Strasse = "Breitschachenstrasse",
-                Hausnummer = "56"
-            };
         }
     }
 }

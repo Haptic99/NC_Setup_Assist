@@ -69,10 +69,31 @@ namespace NC_Setup_Assist.ViewModels
         private string? _pitchInputString; // Wert für Steigung
 
         [ObservableProperty]
-        private bool _isSpitzenwinkelRequired; // KORRIGIERT: Gesteuert durch Unterkategorie
+        private bool _isSpitzenwinkelRequired;
 
         [ObservableProperty]
-        private string? _spitzenwinkelInputString; // KORRIGIERT: Wert für Winkel
+        private string? _spitzenwinkelInputString;
+
+        // --- NEU HINZUGEFÜGT ---
+        [ObservableProperty]
+        private bool _isDurchmesserRequired;
+
+        [ObservableProperty]
+        private string? _durchmesserInputString;
+
+        [ObservableProperty]
+        private bool _isBreiteRequired;
+
+        [ObservableProperty]
+        private string? _breiteInputString;
+
+        [ObservableProperty]
+        private bool _isMaxStechtiefeRequired;
+
+        [ObservableProperty]
+        private string? _maxStechtiefeInputString;
+        // --- ENDE NEU ---
+
 
         // Auswahlmodus
         private readonly Action<Werkzeug>? _onToolSelectedCallback;
@@ -270,9 +291,14 @@ namespace NC_Setup_Assist.ViewModels
 
         partial void OnSelectedUnterkategorieChanged(WerkzeugUnterkategorie? value)
         {
+            // --- ALLE FELDER AKTUALISIERT ---
             IsRadiusRequired = (value?.BenötigtRadius == true);
             IsPitchRequired = (value?.BenötigtSteigung == true);
-            IsSpitzenwinkelRequired = (value?.BenötigtSpitzenwinkel == true); // KORRIGIERT
+            IsSpitzenwinkelRequired = (value?.BenötigtSpitzenwinkel == true);
+            IsDurchmesserRequired = (value?.BenötigtDurchmesser == true);
+            IsBreiteRequired = (value?.BenötigtBreite == true);
+            IsMaxStechtiefeRequired = (value?.BenötigtMaxStechtiefe == true);
+            // --- ENDE ---
 
             if (value != null)
             {
@@ -281,7 +307,12 @@ namespace NC_Setup_Assist.ViewModels
                 {
                     RadiusInputString = string.Empty;
                     PitchInputString = string.Empty;
-                    SpitzenwinkelInputString = string.Empty; // KORRIGIERT
+                    SpitzenwinkelInputString = string.Empty;
+                    // --- NEU ---
+                    DurchmesserInputString = string.Empty;
+                    BreiteInputString = string.Empty;
+                    MaxStechtiefeInputString = string.Empty;
+                    // --- ENDE ---
                 }
                 UpdateToolName();
             }
@@ -294,20 +325,15 @@ namespace NC_Setup_Assist.ViewModels
             ApplyFilter();
         }
 
-        partial void OnRadiusInputStringChanged(string? value)
-        {
-            UpdateToolName();
-        }
+        // --- NEUE PARTIAL METHODS HINZUGEFÜGT ---
+        partial void OnRadiusInputStringChanged(string? value) => UpdateToolName();
+        partial void OnPitchInputStringChanged(string? value) => UpdateToolName();
+        partial void OnSpitzenwinkelInputStringChanged(string? value) => UpdateToolName();
+        partial void OnDurchmesserInputStringChanged(string? value) => UpdateToolName();
+        partial void OnBreiteInputStringChanged(string? value) => UpdateToolName();
+        partial void OnMaxStechtiefeInputStringChanged(string? value) => UpdateToolName();
+        // --- ENDE ---
 
-        partial void OnPitchInputStringChanged(string? value)
-        {
-            UpdateToolName();
-        }
-
-        partial void OnSpitzenwinkelInputStringChanged(string? value) // KORRIGIERT
-        {
-            UpdateToolName();
-        }
 
         private void UpdateToolName()
         {
@@ -321,32 +347,61 @@ namespace NC_Setup_Assist.ViewModels
                 string baseName = SelectedUnterkategorie.Name;
                 var sb = new StringBuilder(baseName);
 
+                // --- LOGIK FÜR ALLE FELDER HINZUGEFÜGT ---
+                if (IsDurchmesserRequired)
+                {
+                    string display = (DurchmesserInputString ?? "").Trim().Replace(',', '.');
+                    if (!string.IsNullOrEmpty(display))
+                    {
+                        sb.Append($" D={display}");
+                    }
+                }
+
                 if (IsRadiusRequired)
                 {
-                    string radiusDisplay = (RadiusInputString ?? "").Trim().Replace(',', '.');
-                    if (!string.IsNullOrEmpty(radiusDisplay))
+                    string display = (RadiusInputString ?? "").Trim().Replace(',', '.');
+                    if (!string.IsNullOrEmpty(display))
                     {
-                        sb.Append($" R={radiusDisplay}");
+                        sb.Append($" R={display}");
+                    }
+                }
+
+                if (IsBreiteRequired)
+                {
+                    string display = (BreiteInputString ?? "").Trim().Replace(',', '.');
+                    if (!string.IsNullOrEmpty(display))
+                    {
+                        sb.Append($" B={display}");
                     }
                 }
 
                 if (IsPitchRequired)
                 {
-                    string pitchDisplay = (PitchInputString ?? "").Trim().Replace(',', '.');
-                    if (!string.IsNullOrEmpty(pitchDisplay))
+                    string display = (PitchInputString ?? "").Trim().Replace(',', '.');
+                    if (!string.IsNullOrEmpty(display))
                     {
-                        sb.Append($" P={pitchDisplay}");
+                        sb.Append($" P={display}");
                     }
                 }
 
-                if (IsSpitzenwinkelRequired) // KORRIGIERT
+                if (IsSpitzenwinkelRequired)
                 {
-                    string winkelDisplay = (SpitzenwinkelInputString ?? "").Trim().Replace(',', '.'); // KORRIGIERT
-                    if (!string.IsNullOrEmpty(winkelDisplay))
+                    string display = (SpitzenwinkelInputString ?? "").Trim().Replace(',', '.');
+                    if (!string.IsNullOrEmpty(display))
                     {
-                        sb.Append($" {winkelDisplay}°");
+                        sb.Append($" {display}°");
                     }
                 }
+
+                if (IsMaxStechtiefeRequired)
+                {
+                    string display = (MaxStechtiefeInputString ?? "").Trim().Replace(',', '.');
+                    if (!string.IsNullOrEmpty(display))
+                    {
+                        sb.Append($" Tmax={display}");
+                    }
+                }
+                // --- ENDE ---
 
                 ToolName = sb.ToString();
             }
@@ -360,20 +415,37 @@ namespace NC_Setup_Assist.ViewModels
         {
             EditingTool = new Werkzeug
             {
+                // Alle double? auf null setzen
+                Radius = null,
                 Steigung = null,
-                Spitzenwinkel = null // KORRIGIERT
+                Spitzenwinkel = null,
+                Durchmesser = null,
+                Breite = null,
+                MaxStechtiefe = null
             };
 
             ToolName = string.Empty;
+            // --- ALLE STRINGS LEEREN ---
             RadiusInputString = string.Empty;
             PitchInputString = string.Empty;
-            SpitzenwinkelInputString = string.Empty; // KORRIGIERT
+            SpitzenwinkelInputString = string.Empty;
+            DurchmesserInputString = string.Empty;
+            BreiteInputString = string.Empty;
+            MaxStechtiefeInputString = string.Empty;
+            // --- ENDE ---
+
             SelectedKategorie = null;
             SelectedUnterkategorie = null;
             IsInEditMode = true;
+
+            // --- ALLE FLAGS ZURÜCKSETZEN ---
             IsRadiusRequired = false;
             IsPitchRequired = false;
-            IsSpitzenwinkelRequired = false; // KORRIGIERT
+            IsSpitzenwinkelRequired = false;
+            IsDurchmesserRequired = false;
+            IsBreiteRequired = false;
+            IsMaxStechtiefeRequired = false;
+            // --- ENDE ---
 
             IsUnterkategorieEnabled = false;
             IsToolDetailsEnabled = false;
@@ -400,21 +472,31 @@ namespace NC_Setup_Assist.ViewModels
             {
                 EditingTool = new Werkzeug
                 {
+                    // --- ALLE FELDER KOPIEREN ---
                     WerkzeugID = toolToEdit.WerkzeugID,
                     Name = toolToEdit.Name,
                     Beschreibung = toolToEdit.Beschreibung,
                     Steigung = toolToEdit.Steigung,
-                    Spitzenwinkel = toolToEdit.Spitzenwinkel, // KORRIGIERT
-                    Radius = toolToEdit.Radius, // Radius-Kopie hinzugefügt
+                    Spitzenwinkel = toolToEdit.Spitzenwinkel,
+                    Radius = toolToEdit.Radius,
+                    Durchmesser = toolToEdit.Durchmesser,
+                    Breite = toolToEdit.Breite,
+                    MaxStechtiefe = toolToEdit.MaxStechtiefe,
+                    // --- ENDE ---
                     Unterkategorie = toolToEdit.Unterkategorie,
                     WerkzeugUnterkategorieID = toolToEdit.WerkzeugUnterkategorieID
                 };
 
                 ToolName = EditingTool.Name;
 
+                // --- ALLE STRINGS FÜLLEN ---
                 RadiusInputString = EditingTool.Radius?.ToString("G", CultureInfo.CurrentCulture);
                 PitchInputString = EditingTool.Steigung?.ToString("G", CultureInfo.CurrentCulture);
-                SpitzenwinkelInputString = EditingTool.Spitzenwinkel?.ToString("G", CultureInfo.CurrentCulture); // KORRIGIERT
+                SpitzenwinkelInputString = EditingTool.Spitzenwinkel?.ToString("G", CultureInfo.CurrentCulture);
+                DurchmesserInputString = EditingTool.Durchmesser?.ToString("G", CultureInfo.CurrentCulture);
+                BreiteInputString = EditingTool.Breite?.ToString("G", CultureInfo.CurrentCulture);
+                MaxStechtiefeInputString = EditingTool.MaxStechtiefe?.ToString("G", CultureInfo.CurrentCulture);
+                // --- ENDE ---
 
 
                 if (toolToEdit.Unterkategorie?.Kategorie != null)
@@ -481,28 +563,35 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
+            // --- PARSEN ALLER FELDER ---
             double? finalRadius;
-            if (!ParseNullableDouble(RadiusInputString, IsRadiusRequired, "Radius", out finalRadius))
-            {
-                return;
-            }
+            if (!ParseNullableDouble(RadiusInputString, IsRadiusRequired, "Radius", out finalRadius)) return;
 
             double? finalPitch;
+            if (!ParseNullableDouble(PitchInputString, IsPitchRequired, "Steigung", out finalPitch)) return;
 
-            if (!ParseNullableDouble(PitchInputString, IsPitchRequired, "Steigung", out finalPitch))
-            {
-                return;
-            }
+            double? finalSpitzenwinkel;
+            if (!ParseNullableDouble(SpitzenwinkelInputString, IsSpitzenwinkelRequired, "Spitzenwinkel", out finalSpitzenwinkel)) return;
 
-            double? finalSpitzenwinkel; // KORRIGIERT
-            if (!ParseNullableDouble(SpitzenwinkelInputString, IsSpitzenwinkelRequired, "Spitzenwinkel", out finalSpitzenwinkel)) // KORRIGIERT
-            {
-                return;
-            }
+            double? finalDurchmesser;
+            if (!ParseNullableDouble(DurchmesserInputString, IsDurchmesserRequired, "Durchmesser", out finalDurchmesser)) return;
 
+            double? finalBreite;
+            if (!ParseNullableDouble(BreiteInputString, IsBreiteRequired, "Breite", out finalBreite)) return;
+
+            double? finalMaxStechtiefe;
+            if (!ParseNullableDouble(MaxStechtiefeInputString, IsMaxStechtiefeRequired, "Max. Stechtiefe", out finalMaxStechtiefe)) return;
+            // --- ENDE PARSEN ---
+
+            // --- ZUWEISEN ALLER FELDER ---
             EditingTool.Radius = finalRadius;
             EditingTool.Steigung = finalPitch;
-            EditingTool.Spitzenwinkel = finalSpitzenwinkel; // KORRIGIERT
+            EditingTool.Spitzenwinkel = finalSpitzenwinkel;
+            EditingTool.Durchmesser = finalDurchmesser;
+            EditingTool.Breite = finalBreite;
+            EditingTool.MaxStechtiefe = finalMaxStechtiefe;
+            // --- ENDE ZUWEISEN ---
+
             EditingTool.Name = ToolName;
 
             using var context = new NcSetupContext();
@@ -518,11 +607,16 @@ namespace NC_Setup_Assist.ViewModels
                 var toolToUpdate = context.Werkzeuge.Find(EditingTool.WerkzeugID);
                 if (toolToUpdate != null)
                 {
+                    // --- ALLE FELDER AKTUALISIEREN ---
                     toolToUpdate.Name = EditingTool.Name;
                     toolToUpdate.Beschreibung = EditingTool.Beschreibung;
                     toolToUpdate.Steigung = EditingTool.Steigung;
-                    toolToUpdate.Spitzenwinkel = EditingTool.Spitzenwinkel; // KORRIGIERT
-                    toolToUpdate.Radius = EditingTool.Radius; // Radius-Update hinzugefügt
+                    toolToUpdate.Spitzenwinkel = EditingTool.Spitzenwinkel;
+                    toolToUpdate.Radius = EditingTool.Radius;
+                    toolToUpdate.Durchmesser = EditingTool.Durchmesser;
+                    toolToUpdate.Breite = EditingTool.Breite;
+                    toolToUpdate.MaxStechtiefe = EditingTool.MaxStechtiefe;
+                    // --- ENDE ---
                     toolToUpdate.WerkzeugUnterkategorieID = SelectedUnterkategorie.WerkzeugUnterkategorieID;
                 }
             }
@@ -542,12 +636,22 @@ namespace NC_Setup_Assist.ViewModels
             EditingTool = null;
             IsInEditMode = false;
 
+            // --- ALLE FELDER ZURÜCKSETZEN ---
             IsRadiusRequired = false;
             IsPitchRequired = false;
-            IsSpitzenwinkelRequired = false; // KORRIGIERT
+            IsSpitzenwinkelRequired = false;
+            IsDurchmesserRequired = false;
+            IsBreiteRequired = false;
+            IsMaxStechtiefeRequired = false;
+
             RadiusInputString = string.Empty;
             PitchInputString = string.Empty;
-            SpitzenwinkelInputString = string.Empty; // KORRIGIERT
+            SpitzenwinkelInputString = string.Empty;
+            DurchmesserInputString = string.Empty;
+            BreiteInputString = string.Empty;
+            MaxStechtiefeInputString = string.Empty;
+            // --- ENDE ---
+
             ToolName = string.Empty;
 
             IsUnterkategorieEnabled = false;
@@ -601,18 +705,6 @@ namespace NC_Setup_Assist.ViewModels
                 }
                 LoadTools();
             }
-        }
-
-        [RelayCommand]
-        private void NavigateToKategorieManagement()
-        {
-            _mainViewModel.NavigateTo(new KategorieManagementViewModel(RefreshKategorienData));
-        }
-
-        [RelayCommand]
-        private void NavigateToUnterkategorieManagement()
-        {
-            _mainViewModel.NavigateTo(new UnterkategorieManagementViewModel(RefreshKategorienData));
         }
 
         #endregion

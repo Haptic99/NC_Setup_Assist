@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:NC_Setup_Assist.Views"
              xmlns:vm="clr-namespace:NC_Setup_Assist.ViewModels"
              xmlns:conv="clr-namespace:NC_Setup_Assist.Converters"
-        
+         
      xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
@@ -21,6 +21,7 @@
 
 
 
+
         </Style>
     </UserControl.Resources>
 
@@ -32,13 +33,15 @@
 
         <DockPanel Grid.Column="0" Margin="0,0,10,0">
             <TextBlock DockPanel.Dock="Top" 
-                      
+                       
+ 
 
  Text="Werkzeugdatenbank" 
                        FontSize="18" 
                        FontWeight="Bold" 
                        Margin="0,0,0,10"
                        Foreground="#333333"/>
+
 
 
 
@@ -49,6 +52,7 @@
                 </Grid.ColumnDefinitions>
 
 
+
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -57,21 +61,25 @@
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Nach Kategorie filtern:" Margin="0,0,5,5" FontWeight="SemiBold"/>
                 <ComboBox Grid.Row="1" Grid.Column="0"
  
+ 
                          ItemsSource="{Binding Kategorien}"
                           SelectedItem="{Binding SelectedKategorie}"
                           DisplayMemberPath="Name"
                      
+ 
      Margin="0,0,5,0"
                           ToolTip="Filtert die Liste nach der Hauptkategorie."/>
 
                 <TextBlock Grid.Row="0" Grid.Column="1" Text="Nach Typ filtern:" Margin="5,0,0,5" FontWeight="SemiBold"/>
                 <ComboBox Grid.Row="1" Grid.Column="1"
                        
+ 
    ItemsSource="{Binding Unterkategorien}"
                           SelectedItem="{Binding SelectedUnterkategorie}"
                           DisplayMemberPath="Name"
                           Margin="5,0,0,0"
                  
+ 
           IsEnabled="{Binding IsUnterkategorieEnabled}"
                           ToolTip="Filtert die Liste nach der Unterkategorie (Typ)."/>
             </Grid>
@@ -79,7 +87,7 @@
 
             <ListView x:Name="ToolsListView" ItemsSource="{Binding FilteredWerkzeuge}"
                       SelectedItem="{Binding SelectedTool, Mode=TwoWay}"
-       
+      
               IsEnabled="{Binding IsInEditMode, 
                                           
 Converter={StaticResource InverseBoolToVis}}"
@@ -88,9 +96,11 @@ Converter={StaticResource InverseBoolToVis}}"
                 <i:Interaction.Triggers>
 
 
+
                     <i:EventTrigger EventName="MouseDoubleClick">
                         <i:InvokeCommandAction Command="{Binding EditToolCommand}" 
                                                CommandParameter="{Binding ElementName=ToolsListView, Path=SelectedItem}"/>
+
 
 
                     </i:EventTrigger>
@@ -102,11 +112,13 @@ Converter={StaticResource InverseBoolToVis}}"
                         <Setter Property="Padding" Value="5"/>
 
 
+
                         <Setter Property="BorderThickness" Value="0,0,0,1"/>
                         <Setter Property="BorderBrush" Value="#EEEEEE"/>
 
                         <Style.Triggers>
                             <Trigger Property="ItemsControl.AlternationIndex" 
+ 
  Value="1">
 
                                 <Setter Property="Background" Value="#F8F8F8"/>
@@ -115,10 +127,12 @@ Converter={StaticResource InverseBoolToVis}}"
                             <Trigger Property="IsSelected" Value="True">
 
 
+
                                 <Setter Property="Background" Value="#E0F0FF"/>
 
                                 <Setter Property="Foreground" Value="Black"/>
                             </Trigger>
+
 
 
                         </Style.Triggers>
@@ -130,11 +144,13 @@ Converter={StaticResource InverseBoolToVis}}"
                     <GridView>
 
 
+
                         <GridViewColumn Header="ID" DisplayMemberBinding="{Binding WerkzeugID}" Width="Auto"/>
                         <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="Auto"/>
 
                         <GridViewColumn Header="Typ" DisplayMemberBinding="{Binding Unterkategorie.Name}" Width="Auto"/>
                         <GridViewColumn Header="Beschreibung" DisplayMemberBinding="{Binding Beschreibung}" Width="Auto"/>
+
 
 
                     </GridView>
@@ -145,142 +161,126 @@ Converter={StaticResource InverseBoolToVis}}"
 
         <Grid Grid.Column="1" Visibility="{Binding IsSelectionMode, Converter={StaticResource InverseBoolToVis}}">
 
-            <StackPanel Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Werkzeug bearbeiten" 
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="Werkzeug bearbeiten" 
  Style="{StaticResource HeaderTextStyle}"/>
 
 
-                <TextBlock Text="Kategorie:" Margin="0,5,0,0"/>
-                <Grid>
+                    <TextBlock Text="Kategorie:" Margin="0,5,0,0"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-
-                        <ColumnDefinition Width="Auto"/>
-
-                    </Grid.ColumnDefinitions>
-                    <ComboBox Grid.Column="0" Margin="0,0,5,5"
-   
-                           ItemsSource="{Binding Kategorien}"
-                      
-         
-SelectedItem="{Binding SelectedKategorie}"
+                        <ComboBox Grid.Column="0" Margin="0,0,5,5"
+                              ItemsSource="{Binding Kategorien}"
+                              SelectedItem="{Binding SelectedKategorie}"
                               DisplayMemberPath="Name"/>
 
-                    <Button Grid.Column="1" Content="+"
-                            Command="{Binding NavigateToKategorieManagementCommand}"
-          
-         
-          Style="{StaticResource SmallAddButton}"
-                            ToolTip="Kategorien verwalten"/>
-
-                </Grid>
+                    </Grid>
 
 
-                <TextBlock Text="Unterkategorie / Typ:" Margin="0,5,0,0"/>
+                    <TextBlock Text="Unterkategorie / Typ:" Margin="0,5,0,0"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-                <Grid>
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-
-                    <ComboBox Grid.Column="0" Margin="0,0,5,5"
+                        <ComboBox Grid.Column="0" Margin="0,0,5,5"
                               ItemsSource="{Binding Unterkategorien}"
-       
-                       SelectedItem="{Binding SelectedUnterkategorie}" 
-                         
-      DisplayMemberPath="Name"
-   
-                           IsEnabled="{Binding IsUnterkategorieEnabled}"/>
+                              SelectedItem="{Binding SelectedUnterkategorie}" 
+                              DisplayMemberPath="Name"
+                              IsEnabled="{Binding IsUnterkategorieEnabled}"/>
 
-                    <Button Grid.Column="1" Content="+"
-                            Command="{Binding NavigateToUnterkategorieManagementCommand}"
-             
-         
-       Style="{StaticResource SmallAddButton}"
-                            ToolTip="Unterkategorien verwalten"/>
+                    </Grid>
 
-                </Grid>
-
-                <StackPanel Visibility="{Binding IsRadiusRequired, Converter={StaticResource BoolToVis}}"
-                   
-          IsEnabled="{Binding IsToolDetailsEnabled}">
-                    <TextBlock Text="Radius (R=...):" Margin="0,5,0,0"/>
-
-                    <TextBox Text="{Binding RadiusInputString, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource BaseTextBoxStyle}"
-             
-         
-        Margin="0,0,0,5" 
-                             ToolTip="Erforderlich für diesen Typ.
- Erlaubt Dezimalzahlen (z.B. 1,5)."/>
-                </StackPanel>
-
-                <StackPanel Visibility="{Binding IsPitchRequired, Converter={StaticResource BoolToVis}}"
+                    <StackPanel Visibility="{Binding IsDurchmesserRequired, Converter={StaticResource BoolToVis}}"
                             IsEnabled="{Binding IsToolDetailsEnabled}">
-                    <TextBlock Text="Steigung (P=...):" Margin="0,5,0,0"/>
-
-
-                    <TextBox Text="{Binding PitchInputString, UpdateSourceTrigger=PropertyChanged}" 
-                             Style="{StaticResource BaseTextBoxStyle}"
-                     
-        Margin="0,0,0,5" 
-                         
-     ToolTip="Erforderlich für diesen Typ.
-Erlaubt Dezimalzahlen (z.B. 1,5)."/>
-                </StackPanel>
-
-                <StackPanel Visibility="{Binding IsSpitzenwinkelRequired, Converter={StaticResource BoolToVis}}"
-                            IsEnabled="{Binding IsToolDetailsEnabled}">
-                    <TextBlock Text="Spitzenwinkel (...°):" Margin="0,5,0,0"/>
-
-                    <TextBox Text="{Binding SpitzenwinkelInputString, UpdateSourceTrigger=PropertyChanged}" 
+                        <TextBlock Text="Durchmesser (D=...):" Margin="0,5,0,0"/>
+                        <TextBox Text="{Binding DurchmesserInputString, UpdateSourceTrigger=PropertyChanged}" 
                              Style="{StaticResource BaseTextBoxStyle}"
                              Margin="0,0,0,5" 
-                             ToolTip="Erforderlich für diesen Typ.
-Erlaubt Dezimalzahlen (z.B. 80)."/>
-                </StackPanel>
-                <TextBlock Text="Name:" Margin="0,5,0,0"/>
-                <TextBox Text="{Binding ToolName, UpdateSourceTrigger=PropertyChanged}" 
+                             ToolTip="Erforderlich für diesen Typ. Erlaubt Dezimalzahlen (z.B. 10)."/>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding IsBreiteRequired, Converter={StaticResource BoolToVis}}"
+                            IsEnabled="{Binding IsToolDetailsEnabled}">
+                        <TextBlock Text="Breite (B=...):" Margin="0,5,0,0"/>
+                        <TextBox Text="{Binding BreiteInputString, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource BaseTextBoxStyle}"
+                             Margin="0,0,0,5" 
+                             ToolTip="Erforderlich für diesen Typ. Erlaubt Dezimalzahlen (z.B. 3)."/>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding IsMaxStechtiefeRequired, Converter={StaticResource BoolToVis}}"
+                            IsEnabled="{Binding IsToolDetailsEnabled}">
+                        <TextBlock Text="Max. Stechtiefe (Tmax=...):" Margin="0,5,0,0"/>
+                        <TextBox Text="{Binding MaxStechtiefeInputString, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource BaseTextBoxStyle}"
+                             Margin="0,0,0,5" 
+                             ToolTip="Erforderlich für diesen Typ. Erlaubt Dezimalzahlen (z.B. 12)."/>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding IsRadiusRequired, Converter={StaticResource BoolToVis}}"
+             
+          IsEnabled="{Binding IsToolDetailsEnabled}">
+                        <TextBlock Text="Radius (R=...):" Margin="0,5,0,0"/>
+                        <TextBox Text="{Binding RadiusInputString, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource BaseTextBoxStyle}"
+              
+         
+        Margin="0,0,0,5" 
+                             ToolTip="Erforderlich für diesen Typ. Erlaubt Dezimalzahlen (z.B. 0.4)."/>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding IsPitchRequired, Converter={StaticResource BoolToVis}}"
+                            IsEnabled="{Binding IsToolDetailsEnabled}">
+                        <TextBlock Text="Steigung (P=...):" Margin="0,5,0,0"/>
+                        <TextBox Text="{Binding PitchInputString, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource BaseTextBoxStyle}"
+                             Margin="0,0,0,5" 
+                             ToolTip="Erforderlich für diesen Typ. Erlaubt Dezimalzahlen (z.B. 1,5)."/>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding IsSpitzenwinkelRequired, Converter={StaticResource BoolToVis}}"
+                            IsEnabled="{Binding IsToolDetailsEnabled}">
+                        <TextBlock Text="Spitzenwinkel (...°):" Margin="0,5,0,0"/>
+                        <TextBox Text="{Binding SpitzenwinkelInputString, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource BaseTextBoxStyle}"
+                             Margin="0,0,0,5" 
+                             ToolTip="Erforderlich für diesen Typ. Erlaubt Dezimalzahlen (z.B. 90)."/>
+                    </StackPanel>
+
+                    <TextBlock Text="Name:" Margin="0,5,0,0"/>
+                    <TextBox Text="{Binding ToolName, UpdateSourceTrigger=PropertyChanged}" 
                          Style="{StaticResource BaseTextBoxStyle}" 
         
 
         
+ 
           Margin="0,0,0,5"
                          IsEnabled="{Binding IsToolDetailsEnabled}"
                          ToolTip="Der Name wird automatisch generiert, kann aber überschrieben werden."/>
 
-                <TextBlock Text="Beschreibung:" Margin="0,5,0,0"/>
-
-
-
-                <TextBox Text="{Binding EditingTool.Beschreibung, UpdateSourceTrigger=PropertyChanged}" 
+                    <TextBlock Text="Beschreibung:" Margin="0,5,0,0"/>
+                    <TextBox Text="{Binding EditingTool.Beschreibung, UpdateSourceTrigger=PropertyChanged}" 
                          Style="{StaticResource BaseTextBoxStyle}"
                          Height="60" 
                          TextWrapping="Wrap" 
-        
-
-        
-          AcceptsReturn="True" 
+                         AcceptsReturn="True" 
                          VerticalScrollBarVisibility="Auto"
                          Margin="0,0,0,10"
                          IsEnabled="{Binding IsToolDetailsEnabled}"/>
 
-
-
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                    <Button Content="Speichern" Command="{Binding SaveToolCommand}" Style="{StaticResource AccentButton}" Width="100"/>
-                    <Button Content="Abbrechen" Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}" Width="100" Margin="5,0,0,0" IsCancel="True"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button Content="Speichern" Command="{Binding SaveToolCommand}" Style="{StaticResource AccentButton}" Width="100"/>
+                        <Button Content="Abbrechen" Command="{Binding CancelCommand}" Style="{StaticResource SecondaryButton}" Width="100" Margin="5,0,0,0" IsCancel="True"/>
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
-
-
-
+            </ScrollViewer>
             <StackPanel 
  VerticalAlignment="Top"
                         Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVis}}">
@@ -291,14 +291,16 @@ Erlaubt Dezimalzahlen (z.B. 80)."/>
                 <TextBox Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" 
     
 
-        
+     
+    
               Style="{StaticResource BaseTextBoxStyle}"
                          Margin="0,0,0,15"
                          Width="200"
                          HorizontalAlignment="Left"
    
 
-        
+    
+     
                ToolTip="Suche nach Name, Typ oder Beschreibung"/>
 
                 <Button Content="Werkzeug auswählen" Command="{Binding EditToolCommand}" 
@@ -306,7 +308,8 @@ Erlaubt Dezimalzahlen (z.B. 80)."/>
                         Width="200" 
  
 
-        
+   
+      
                 HorizontalAlignment="Left" 
                         Visibility="{Binding IsSelectionMode, Converter={StaticResource BoolToVis}}"/>
 
@@ -314,12 +317,14 @@ Erlaubt Dezimalzahlen (z.B. 80)."/>
                     <Button Content="Neues Werkzeug anlegen" Command="{Binding NewToolCommand}" 
    
 
-        
+  
+       
                   Width="200" HorizontalAlignment="Left" Style="{StaticResource AccentButton}" Margin="0,0,0,5"/>
 
                     <Button Content="Werkzeug bearbeiten" Command="{Binding EditToolCommand}" 
                             CommandParameter="{Binding SelectedTool}"
-                         
+                  
+              
     Width="200" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Margin="0,10,0,5"/>
                     <Button Content="Werkzeug löschen" Command="{Binding DeleteToolCommand}" 
                             Width="200" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Margin="0,15,0,0"/>

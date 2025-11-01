@@ -4,6 +4,8 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
+using NC_Setup_Assist.Services; // <-- NEU
+using System; // <-- NEU
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -30,28 +32,46 @@ namespace NC_Setup_Assist.ViewModels
         {
             _mainViewModel = mainViewModel;
             LoadStandorte();
-            LoadHersteller(); // NEU
+            LoadHersteller();
         }
 
         private void LoadStandorte()
         {
-            Standorte.Clear();
-            using var context = new NcSetupContext();
-            var standorteFromDb = context.Standorte.ToList();
-            foreach (var standort in standorteFromDb)
+            // --- NEU: try-catch ---
+            try
             {
-                Standorte.Add(standort);
+                Standorte.Clear();
+                using var context = new NcSetupContext();
+                var standorteFromDb = context.Standorte.ToList();
+                foreach (var standort in standorteFromDb)
+                {
+                    Standorte.Add(standort);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Laden der Standorte in AddMachineViewModel");
+                MessageBox.Show($"Fehler beim Laden der Standorte:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void LoadHersteller() // NEU
         {
-            Hersteller.Clear();
-            using var context = new NcSetupContext();
-            var herstellerFromDb = context.Hersteller.ToList();
-            foreach (var hersteller in herstellerFromDb)
+            // --- NEU: try-catch ---
+            try
             {
-                Hersteller.Add(hersteller);
+                Hersteller.Clear();
+                using var context = new NcSetupContext();
+                var herstellerFromDb = context.Hersteller.ToList();
+                foreach (var hersteller in herstellerFromDb)
+                {
+                    Hersteller.Add(hersteller);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Laden der Hersteller in AddMachineViewModel");
+                MessageBox.Show($"Fehler beim Laden der Hersteller:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -80,12 +100,21 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            using var context = new NcSetupContext();
-            context.Maschinen.Add(NewMachine);
-            context.SaveChanges();
+            // --- NEU: try-catch ---
+            try
+            {
+                using var context = new NcSetupContext();
+                context.Maschinen.Add(NewMachine);
+                context.SaveChanges();
 
-            MessageBox.Show("Maschine erfolgreich hinzugefügt.", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
-            _mainViewModel.NavigateBack();
+                MessageBox.Show("Maschine erfolgreich hinzugefügt.", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
+                _mainViewModel.NavigateBack();
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Speichern einer neuen Maschine");
+                MessageBox.Show($"Fehler beim Speichern der Maschine:\n{ex.Message}", "Speicherfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         [RelayCommand]

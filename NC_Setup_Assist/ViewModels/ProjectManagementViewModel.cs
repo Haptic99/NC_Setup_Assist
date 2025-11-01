@@ -4,6 +4,8 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
+using NC_Setup_Assist.Services; // <-- NEU
+using System; // <-- NEU
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -29,19 +31,28 @@ namespace NC_Setup_Assist.ViewModels
 
         private void LoadProjekte()
         {
-            Projekte.Clear();
-            using var context = new NcSetupContext();
-
-            // KORREKTUR: Fügen Sie .Include(p => p.NCProgramme) hinzu, um die zugehörigen Programme
-            // direkt mit dem Projekt aus der Datenbank zu laden.
-            var projekteFromDb = context.Projekte
-                                        .Include(p => p.ZugehoerigeMaschine)
-                                        .Include(p => p.NCProgramme)
-                                        .ToList();
-
-            foreach (var projekt in projekteFromDb)
+            // --- NEU: try-catch ---
+            try
             {
-                Projekte.Add(projekt);
+                Projekte.Clear();
+                using var context = new NcSetupContext();
+
+                // KORREKTUR: Fügen Sie .Include(p => p.NCProgramme) hinzu, um die zugehörigen Programme
+                // direkt mit dem Projekt aus der Datenbank zu laden.
+                var projekteFromDb = context.Projekte
+                                            .Include(p => p.ZugehoerigeMaschine)
+                                            .Include(p => p.NCProgramme)
+                                            .ToList();
+
+                foreach (var projekt in projekteFromDb)
+                {
+                    Projekte.Add(projekt);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Laden der Projekte");
+                MessageBox.Show($"Fehler beim Laden der Projekte:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -76,15 +87,24 @@ namespace NC_Setup_Assist.ViewModels
 
             if (result == MessageBoxResult.Yes)
             {
-                using var context = new NcSetupContext();
-                var projektToDelete = context.Projekte.Find(SelectedProjekt.ProjektID);
-                if (projektToDelete != null)
+                // --- NEU: try-catch ---
+                try
                 {
-                    // Alle abhängigen NCProgramme und WerkzeugEinsaetze werden durch Cascade Delete (DbContext-Einstellung) gelöscht
-                    context.Projekte.Remove(projektToDelete);
-                    context.SaveChanges();
+                    using var context = new NcSetupContext();
+                    var projektToDelete = context.Projekte.Find(SelectedProjekt.ProjektID);
+                    if (projektToDelete != null)
+                    {
+                        // Alle abhängigen NCProgramme und WerkzeugEinsaetze werden durch Cascade Delete (DbContext-Einstellung) gelöscht
+                        context.Projekte.Remove(projektToDelete);
+                        context.SaveChanges();
+                    }
+                    LoadProjekte();
                 }
-                LoadProjekte();
+                catch (Exception ex)
+                {
+                    LoggingService.LogException(ex, "Fehler beim Löschen eines Projekts");
+                    MessageBox.Show($"Fehler beim Löschen des Projekts:\n{ex.Message}", "Löschfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }

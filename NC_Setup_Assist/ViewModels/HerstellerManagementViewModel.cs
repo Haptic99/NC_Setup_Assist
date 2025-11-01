@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
+using NC_Setup_Assist.Services; // <-- NEU
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -34,12 +35,21 @@ namespace NC_Setup_Assist.ViewModels
 
         private void LoadHersteller()
         {
-            Hersteller.Clear();
-            using var context = new NcSetupContext();
-            var herstellerFromDb = context.Hersteller.ToList();
-            foreach (var hersteller in herstellerFromDb)
+            // --- NEU: try-catch ---
+            try
             {
-                Hersteller.Add(hersteller);
+                Hersteller.Clear();
+                using var context = new NcSetupContext();
+                var herstellerFromDb = context.Hersteller.ToList();
+                foreach (var hersteller in herstellerFromDb)
+                {
+                    Hersteller.Add(hersteller);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Laden der Hersteller");
+                MessageBox.Show($"Fehler beim Laden der Hersteller:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -52,18 +62,27 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            using (var context = new NcSetupContext())
+            // --- NEU: try-catch ---
+            try
             {
-                var newHersteller = new Hersteller { Name = NewHerstellerName };
-                context.Hersteller.Add(newHersteller);
-                context.SaveChanges();
+                using (var context = new NcSetupContext())
+                {
+                    var newHersteller = new Hersteller { Name = NewHerstellerName };
+                    context.Hersteller.Add(newHersteller);
+                    context.SaveChanges();
+                }
+
+                NewHerstellerName = string.Empty;
+                LoadHersteller();
+
+                // --- NEU: Aufrufer benachrichtigen ---
+                _onDataChangedCallback?.Invoke();
             }
-
-            NewHerstellerName = string.Empty;
-            LoadHersteller();
-
-            // --- NEU: Aufrufer benachrichtigen ---
-            _onDataChangedCallback?.Invoke();
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Hinzufügen eines Herstellers");
+                MessageBox.Show($"Fehler beim Speichern des Herstellers:\n{ex.Message}", "Speicherfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         [RelayCommand]
@@ -75,34 +94,43 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            using (var context = new NcSetupContext())
-            {
-                // PRÜFUNG: Wird der Hersteller noch verwendet?
-                bool isUsed = context.Maschinen.Any(m => m.HerstellerID == SelectedHersteller.HerstellerID);
-                if (isUsed)
-                {
-                    MessageBox.Show($"Der Hersteller '{SelectedHersteller.Name}' kann nicht gelöscht werden, da er noch von mindestens einer Maschine verwendet wird.",
-                                    "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return; // Methode hier beenden
-                }
-            }
-
-            var result = MessageBox.Show($"Möchten Sie den Hersteller '{SelectedHersteller.Name}' wirklich löschen?",
-                                         "Löschen bestätigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.Yes)
+            // --- NEU: try-catch ---
+            try
             {
                 using (var context = new NcSetupContext())
                 {
-                    var herstellerToDelete = context.Hersteller.Find(SelectedHersteller.HerstellerID);
-                    if (herstellerToDelete != null)
+                    // PRÜFUNG: Wird der Hersteller noch verwendet?
+                    bool isUsed = context.Maschinen.Any(m => m.HerstellerID == SelectedHersteller.HerstellerID);
+                    if (isUsed)
                     {
-                        context.Hersteller.Remove(herstellerToDelete);
-                        context.SaveChanges();
+                        MessageBox.Show($"Der Hersteller '{SelectedHersteller.Name}' kann nicht gelöscht werden, da er noch von mindestens einer Maschine verwendet wird.",
+                                        "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return; // Methode hier beenden
                     }
                 }
-                LoadHersteller();
-                _onDataChangedCallback?.Invoke();
+
+                var result = MessageBox.Show($"Möchten Sie den Hersteller '{SelectedHersteller.Name}' wirklich löschen?",
+                                             "Löschen bestätigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    using (var context = new NcSetupContext())
+                    {
+                        var herstellerToDelete = context.Hersteller.Find(SelectedHersteller.HerstellerID);
+                        if (herstellerToDelete != null)
+                        {
+                            context.Hersteller.Remove(herstellerToDelete);
+                            context.SaveChanges();
+                        }
+                    }
+                    LoadHersteller();
+                    _onDataChangedCallback?.Invoke();
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Löschen eines Herstellers");
+                MessageBox.Show($"Fehler beim Löschen des Herstellers:\n{ex.Message}", "Löschfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

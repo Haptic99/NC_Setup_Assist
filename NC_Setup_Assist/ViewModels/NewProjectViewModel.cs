@@ -6,6 +6,7 @@ using Microsoft.Win32;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
 using NC_Setup_Assist.Services;
+using System; // <-- NEU
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -88,61 +89,80 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
+            // Der Parser hat bereits sein eigenes try-catch
             var parser = new NcCodeParserService();
             var werkzeugEinsaetze = parser.Parse(NcFilePath);
 
-            using var context = new NcSetupContext();
-
-            // 1. Das neue Projekt wird mit der ID der ausgewählten Maschine erstellt
-            var neuesProjekt = new Projekt
+            // --- NEU: try-catch für die gesamte Transaktion ---
+            try
             {
-                Name = ProjectName,
-                MaschineID = SelectedMaschine.MaschineID
-            };
-            context.Projekte.Add(neuesProjekt);
-            context.SaveChanges(); // Speichern, um die neue ProjektID zu erhalten
+                using var context = new NcSetupContext();
 
-            // 2. Jetzt das NCProgramm erstellen und mit dem Projekt verknüpfen
-            var neuesProgramm = new NCProgramm
-            {
-                ZeichnungsNummer = ProjectName ?? Path.GetFileNameWithoutExtension(NcFilePath),
-                Bezeichnung = Path.GetFileName(NcFilePath),
-                DateiPfad = NcFilePath,
-                MaschineID = SelectedMaschine.MaschineID,
-                // KORREKTUR: Weise die ProjektID explizit zu.
-                ProjektID = neuesProjekt.ProjektID // <--- WICHTIGE KORREKTUR!
-            };
-            context.NCProgramme.Add(neuesProgramm);
-            context.SaveChanges(); // Speichern, um die neue NCProgrammID zu erhalten
+                // 1. Das neue Projekt wird mit der ID der ausgewählten Maschine erstellt
+                var neuesProjekt = new Projekt
+                {
+                    Name = ProjectName,
+                    MaschineID = SelectedMaschine.MaschineID
+                };
+                context.Projekte.Add(neuesProjekt);
+                context.SaveChanges(); // Speichern, um die neue ProjektID zu erhalten
 
-            // 3. Werkzeugeinsätze dem neuen Programm zuweisen
-            foreach (var einsatz in werkzeugEinsaetze)
-            {
-                einsatz.NCProgrammID = neuesProgramm.NCProgrammID;
-                context.WerkzeugEinsaetze.Add(einsatz);
+                // 2. Jetzt das NCProgramm erstellen und mit dem Projekt verknüpfen
+                var neuesProgramm = new NCProgramm
+                {
+                    ZeichnungsNummer = ProjectName ?? Path.GetFileNameWithoutExtension(NcFilePath),
+                    Bezeichnung = Path.GetFileName(NcFilePath),
+                    DateiPfad = NcFilePath,
+                    MaschineID = SelectedMaschine.MaschineID,
+                    // KORREKTUR: Weise die ProjektID explizit zu.
+                    ProjektID = neuesProjekt.ProjektID // <--- WICHTIGE KORREKTUR!
+                };
+                context.NCProgramme.Add(neuesProgramm);
+                context.SaveChanges(); // Speichern, um die neue NCProgrammID zu erhalten
+
+                // 3. Werkzeugeinsätze dem neuen Programm zuweisen
+                foreach (var einsatz in werkzeugEinsaetze)
+                {
+                    einsatz.NCProgrammID = neuesProgramm.NCProgrammID;
+                    context.WerkzeugEinsaetze.Add(einsatz);
+                }
+                context.SaveChanges();
+
+                _mainViewModel.NavigateTo(new AnalysisViewModel(neuesProgramm, _mainViewModel));
             }
-            context.SaveChanges();
-
-            _mainViewModel.NavigateTo(new AnalysisViewModel(neuesProgramm, _mainViewModel));
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Erstellen eines neuen Projekts");
+                MessageBox.Show($"Fehler beim Erstellen des Projekts:\n{ex.Message}", "Speicherfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         // --- ANGEPASSTE METHODEN ZUM LADEN VON DATEN ---
         private void LoadStandorte()
         {
-            Standorte.Clear();
-            using var context = new NcSetupContext();
-            var standorteFromDb = context.Standorte
-                                         .Include(s => s.Maschinen)
-                                         .ToList();
-            foreach (var standort in standorteFromDb)
+            // --- NEU: try-catch ---
+            try
             {
-                Standorte.Add(standort);
-            }
+                Standorte.Clear();
+                using var context = new NcSetupContext();
+                var standorteFromDb = context.Standorte
+                                             .Include(s => s.Maschinen)
+                                             .ToList();
+                foreach (var standort in standorteFromDb)
+                {
+                    Standorte.Add(standort);
+                }
 
-            // NEU: Wenn es nur einen Standort gibt, wird dieser automatisch ausgewählt.
-            if (Standorte.Count == 1)
+                // NEU: Wenn es nur einen Standort gibt, wird dieser automatisch ausgewählt.
+                if (Standorte.Count == 1)
+                {
+                    SelectedStandort = Standorte.First();
+                }
+            }
+            catch (Exception ex)
             {
-                SelectedStandort = Standorte.First();
+                LoggingService.LogException(ex, "Fehler beim Laden der Standorte in NewProjectViewModel");
+                MessageBox.Show($"Fehler beim Laden der Standorte:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

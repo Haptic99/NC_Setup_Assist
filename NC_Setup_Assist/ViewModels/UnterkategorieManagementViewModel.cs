@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
+using NC_Setup_Assist.Services; // <-- NEU
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -45,31 +46,49 @@ namespace NC_Setup_Assist.ViewModels
 
         private void LoadKategorien()
         {
-            Kategorien.Clear();
-            using var context = new NcSetupContext();
-            var katsFromDb = context.WerkzeugKategorien.OrderBy(k => k.Name).ToList();
-            foreach (var kat in katsFromDb)
+            // --- NEU: try-catch ---
+            try
             {
-                Kategorien.Add(kat);
+                Kategorien.Clear();
+                using var context = new NcSetupContext();
+                var katsFromDb = context.WerkzeugKategorien.OrderBy(k => k.Name).ToList();
+                foreach (var kat in katsFromDb)
+                {
+                    Kategorien.Add(kat);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Laden der Werkzeugkategorien");
+                MessageBox.Show($"Fehler beim Laden der Kategorien:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         partial void OnSelectedKategorieFilterChanged(WerkzeugKategorie? value)
         {
-            FilteredUnterkategorien.Clear();
-            SelectedUnterkategorie = null;
-
-            if (value != null)
+            // --- NEU: try-catch ---
+            try
             {
-                using var context = new NcSetupContext();
-                var subsFromDb = context.WerkzeugUnterkategorien
-                                        .Where(u => u.WerkzeugKategorieID == value.WerkzeugKategorieID)
-                                        .OrderBy(u => u.Name)
-                                        .ToList();
-                foreach (var sub in subsFromDb)
+                FilteredUnterkategorien.Clear();
+                SelectedUnterkategorie = null;
+
+                if (value != null)
                 {
-                    FilteredUnterkategorien.Add(sub);
+                    using var context = new NcSetupContext();
+                    var subsFromDb = context.WerkzeugUnterkategorien
+                                            .Where(u => u.WerkzeugKategorieID == value.WerkzeugKategorieID)
+                                            .OrderBy(u => u.Name)
+                                            .ToList();
+                    foreach (var sub in subsFromDb)
+                    {
+                        FilteredUnterkategorien.Add(sub);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Filtern der Unterkategorien");
+                MessageBox.Show($"Fehler beim Laden der Unterkategorien:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -91,19 +110,28 @@ namespace NC_Setup_Assist.ViewModels
         {
             if (SelectedUnterkategorie == null) return;
 
-            using var context = new NcSetupContext();
-            // 1. Lade das Objekt, das wir bearbeiten wollen
-            EditingUnterkategorie = context.WerkzeugUnterkategorien
-                                           .FirstOrDefault(u => u.WerkzeugUnterkategorieID == SelectedUnterkategorie.WerkzeugUnterkategorieID);
-
-            // Stelle sicher, dass die Kategorie-Instanz aus der ComboBox-Liste stammt
-            if (EditingUnterkategorie != null)
+            // --- NEU: try-catch ---
+            try
             {
-                // 2. KORREKTUR: Setze die separate ViewModel-Eigenschaft für die ComboBox
-                EditingKategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == EditingUnterkategorie.WerkzeugKategorieID);
-            }
+                using var context = new NcSetupContext();
+                // 1. Lade das Objekt, das wir bearbeiten wollen
+                EditingUnterkategorie = context.WerkzeugUnterkategorien
+                                               .FirstOrDefault(u => u.WerkzeugUnterkategorieID == SelectedUnterkategorie.WerkzeugUnterkategorieID);
 
-            IsInEditMode = true;
+                // Stelle sicher, dass die Kategorie-Instanz aus der ComboBox-Liste stammt
+                if (EditingUnterkategorie != null)
+                {
+                    // 2. KORREKTUR: Setze die separate ViewModel-Eigenschaft für die ComboBox
+                    EditingKategorie = Kategorien.FirstOrDefault(k => k.WerkzeugKategorieID == EditingUnterkategorie.WerkzeugKategorieID);
+                }
+
+                IsInEditMode = true;
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Laden der Unterkategorie zum Bearbeiten");
+                MessageBox.Show($"Fehler beim Laden der Daten:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         [RelayCommand]
@@ -117,29 +145,38 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            using var context = new NcSetupContext();
-
-            // Wichtig: Die Kategorie-ID von der ViewModel-Eigenschaft setzen
-            EditingUnterkategorie.WerkzeugKategorieID = EditingKategorie.WerkzeugKategorieID;
-            EditingUnterkategorie.Kategorie = null!; // Navigationseigenschaft nullen, um Konflikte zu vermeiden
-
-            if (EditingUnterkategorie.WerkzeugUnterkategorieID == 0) // Neu
+            // --- NEU: try-catch ---
+            try
             {
-                context.WerkzeugUnterkategorien.Add(EditingUnterkategorie);
+                using var context = new NcSetupContext();
+
+                // Wichtig: Die Kategorie-ID von der ViewModel-Eigenschaft setzen
+                EditingUnterkategorie.WerkzeugKategorieID = EditingKategorie.WerkzeugKategorieID;
+                EditingUnterkategorie.Kategorie = null!; // Navigationseigenschaft nullen, um Konflikte zu vermeiden
+
+                if (EditingUnterkategorie.WerkzeugUnterkategorieID == 0) // Neu
+                {
+                    context.WerkzeugUnterkategorien.Add(EditingUnterkategorie);
+                }
+                else // Bearbeiten
+                {
+                    context.WerkzeugUnterkategorien.Update(EditingUnterkategorie);
+                }
+                context.SaveChanges();
+
+                IsInEditMode = false;
+                EditingUnterkategorie = null;
+                EditingKategorie = null; // <-- Setze die VM-Eigenschaft zurück
+
+                // Liste neu laden
+                OnSelectedKategorieFilterChanged(SelectedKategorieFilter);
+                _onDataChangedCallback?.Invoke();
             }
-            else // Bearbeiten
+            catch (Exception ex)
             {
-                context.WerkzeugUnterkategorien.Update(EditingUnterkategorie);
+                LoggingService.LogException(ex, "Fehler beim Speichern einer Unterkategorie");
+                MessageBox.Show($"Fehler beim Speichern der Unterkategorie:\n{ex.Message}", "Speicherfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            context.SaveChanges();
-
-            IsInEditMode = false;
-            EditingUnterkategorie = null;
-            EditingKategorie = null; // <-- Setze die VM-Eigenschaft zurück
-
-            // Liste neu laden
-            OnSelectedKategorieFilterChanged(SelectedKategorieFilter);
-            _onDataChangedCallback?.Invoke();
         }
 
         [RelayCommand]
@@ -155,42 +192,51 @@ namespace NC_Setup_Assist.ViewModels
         {
             if (SelectedUnterkategorie == null) return;
 
-            // --- NEUE PRÜFUNG ---
-            if (SelectedUnterkategorie.WerkzeugUnterkategorieID <= 4)
+            // --- NEU: try-catch ---
+            try
             {
-                MessageBox.Show($"Die Unterkategorie '{SelectedUnterkategorie.Name}' ist eine Standardkategorie und kann nicht gelöscht werden.",
-                                "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            // --- ENDE PRÜFUNG ---
-
-            using (var context = new NcSetupContext())
-            {
-                bool isUsed = context.Werkzeuge.Any(w => w.WerkzeugUnterkategorieID == SelectedUnterkategorie.WerkzeugUnterkategorieID);
-                if (isUsed)
+                // --- NEUE PRÜFUNG ---
+                if (SelectedUnterkategorie.WerkzeugUnterkategorieID <= 4)
                 {
-                    MessageBox.Show($"Die Unterkategorie '{SelectedUnterkategorie.Name}' kann nicht gelöscht werden, da sie noch Werkzeugen zugewiesen ist.",
+                    MessageBox.Show($"Die Unterkategorie '{SelectedUnterkategorie.Name}' ist eine Standardkategorie und kann nicht gelöscht werden.",
                                     "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-            }
+                // --- ENDE PRÜFUNG ---
 
-            var result = MessageBox.Show($"Möchten Sie die Unterkategorie '{SelectedUnterkategorie.Name}' wirklich löschen?",
-                                         "Löschen bestätigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.Yes)
-            {
                 using (var context = new NcSetupContext())
                 {
-                    var subKatToDelete = context.WerkzeugUnterkategorien.Find(SelectedUnterkategorie.WerkzeugUnterkategorieID);
-                    if (subKatToDelete != null)
+                    bool isUsed = context.Werkzeuge.Any(w => w.WerkzeugUnterkategorieID == SelectedUnterkategorie.WerkzeugUnterkategorieID);
+                    if (isUsed)
                     {
-                        context.WerkzeugUnterkategorien.Remove(subKatToDelete);
-                        context.SaveChanges();
+                        MessageBox.Show($"Die Unterkategorie '{SelectedUnterkategorie.Name}' kann nicht gelöscht werden, da sie noch Werkzeugen zugewiesen ist.",
+                                        "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
                     }
                 }
-                OnSelectedKategorieFilterChanged(SelectedKategorieFilter);
-                _onDataChangedCallback?.Invoke();
+
+                var result = MessageBox.Show($"Möchten Sie die Unterkategorie '{SelectedUnterkategorie.Name}' wirklich löschen?",
+                                             "Löschen bestätigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    using (var context = new NcSetupContext())
+                    {
+                        var subKatToDelete = context.WerkzeugUnterkategorien.Find(SelectedUnterkategorie.WerkzeugUnterkategorieID);
+                        if (subKatToDelete != null)
+                        {
+                            context.WerkzeugUnterkategorien.Remove(subKatToDelete);
+                            context.SaveChanges();
+                        }
+                    }
+                    OnSelectedKategorieFilterChanged(SelectedKategorieFilter);
+                    _onDataChangedCallback?.Invoke();
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Löschen einer Unterkategorie");
+                MessageBox.Show($"Fehler beim Löschen der Unterkategorie:\n{ex.Message}", "Löschfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

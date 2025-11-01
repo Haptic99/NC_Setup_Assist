@@ -4,13 +4,16 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
+using NC_Setup_Assist.Services; // <-- NEU
+using System; // <-- NEU
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows; // <-- NEU
 
 namespace NC_Setup_Assist.ViewModels
 {
-    // Hilfs-ViewModel für eine einzelne Vergleichszeile
+    // ... (ToolComparisonItem ViewModel bleibt unverändert) ...
     public partial class ToolComparisonItem : ObservableObject
     {
         public string Station { get; }
@@ -76,123 +79,112 @@ namespace NC_Setup_Assist.ViewModels
 
         private void LoadComparisonData()
         {
-            ComparisonItems.Clear();
-
-            using var context = new NcSetupContext();
-
-            // 1. Lade Standardwerkzeuge der Maschine (für "Before"-Status und als Fallback für "After"-Status)
-            // ANGEPASST: .Kategorie mitladen
-            var standardTools = context.StandardWerkzeugZuweisungen
-                                        .Where(z => z.MaschineID == _programm.MaschineID)
-                                        .Include(z => z.ZugehoerigesWerkzeug)
-                                            .ThenInclude(w => w!.Unterkategorie.Kategorie) // Wichtig: Unterkategorie UND Kategorie mitladen
-                                        .ToList();
-
-            var standardToolLookup = standardTools.ToDictionary(
-                z => z.RevolverStation.ToString(),
-                z => z.ZugehoerigesWerkzeug
-            );
-
-            // 2. Lade alle eindeutigen Werkzeugeinsätze des Programms, diesmal DIREKT aus der DB,
-            // um den aktuellen Zuweisungsstatus zu sehen.
-            // ANGEPASST: .Kategorie mitladen
-            var allUniqueToolsEntities = context.WerkzeugEinsaetze
-                .Where(e => e.NCProgrammID == _programm.NCProgrammID && !string.IsNullOrEmpty(e.RevolverStation))
-                .Include(e => e.ZugehoerigesWerkzeug)
-                    .ThenInclude(w => w!.Unterkategorie.Kategorie) // Lade das zugewiesene Werkzeug, dessen Unterkategorie UND Kategorie
-                .AsEnumerable() // Wechsle zu In-Memory-Verarbeitung
-                .GroupBy(e => new { e.RevolverStation, e.KorrekturNummer })
-                .Select(g => g.First())
-                .ToList();
-
-
-            // 3. Verarbeite die Vergleichsdaten
-            foreach (var uniqueTool in allUniqueToolsEntities.OrderBy(t => t.Reihenfolge).ThenBy(t => t.RevolverStation).ThenBy(t => t.KorrekturNummer))
+            // --- NEU: try-catch ---
+            try
             {
-                string stationKey = uniqueTool.RevolverStation!.TrimStart('0');
-                string korrekturKey = uniqueTool.KorrekturNummer ?? "";
+                ComparisonItems.Clear();
 
-                // --- Bestimme "Before" Status (Standardwerkzeug) ---
-                // string toolBeforeName; // Entfernt
-                Werkzeug? stdTool;
-                standardToolLookup.TryGetValue(stationKey, out stdTool);
-                // if (stdTool != null)
-                // {
-                //    toolBeforeName = $"{stdTool!.Name}"; // Entfernt
-                // }
-                // else
-                // {
-                //    toolBeforeName = "Unbekannt"; // Entfernt
-                // }
+                using var context = new NcSetupContext();
 
-                // --- Bestimme "After" Status (Final zugewiesen) ---
-                string toolAfterName;
-                string assignmentStatus;
-                string toolSubCategory;
+                // 1. Lade Standardwerkzeuge der Maschine (für "Before"-Status und als Fallback für "After"-Status)
+                // ANGEPASST: .Kategorie mitladen
+                var standardTools = context.StandardWerkzeugZuweisungen
+                                            .Where(z => z.MaschineID == _programm.MaschineID)
+                                            .Include(z => z.ZugehoerigesWerkzeug)
+                                                .ThenInclude(w => w!.Unterkategorie.Kategorie) // Wichtig: Unterkategorie UND Kategorie mitladen
+                                            .ToList();
 
-                if (uniqueTool.ZugehoerigesWerkzeug != null)
+                var standardToolLookup = standardTools.ToDictionary(
+                    z => z.RevolverStation.ToString(),
+                    z => z.ZugehoerigesWerkzeug
+                );
+
+                // 2. Lade alle eindeutigen Werkzeugeinsätze des Programms, diesmal DIREKT aus der DB,
+                // um den aktuellen Zuweisungsstatus zu sehen.
+                // ANGEPASST: .Kategorie mitladen
+                var allUniqueToolsEntities = context.WerkzeugEinsaetze
+                    .Where(e => e.NCProgrammID == _programm.NCProgrammID && !string.IsNullOrEmpty(e.RevolverStation))
+                    .Include(e => e.ZugehoerigesWerkzeug)
+                        .ThenInclude(w => w!.Unterkategorie.Kategorie) // Lade das zugewiesene Werkzeug, dessen Unterkategorie UND Kategorie
+                    .AsEnumerable() // Wechsle zu In-Memory-Verarbeitung
+                    .GroupBy(e => new { e.RevolverStation, e.KorrekturNummer })
+                    .Select(g => g.First())
+                    .ToList();
+
+
+                // 3. Verarbeite die Vergleichsdaten
+                foreach (var uniqueTool in allUniqueToolsEntities.OrderBy(t => t.Reihenfolge).ThenBy(t => t.RevolverStation).ThenBy(t => t.KorrekturNummer))
                 {
-                    toolAfterName = uniqueTool.ZugehoerigesWerkzeug.Name;
-                    toolSubCategory = uniqueTool.ZugehoerigesWerkzeug.Unterkategorie?.Name ?? "k.A.";
+                    // ... (Rest der foreach-Logik bleibt unverändert)
+                    string stationKey = uniqueTool.RevolverStation!.TrimStart('0');
+                    string korrekturKey = uniqueTool.KorrekturNummer ?? "";
+                    Werkzeug? stdTool;
+                    standardToolLookup.TryGetValue(stationKey, out stdTool);
+                    string toolAfterName;
+                    string assignmentStatus;
+                    string toolSubCategory;
 
-                    if (uniqueTool.Kommentar?.StartsWith("Favorit") == true)
+                    if (uniqueTool.ZugehoerigesWerkzeug != null)
                     {
-                        assignmentStatus = "Favorite";
-                    }
-                    else if (stdTool != null && stdTool.WerkzeugID == uniqueTool.ZugehoerigesWerkzeug.WerkzeugID)
-                    {
-                        assignmentStatus = "Standard";
-                    }
-                    else
-                    {
-                        assignmentStatus = "Manual";
-                    }
-                }
-                else
-                {
-                    // Keine manuelle/parser-Zuweisung
-                    if (stdTool != null)
-                    {
-                        // Standardwerkzeug gefunden
-                        toolAfterName = $"{stdTool.Name}";
-                        toolSubCategory = stdTool.Unterkategorie?.Name ?? "k.A.";
-                        assignmentStatus = "Standard";
-                    }
-                    else
-                    {
-                        // Weder manuell zugewiesen noch Standard
-                        toolAfterName = "Unzugewiesen";
-                        assignmentStatus = "Unassigned";
+                        toolAfterName = uniqueTool.ZugehoerigesWerkzeug.Name;
+                        toolSubCategory = uniqueTool.ZugehoerigesWerkzeug.Unterkategorie?.Name ?? "k.A.";
 
-                        // --- KORREKTUR ---
-                        // Zeige Favorit-Vorschläge an, wenn vorhanden
-                        if (!string.IsNullOrEmpty(uniqueTool.FavoritUnterkategorie))
+                        if (uniqueTool.Kommentar?.StartsWith("Favorit") == true)
                         {
-                            toolSubCategory = $"Vorschlag: {uniqueTool.FavoritUnterkategorie}";
+                            assignmentStatus = "Favorite";
                         }
-                        else if (!string.IsNullOrEmpty(uniqueTool.FavoritKategorie))
+                        else if (stdTool != null && stdTool.WerkzeugID == uniqueTool.ZugehoerigesWerkzeug.WerkzeugID)
                         {
-                            toolSubCategory = $"Vorschlag: {uniqueTool.FavoritKategorie}";
+                            assignmentStatus = "Standard";
                         }
                         else
                         {
-                            toolSubCategory = "---";
+                            assignmentStatus = "Manual";
                         }
-                        // --- ENDE KORREKTUR ---
                     }
-                }
+                    else
+                    {
+                        if (stdTool != null)
+                        {
+                            toolAfterName = $"{stdTool.Name}";
+                            toolSubCategory = stdTool.Unterkategorie?.Name ?? "k.A.";
+                            assignmentStatus = "Standard";
+                        }
+                        else
+                        {
+                            toolAfterName = "Unzugewiesen";
+                            assignmentStatus = "Unassigned";
+                            if (!string.IsNullOrEmpty(uniqueTool.FavoritUnterkategorie))
+                            {
+                                toolSubCategory = $"Vorschlag: {uniqueTool.FavoritUnterkategorie}";
+                            }
+                            else if (!string.IsNullOrEmpty(uniqueTool.FavoritKategorie))
+                            {
+                                toolSubCategory = $"Vorschlag: {uniqueTool.FavoritKategorie}";
+                            }
+                            else
+                            {
+                                toolSubCategory = "---";
+                            }
+                        }
+                    }
 
-                ComparisonItems.Add(new ToolComparisonItem(
-                    uniqueTool.RevolverStation!,
-                    korrekturKey,
-                    // toolBeforeName, // Entfernt
-                    toolAfterName,
-                    assignmentStatus,
-                    uniqueTool.FräserAusrichtung, // Umbenannt
-                    toolSubCategory,
-                    uniqueTool.FavoritKategorie, // Neu
-                    uniqueTool.FavoritUnterkategorie // Neu
-                ));
+                    ComparisonItems.Add(new ToolComparisonItem(
+                        uniqueTool.RevolverStation!,
+                        korrekturKey,
+                        toolAfterName,
+                        assignmentStatus,
+                        uniqueTool.FräserAusrichtung, // Umbenannt
+                        toolSubCategory,
+                        uniqueTool.FavoritKategorie, // Neu
+                        uniqueTool.FavoritUnterkategorie // Neu
+                    ));
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Laden der Vergleichsdaten");
+                MessageBox.Show($"Fehler beim Laden der Vergleichsdaten:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -229,35 +221,44 @@ namespace NC_Setup_Assist.ViewModels
         // Logik zum Speichern der Zuweisung in der Datenbank
         private void PerformToolAssignmentUpdate(string station, string korrektur, int werkzeugId)
         {
-            using var context = new NcSetupContext();
-
-            // Finde ALLE WerkzeugEinsatz-Objekte mit der gleichen RevolverStation und KorrekturNummer im aktuellen NC-Programm
-            var einsaetzeToUpdate = context.WerkzeugEinsaetze
-                .Where(e => e.NCProgrammID == _programm.NCProgrammID &&
-                            e.RevolverStation == station &&
-                            (e.KorrekturNummer == korrektur || (string.IsNullOrEmpty(korrektur) && e.KorrekturNummer == null)))
-                .ToList();
-
-            // Aktualisiere die WerkzeugID in der Datenbank
-            foreach (var einsatz in einsaetzeToUpdate)
+            // --- NEU: try-catch ---
+            try
             {
-                einsatz.WerkzeugID = werkzeugId;
-                // WICHTIG: Entferne die "Favorit"-Markierung, da es jetzt eine manuelle Zuweisung ist
-                if (einsatz.Kommentar?.StartsWith("Favorit") == true)
+                using var context = new NcSetupContext();
+
+                // Finde ALLE WerkzeugEinsatz-Objekte mit der gleichen RevolverStation und KorrekturNummer im aktuellen NC-Programm
+                var einsaetzeToUpdate = context.WerkzeugEinsaetze
+                    .Where(e => e.NCProgrammID == _programm.NCProgrammID &&
+                                e.RevolverStation == station &&
+                                (e.KorrekturNummer == korrektur || (string.IsNullOrEmpty(korrektur) && e.KorrekturNummer == null)))
+                    .ToList();
+
+                // Aktualisiere die WerkzeugID in der Datenbank
+                foreach (var einsatz in einsaetzeToUpdate)
                 {
-                    einsatz.Kommentar = null;
+                    einsatz.WerkzeugID = werkzeugId;
+                    // WICHTIG: Entferne die "Favorit"-Markierung, da es jetzt eine manuelle Zuweisung ist
+                    if (einsatz.Kommentar?.StartsWith("Favorit") == true)
+                    {
+                        einsatz.Kommentar = null;
+                    }
+                    // Favoriten-Vorschläge auch leeren, da Zuweisung erfolgt ist
+                    einsatz.FavoritKategorie = null;
+                    einsatz.FavoritUnterkategorie = null;
                 }
-                // Favoriten-Vorschläge auch leeren, da Zuweisung erfolgt ist
-                einsatz.FavoritKategorie = null;
-                einsatz.FavoritUnterkategorie = null;
+                context.SaveChanges();
+
+                // Lade die Daten in der Vergleichsansicht neu, um die UI zu aktualisieren
+                LoadComparisonData();
+
+                // NEU: Benachrichtigt den Fertig-Button über den geänderten Status
+                FinishAssignmentCommand.NotifyCanExecuteChanged();
             }
-            context.SaveChanges();
-
-            // Lade die Daten in der Vergleichsansicht neu, um die UI zu aktualisieren
-            LoadComparisonData();
-
-            // NEU: Benachrichtigt den Fertig-Button über den geänderten Status
-            FinishAssignmentCommand.NotifyCanExecuteChanged();
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Speichern der Werkzeugzuweisung");
+                MessageBox.Show($"Fehler beim Speichern der Zuweisung:\n{ex.Message}", "Speicherfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         // NEU: Command zum Abschließen der Zuweisung und Zurückkehren

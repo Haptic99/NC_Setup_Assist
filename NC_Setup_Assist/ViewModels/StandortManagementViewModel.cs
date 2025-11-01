@@ -1,12 +1,15 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// NC_Setup_Assist/ViewModels/StandortManagementViewModel.cs
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
+using NC_Setup_Assist.Services; // <-- NEU
+using System; // <-- NEU
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
-using System.Collections.Generic; // NEU
+using System.Collections.Generic;
 
 namespace NC_Setup_Assist.ViewModels
 {
@@ -45,18 +48,27 @@ namespace NC_Setup_Assist.ViewModels
 
         private void LoadData()
         {
-            _allStandorte.Clear();
+            // --- NEU: try-catch ---
+            try
+            {
+                _allStandorte.Clear();
 
-            using var context = new NcSetupContext();
+                using var context = new NcSetupContext();
 
-            // Lade Standorte und beziehe die zugehörigen Maschinen mit ein
-            var standorteFromDb = context.Standorte
-                                         .Include(s => s.Maschinen)
-                                         .OrderBy(s => s.Name)
-                                         .ToList();
+                // Lade Standorte und beziehe die zugehörigen Maschinen mit ein
+                var standorteFromDb = context.Standorte
+                                             .Include(s => s.Maschinen)
+                                             .OrderBy(s => s.Name)
+                                             .ToList();
 
-            _allStandorte.AddRange(standorteFromDb);
-            ApplyFilter(); // Filter anwenden, um die sichtbare Liste zu füllen
+                _allStandorte.AddRange(standorteFromDb);
+                ApplyFilter(); // Filter anwenden, um die sichtbare Liste zu füllen
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Laden der Standorte");
+                MessageBox.Show($"Fehler beim Laden der Standorte:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void ApplyFilter()
@@ -112,7 +124,6 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void SaveStandort()
         {
-            // ... (unveränderte Logik)
             if (EditingStandort == null ||
                 string.IsNullOrWhiteSpace(EditingStandort.Name) ||
                 string.IsNullOrWhiteSpace(EditingStandort.Strasse) ||
@@ -124,56 +135,73 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            using var context = new NcSetupContext();
-            if (EditingStandort.StandortID == 0) // Neuer Standort
+            // --- NEU: try-catch ---
+            try
             {
-                context.Standorte.Add(EditingStandort);
-            }
-            else // Bestehenden Standort aktualisieren
-            {
-                var standortToUpdate = context.Standorte.Find(EditingStandort.StandortID);
-                if (standortToUpdate != null)
+                using var context = new NcSetupContext();
+                if (EditingStandort.StandortID == 0) // Neuer Standort
                 {
-                    standortToUpdate.Name = EditingStandort.Name;
-                    standortToUpdate.Strasse = EditingStandort.Strasse;
-                    standortToUpdate.Hausnummer = EditingStandort.Hausnummer;
-                    standortToUpdate.PLZ = EditingStandort.PLZ;
-                    standortToUpdate.Stadt = EditingStandort.Stadt;
+                    context.Standorte.Add(EditingStandort);
                 }
-            }
-            context.SaveChanges();
+                else // Bestehenden Standort aktualisieren
+                {
+                    var standortToUpdate = context.Standorte.Find(EditingStandort.StandortID);
+                    if (standortToUpdate != null)
+                    {
+                        standortToUpdate.Name = EditingStandort.Name;
+                        standortToUpdate.Strasse = EditingStandort.Strasse;
+                        standortToUpdate.Hausnummer = EditingStandort.Hausnummer;
+                        standortToUpdate.PLZ = EditingStandort.PLZ;
+                        standortToUpdate.Stadt = EditingStandort.Stadt;
+                    }
+                }
+                context.SaveChanges();
 
-            IsInEditMode = false;
-            EditingStandort = null;
-            LoadData(); // Lade die Daten neu, um die Änderungen anzuzeigen
+                IsInEditMode = false;
+                EditingStandort = null;
+                LoadData(); // Lade die Daten neu, um die Änderungen anzuzeigen
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Speichern eines Standorts");
+                MessageBox.Show($"Fehler beim Speichern des Standorts:\n{ex.Message}", "Speicherfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         [RelayCommand(CanExecute = nameof(CanExecuteStandortCommand))]
         private void DeleteStandort()
         {
-            // ... (unveränderte Logik)
             if (SelectedStandort == null) return;
 
-            // Sicherheitsabfrage
-            if (SelectedStandort.Maschinen.Any())
+            // --- NEU: try-catch ---
+            try
             {
-                MessageBox.Show($"Der Standort '{SelectedStandort.Name}' kann nicht gelöscht werden, da ihm noch Maschinen zugewiesen sind.", "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var result = MessageBox.Show($"Möchten Sie den Standort '{SelectedStandort.Name}' wirklich löschen?",
-                                         "Löschen bestätigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.Yes)
-            {
-                using var context = new NcSetupContext();
-                var standortToDelete = context.Standorte.Find(SelectedStandort.StandortID);
-                if (standortToDelete != null)
+                // Sicherheitsabfrage
+                if (SelectedStandort.Maschinen.Any())
                 {
-                    context.Standorte.Remove(standortToDelete);
-                    context.SaveChanges();
+                    MessageBox.Show($"Der Standort '{SelectedStandort.Name}' kann nicht gelöscht werden, da ihm noch Maschinen zugewiesen sind.", "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
                 }
-                LoadData();
+
+                var result = MessageBox.Show($"Möchten Sie den Standort '{SelectedStandort.Name}' wirklich löschen?",
+                                             "Löschen bestätigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    using var context = new NcSetupContext();
+                    var standortToDelete = context.Standorte.Find(SelectedStandort.StandortID);
+                    if (standortToDelete != null)
+                    {
+                        context.Standorte.Remove(standortToDelete);
+                        context.SaveChanges();
+                    }
+                    LoadData();
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Löschen eines Standorts");
+                MessageBox.Show($"Fehler beim Löschen des Standorts:\n{ex.Message}", "Löschfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

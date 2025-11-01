@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
+using NC_Setup_Assist.Services; // <-- NEU
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -30,12 +31,21 @@ namespace NC_Setup_Assist.ViewModels
 
         private void LoadKategorien()
         {
-            Kategorien.Clear();
-            using var context = new NcSetupContext();
-            var katsFromDb = context.WerkzeugKategorien.OrderBy(k => k.Name).ToList();
-            foreach (var kat in katsFromDb)
+            // --- NEU: try-catch ---
+            try
             {
-                Kategorien.Add(kat);
+                Kategorien.Clear();
+                using var context = new NcSetupContext();
+                var katsFromDb = context.WerkzeugKategorien.OrderBy(k => k.Name).ToList();
+                foreach (var kat in katsFromDb)
+                {
+                    Kategorien.Add(kat);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Laden der Werkzeugkategorien");
+                MessageBox.Show($"Fehler beim Laden der Kategorien:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -48,16 +58,25 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            using (var context = new NcSetupContext())
+            // --- NEU: try-catch ---
+            try
             {
-                var newKat = new WerkzeugKategorie { Name = NewKategorieName };
-                context.WerkzeugKategorien.Add(newKat);
-                context.SaveChanges();
-            }
+                using (var context = new NcSetupContext())
+                {
+                    var newKat = new WerkzeugKategorie { Name = NewKategorieName };
+                    context.WerkzeugKategorien.Add(newKat);
+                    context.SaveChanges();
+                }
 
-            NewKategorieName = string.Empty;
-            LoadKategorien();
-            _onDataChangedCallback?.Invoke();
+                NewKategorieName = string.Empty;
+                LoadKategorien();
+                _onDataChangedCallback?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Hinzufügen einer Kategorie");
+                MessageBox.Show($"Fehler beim Speichern der Kategorie:\n{ex.Message}", "Speicherfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         [RelayCommand]
@@ -65,42 +84,51 @@ namespace NC_Setup_Assist.ViewModels
         {
             if (SelectedKategorie == null) return;
 
-            // --- NEUE PRÜFUNG ---
-            if (SelectedKategorie.WerkzeugKategorieID <= 3)
+            // --- NEU: try-catch ---
+            try
             {
-                MessageBox.Show($"Die Kategorie '{SelectedKategorie.Name}' ist eine Standardkategorie und kann nicht gelöscht werden.",
-                                "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            // --- ENDE PRÜFUNG ---
-
-            using (var context = new NcSetupContext())
-            {
-                bool isUsed = context.WerkzeugUnterkategorien.Any(u => u.WerkzeugKategorieID == SelectedKategorie.WerkzeugKategorieID);
-                if (isUsed)
+                // --- NEUE PRÜFUNG ---
+                if (SelectedKategorie.WerkzeugKategorieID <= 3)
                 {
-                    MessageBox.Show($"Die Kategorie '{SelectedKategorie.Name}' kann nicht gelöscht werden, da ihr noch Unterkategorien zugewiesen sind.",
+                    MessageBox.Show($"Die Kategorie '{SelectedKategorie.Name}' ist eine Standardkategorie und kann nicht gelöscht werden.",
                                     "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-            }
+                // --- ENDE PRÜFUNG ---
 
-            var result = MessageBox.Show($"Möchten Sie die Kategorie '{SelectedKategorie.Name}' wirklich löschen?",
-                                         "Löschen bestätigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.Yes)
-            {
                 using (var context = new NcSetupContext())
                 {
-                    var katToDelete = context.WerkzeugKategorien.Find(SelectedKategorie.WerkzeugKategorieID);
-                    if (katToDelete != null)
+                    bool isUsed = context.WerkzeugUnterkategorien.Any(u => u.WerkzeugKategorieID == SelectedKategorie.WerkzeugKategorieID);
+                    if (isUsed)
                     {
-                        context.WerkzeugKategorien.Remove(katToDelete);
-                        context.SaveChanges();
+                        MessageBox.Show($"Die Kategorie '{SelectedKategorie.Name}' kann nicht gelöscht werden, da ihr noch Unterkategorien zugewiesen sind.",
+                                        "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
                     }
                 }
-                LoadKategorien();
-                _onDataChangedCallback?.Invoke();
+
+                var result = MessageBox.Show($"Möchten Sie die Kategorie '{SelectedKategorie.Name}' wirklich löschen?",
+                                             "Löschen bestätigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    using (var context = new NcSetupContext())
+                    {
+                        var katToDelete = context.WerkzeugKategorien.Find(SelectedKategorie.WerkzeugKategorieID);
+                        if (katToDelete != null)
+                        {
+                            context.WerkzeugKategorien.Remove(katToDelete);
+                            context.SaveChanges();
+                        }
+                    }
+                    LoadKategorien();
+                    _onDataChangedCallback?.Invoke();
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Löschen einer Kategorie");
+                MessageBox.Show($"Fehler beim Löschen der Kategorie:\n{ex.Message}", "Löschfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

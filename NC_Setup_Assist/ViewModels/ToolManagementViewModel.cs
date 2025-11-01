@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
 using NC_Setup_Assist.Models;
+using NC_Setup_Assist.Services; // <-- NEU
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -26,7 +27,7 @@ namespace NC_Setup_Assist.ViewModels
         public ObservableCollection<WerkzeugKategorie> Kategorien { get; private set; }
         public ObservableCollection<WerkzeugUnterkategorie> Unterkategorien { get; private set; }
 
-        // Zustände und Auswahlen
+        // ... (Rest der Properties bleibt gleich) ...
         [ObservableProperty]
         private Werkzeug? _selectedTool;
 
@@ -45,7 +46,6 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private string? _searchTerm;
 
-        // Workflow-Steuerung
         [ObservableProperty]
         private string? _toolName;
 
@@ -55,18 +55,17 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private bool _isToolDetailsEnabled;
 
-        // --- DYNAMISCHE EIGENSCHAFTEN ---
         [ObservableProperty]
-        private bool _isRadiusRequired; // Gesteuert durch Unterkategorie
+        private bool _isRadiusRequired;
 
         [ObservableProperty]
-        private string? _radiusInputString; // Wert für Radius
+        private string? _radiusInputString;
 
         [ObservableProperty]
-        private bool _isPitchRequired; // Gesteuert durch Unterkategorie
+        private bool _isPitchRequired;
 
         [ObservableProperty]
-        private string? _pitchInputString; // Wert für Steigung
+        private string? _pitchInputString;
 
         [ObservableProperty]
         private bool _isSpitzenwinkelRequired;
@@ -74,7 +73,6 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private string? _spitzenwinkelInputString;
 
-        // --- NEU HINZUGEFÜGT ---
         [ObservableProperty]
         private bool _isDurchmesserRequired;
 
@@ -92,15 +90,11 @@ namespace NC_Setup_Assist.ViewModels
 
         [ObservableProperty]
         private string? _maxStechtiefeInputString;
-        // --- ENDE NEU ---
 
-
-        // Auswahlmodus
         private readonly Action<Werkzeug>? _onToolSelectedCallback;
         [ObservableProperty]
         private bool _isSelectionMode;
 
-        // --- NEU: Felder für Favoriten-Filter ---
         private readonly string? _initialFavoritKategorie;
         private readonly string? _initialFavoritUnterkategorie;
 
@@ -119,7 +113,7 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
-        // ANGEPASSTER Konstruktor für Auswahlmodus (ersetzt den alten)
+        // ... (Konstruktor für Auswahlmodus bleibt gleich) ...
         public ToolManagementViewModel(MainViewModel mainViewModel,
                                        Action<Werkzeug> onToolSelectedCallback,
                                        string? favoritKategorie = null,
@@ -127,63 +121,74 @@ namespace NC_Setup_Assist.ViewModels
         {
             _onToolSelectedCallback = onToolSelectedCallback;
             IsSelectionMode = true;
-
-            // NEU: Favoriten für Filterung und Cancel() speichern
             _initialFavoritKategorie = favoritKategorie;
             _initialFavoritUnterkategorie = favoritUnterkategorie;
-
-            // NEU: Initialen Favoriten-Filter anwenden
             ApplyFavoritFilter(_initialFavoritKategorie, _initialFavoritUnterkategorie);
         }
 
+
         #region Lade- und Filter-Logik
 
-        // NEU: Private Methode zum Anwenden des Favoriten-Filters
+        // ... (ApplyFavoritFilter bleibt gleich) ...
         private void ApplyFavoritFilter(string? favoritKategorie, string? favoritUnterkategorie)
         {
             if (!string.IsNullOrEmpty(favoritUnterkategorie) && !string.IsNullOrEmpty(favoritKategorie))
             {
-                // 1. Setze Hauptkategorie (löst OnSelectedKategorieChanged aus -> lädt Unterkategorien)
                 SelectedKategorie = Kategorien.FirstOrDefault(k =>
                     k.Name.Equals(favoritKategorie, StringComparison.OrdinalIgnoreCase));
-
-                // 2. Setze Unterkategorie (löst OnSelectedUnterkategorieChanged aus -> wendet Filter an)
                 SelectedUnterkategorie = Unterkategorien.FirstOrDefault(u =>
                     u.Name.Equals(favoritUnterkategorie, StringComparison.OrdinalIgnoreCase));
             }
             else if (!string.IsNullOrEmpty(favoritKategorie))
             {
-                // Nur Hauptkategorie setzen
                 SelectedKategorie = Kategorien.FirstOrDefault(k =>
                     k.Name.Equals(favoritKategorie, StringComparison.OrdinalIgnoreCase));
-                SelectedUnterkategorie = null; // Stellt sicher, dass der Filter zurückgesetzt wird
+                SelectedUnterkategorie = null;
             }
             else
             {
-                // Keinen Filter anwenden
                 SelectedKategorie = null;
                 SelectedUnterkategorie = null;
             }
         }
 
+
         private void LoadTools()
         {
-            using var context = new NcSetupContext();
-            _allTools = context.Werkzeuge
-                               .Include(w => w.Unterkategorie)
-                               .ThenInclude(u => u.Kategorie) // Wichtig: Kategorie muss mitgeladen werden
-                               .ToList();
-            ApplyFilter();
+            // --- NEU: try-catch ---
+            try
+            {
+                using var context = new NcSetupContext();
+                _allTools = context.Werkzeuge
+                                   .Include(w => w.Unterkategorie)
+                                   .ThenInclude(u => u.Kategorie) // Wichtig: Kategorie muss mitgeladen werden
+                                   .ToList();
+                ApplyFilter();
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Laden der Werkzeuge");
+                MessageBox.Show($"Fehler beim Laden der Werkzeuge:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void LoadKategorien()
         {
-            using var context = new NcSetupContext();
-            var katsFromDb = context.WerkzeugKategorien.OrderBy(k => k.Name).ToList();
-            Kategorien.Clear();
-            foreach (var kat in katsFromDb)
+            // --- NEU: try-catch ---
+            try
             {
-                Kategorien.Add(kat);
+                using var context = new NcSetupContext();
+                var katsFromDb = context.WerkzeugKategorien.OrderBy(k => k.Name).ToList();
+                Kategorien.Clear();
+                foreach (var kat in katsFromDb)
+                {
+                    Kategorien.Add(kat);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Laden der Werkzeugkategorien");
+                MessageBox.Show($"Fehler beim Laden der Kategorien:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -192,7 +197,7 @@ namespace NC_Setup_Assist.ViewModels
             var oldKatId = SelectedKategorie?.WerkzeugKategorieID;
             var oldUnterKatId = SelectedUnterkategorie?.WerkzeugUnterkategorieID;
 
-            LoadKategorien();
+            LoadKategorien(); // Diese Methode hat jetzt ein try-catch
 
             if (oldKatId.HasValue)
             {
@@ -206,28 +211,22 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
+        // ... (ApplyFilter bleibt gleich) ...
         private void ApplyFilter()
         {
             IEnumerable<Werkzeug> tempFiltered = _allTools;
-
             var currentKategorie = SelectedKategorie;
             var currentUnterkategorie = SelectedUnterkategorie;
             var currentSearchTerm = SearchTerm;
 
-
-            // 1. Filter nach Kategorie
             if (currentKategorie != null)
             {
                 tempFiltered = tempFiltered.Where(w => w.Unterkategorie?.Kategorie?.WerkzeugKategorieID == currentKategorie.WerkzeugKategorieID);
             }
-
-            // 2. Filter nach Unterkategorie
             if (currentUnterkategorie != null)
             {
                 tempFiltered = tempFiltered.Where(w => w.WerkzeugUnterkategorieID == currentUnterkategorie.WerkzeugUnterkategorieID);
             }
-
-            // 3. Filter nach Suchbegriff
             if (!string.IsNullOrWhiteSpace(currentSearchTerm))
             {
                 tempFiltered = tempFiltered.Where(w =>
@@ -237,7 +236,6 @@ namespace NC_Setup_Assist.ViewModels
                 );
             }
 
-            // Liste aktualisieren
             FilteredWerkzeuge.Clear();
             foreach (var tool in tempFiltered.ToList())
             {
@@ -259,60 +257,66 @@ namespace NC_Setup_Assist.ViewModels
 
         partial void OnSelectedKategorieChanged(WerkzeugKategorie? value)
         {
-            using var context = new NcSetupContext();
-            Unterkategorien.Clear();
-
-            // Nur zurücksetzen, wenn die Änderung *nicht* Teil des Setzens des Unterkategorie-Filters ist
-            if (SelectedUnterkategorie != null && SelectedUnterkategorie.WerkzeugKategorieID != value?.WerkzeugKategorieID)
+            // --- NEU: try-catch ---
+            try
             {
-                SelectedUnterkategorie = null; // WICHTIG: Unterkategorie zurücksetzen
-            }
+                using var context = new NcSetupContext();
+                Unterkategorien.Clear();
 
-            if (value != null)
-            {
-                var subs = context.WerkzeugUnterkategorien
-                                   .Where(s => s.WerkzeugKategorieID == value.WerkzeugKategorieID)
-                                   .OrderBy(s => s.Name)
-                                   .ToList();
-                foreach (var sub in subs)
+                // Nur zurücksetzen, wenn die Änderung *nicht* Teil des Setzens des Unterkategorie-Filters ist
+                if (SelectedUnterkategorie != null && SelectedUnterkategorie.WerkzeugKategorieID != value?.WerkzeugKategorieID)
                 {
-                    Unterkategorien.Add(sub);
+                    SelectedUnterkategorie = null; // WICHTIG: Unterkategorie zurücksetzen
                 }
-            }
 
-            IsUnterkategorieEnabled = value != null;
-            if (!IsUnterkategorieEnabled)
+                if (value != null)
+                {
+                    var subs = context.WerkzeugUnterkategorien
+                                       .Where(s => s.WerkzeugKategorieID == value.WerkzeugKategorieID)
+                                       .OrderBy(s => s.Name)
+                                       .ToList();
+                    foreach (var sub in subs)
+                    {
+                        Unterkategorien.Add(sub);
+                    }
+                }
+
+                IsUnterkategorieEnabled = value != null;
+                if (!IsUnterkategorieEnabled)
+                {
+                    IsToolDetailsEnabled = false;
+                }
+
+                ApplyFilter();
+            }
+            catch (Exception ex)
             {
-                IsToolDetailsEnabled = false;
+                LoggingService.LogException(ex, "Fehler beim Laden der Unterkategorien");
+                MessageBox.Show($"Fehler beim Laden der Unterkategorien:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            ApplyFilter();
         }
 
+        // ... (Rest der Region 'Kaskadierende Dropdown-Logik' bleibt unverändert) ...
         partial void OnSelectedUnterkategorieChanged(WerkzeugUnterkategorie? value)
         {
-            // --- ALLE FELDER AKTUALISIERT ---
             IsRadiusRequired = (value?.BenötigtRadius == true);
             IsPitchRequired = (value?.BenötigtSteigung == true);
             IsSpitzenwinkelRequired = (value?.BenötigtSpitzenwinkel == true);
             IsDurchmesserRequired = (value?.BenötigtDurchmesser == true);
             IsBreiteRequired = (value?.BenötigtBreite == true);
             IsMaxStechtiefeRequired = (value?.BenötigtMaxStechtiefe == true);
-            // --- ENDE ---
 
             if (value != null)
             {
                 IsToolDetailsEnabled = true;
-                if (EditingTool?.WerkzeugID == 0) // Nur bei "Neu" zurücksetzen
+                if (EditingTool?.WerkzeugID == 0)
                 {
                     RadiusInputString = string.Empty;
                     PitchInputString = string.Empty;
                     SpitzenwinkelInputString = string.Empty;
-                    // --- NEU ---
                     DurchmesserInputString = string.Empty;
                     BreiteInputString = string.Empty;
                     MaxStechtiefeInputString = string.Empty;
-                    // --- ENDE ---
                 }
                 UpdateToolName();
             }
@@ -325,15 +329,12 @@ namespace NC_Setup_Assist.ViewModels
             ApplyFilter();
         }
 
-        // --- NEUE PARTIAL METHODS HINZUGEFÜGT ---
         partial void OnRadiusInputStringChanged(string? value) => UpdateToolName();
         partial void OnPitchInputStringChanged(string? value) => UpdateToolName();
         partial void OnSpitzenwinkelInputStringChanged(string? value) => UpdateToolName();
         partial void OnDurchmesserInputStringChanged(string? value) => UpdateToolName();
         partial void OnBreiteInputStringChanged(string? value) => UpdateToolName();
         partial void OnMaxStechtiefeInputStringChanged(string? value) => UpdateToolName();
-        // --- ENDE ---
-
 
         private void UpdateToolName()
         {
@@ -347,7 +348,6 @@ namespace NC_Setup_Assist.ViewModels
                 string baseName = SelectedUnterkategorie.Name;
                 var sb = new StringBuilder(baseName);
 
-                // --- LOGIK FÜR ALLE FELDER HINZUGEFÜGT ---
                 if (IsDurchmesserRequired)
                 {
                     string display = (DurchmesserInputString ?? "").Trim().Replace(',', '.');
@@ -356,7 +356,6 @@ namespace NC_Setup_Assist.ViewModels
                         sb.Append($" D={display}");
                     }
                 }
-
                 if (IsRadiusRequired)
                 {
                     string display = (RadiusInputString ?? "").Trim().Replace(',', '.');
@@ -365,7 +364,6 @@ namespace NC_Setup_Assist.ViewModels
                         sb.Append($" R={display}");
                     }
                 }
-
                 if (IsBreiteRequired)
                 {
                     string display = (BreiteInputString ?? "").Trim().Replace(',', '.');
@@ -374,7 +372,6 @@ namespace NC_Setup_Assist.ViewModels
                         sb.Append($" B={display}");
                     }
                 }
-
                 if (IsPitchRequired)
                 {
                     string display = (PitchInputString ?? "").Trim().Replace(',', '.');
@@ -383,7 +380,6 @@ namespace NC_Setup_Assist.ViewModels
                         sb.Append($" P={display}");
                     }
                 }
-
                 if (IsSpitzenwinkelRequired)
                 {
                     string display = (SpitzenwinkelInputString ?? "").Trim().Replace(',', '.');
@@ -392,7 +388,6 @@ namespace NC_Setup_Assist.ViewModels
                         sb.Append($" {display}°");
                     }
                 }
-
                 if (IsMaxStechtiefeRequired)
                 {
                     string display = (MaxStechtiefeInputString ?? "").Trim().Replace(',', '.');
@@ -401,8 +396,6 @@ namespace NC_Setup_Assist.ViewModels
                         sb.Append($" Tmax={display}");
                     }
                 }
-                // --- ENDE ---
-
                 ToolName = sb.ToString();
             }
         }
@@ -410,12 +403,13 @@ namespace NC_Setup_Assist.ViewModels
         #endregion
 
         #region Commands (Neu, Bearbeiten, Speichern, Abbrechen, Löschen)
+
+        // ... (NewTool bleibt gleich) ...
         [RelayCommand]
         private void NewTool()
         {
             EditingTool = new Werkzeug
             {
-                // Alle double? auf null setzen
                 Radius = null,
                 Steigung = null,
                 Spitzenwinkel = null,
@@ -425,33 +419,30 @@ namespace NC_Setup_Assist.ViewModels
             };
 
             ToolName = string.Empty;
-            // --- ALLE STRINGS LEEREN ---
             RadiusInputString = string.Empty;
             PitchInputString = string.Empty;
             SpitzenwinkelInputString = string.Empty;
             DurchmesserInputString = string.Empty;
             BreiteInputString = string.Empty;
             MaxStechtiefeInputString = string.Empty;
-            // --- ENDE ---
 
             SelectedKategorie = null;
             SelectedUnterkategorie = null;
             IsInEditMode = true;
 
-            // --- ALLE FLAGS ZURÜCKSETZEN ---
             IsRadiusRequired = false;
             IsPitchRequired = false;
             IsSpitzenwinkelRequired = false;
             IsDurchmesserRequired = false;
             IsBreiteRequired = false;
             IsMaxStechtiefeRequired = false;
-            // --- ENDE ---
 
             IsUnterkategorieEnabled = false;
             IsToolDetailsEnabled = false;
         }
 
 
+        // ... (EditTool bleibt gleich) ...
         [RelayCommand]
         private void EditTool(Werkzeug? toolFromClick)
         {
@@ -472,7 +463,6 @@ namespace NC_Setup_Assist.ViewModels
             {
                 EditingTool = new Werkzeug
                 {
-                    // --- ALLE FELDER KOPIEREN ---
                     WerkzeugID = toolToEdit.WerkzeugID,
                     Name = toolToEdit.Name,
                     Beschreibung = toolToEdit.Beschreibung,
@@ -482,22 +472,18 @@ namespace NC_Setup_Assist.ViewModels
                     Durchmesser = toolToEdit.Durchmesser,
                     Breite = toolToEdit.Breite,
                     MaxStechtiefe = toolToEdit.MaxStechtiefe,
-                    // --- ENDE ---
                     Unterkategorie = toolToEdit.Unterkategorie,
                     WerkzeugUnterkategorieID = toolToEdit.WerkzeugUnterkategorieID
                 };
 
                 ToolName = EditingTool.Name;
 
-                // --- ALLE STRINGS FÜLLEN ---
                 RadiusInputString = EditingTool.Radius?.ToString("G", CultureInfo.CurrentCulture);
                 PitchInputString = EditingTool.Steigung?.ToString("G", CultureInfo.CurrentCulture);
                 SpitzenwinkelInputString = EditingTool.Spitzenwinkel?.ToString("G", CultureInfo.CurrentCulture);
                 DurchmesserInputString = EditingTool.Durchmesser?.ToString("G", CultureInfo.CurrentCulture);
                 BreiteInputString = EditingTool.Breite?.ToString("G", CultureInfo.CurrentCulture);
                 MaxStechtiefeInputString = EditingTool.MaxStechtiefe?.ToString("G", CultureInfo.CurrentCulture);
-                // --- ENDE ---
-
 
                 if (toolToEdit.Unterkategorie?.Kategorie != null)
                 {
@@ -525,6 +511,8 @@ namespace NC_Setup_Assist.ViewModels
             }
         }
 
+
+        // ... (ParseNullableDouble bleibt gleich) ...
         private bool ParseNullableDouble(string input, bool isRequired, string fieldName, out double? result)
         {
             result = null;
@@ -563,80 +551,78 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            // --- PARSEN ALLER FELDER ---
+            // ... (Parsing-Logik bleibt gleich) ...
             double? finalRadius;
             if (!ParseNullableDouble(RadiusInputString, IsRadiusRequired, "Radius", out finalRadius)) return;
-
             double? finalPitch;
             if (!ParseNullableDouble(PitchInputString, IsPitchRequired, "Steigung", out finalPitch)) return;
-
             double? finalSpitzenwinkel;
             if (!ParseNullableDouble(SpitzenwinkelInputString, IsSpitzenwinkelRequired, "Spitzenwinkel", out finalSpitzenwinkel)) return;
-
             double? finalDurchmesser;
             if (!ParseNullableDouble(DurchmesserInputString, IsDurchmesserRequired, "Durchmesser", out finalDurchmesser)) return;
-
             double? finalBreite;
             if (!ParseNullableDouble(BreiteInputString, IsBreiteRequired, "Breite", out finalBreite)) return;
-
             double? finalMaxStechtiefe;
             if (!ParseNullableDouble(MaxStechtiefeInputString, IsMaxStechtiefeRequired, "Max. Stechtiefe", out finalMaxStechtiefe)) return;
-            // --- ENDE PARSEN ---
 
-            // --- ZUWEISEN ALLER FELDER ---
             EditingTool.Radius = finalRadius;
             EditingTool.Steigung = finalPitch;
             EditingTool.Spitzenwinkel = finalSpitzenwinkel;
             EditingTool.Durchmesser = finalDurchmesser;
             EditingTool.Breite = finalBreite;
             EditingTool.MaxStechtiefe = finalMaxStechtiefe;
-            // --- ENDE ZUWEISEN ---
-
             EditingTool.Name = ToolName;
 
-            using var context = new NcSetupContext();
+            // --- NEU: try-catch ---
+            try
+            {
+                using var context = new NcSetupContext();
 
-            if (EditingTool.WerkzeugID == 0)
-            {
-                EditingTool.WerkzeugUnterkategorieID = SelectedUnterkategorie.WerkzeugUnterkategorieID;
-                EditingTool.Unterkategorie = null!; // Navigationseigenschaft nullen
-                context.Werkzeuge.Add(EditingTool);
-            }
-            else
-            {
-                var toolToUpdate = context.Werkzeuge.Find(EditingTool.WerkzeugID);
-                if (toolToUpdate != null)
+                if (EditingTool.WerkzeugID == 0)
                 {
-                    // --- ALLE FELDER AKTUALISIEREN ---
-                    toolToUpdate.Name = EditingTool.Name;
-                    toolToUpdate.Beschreibung = EditingTool.Beschreibung;
-                    toolToUpdate.Steigung = EditingTool.Steigung;
-                    toolToUpdate.Spitzenwinkel = EditingTool.Spitzenwinkel;
-                    toolToUpdate.Radius = EditingTool.Radius;
-                    toolToUpdate.Durchmesser = EditingTool.Durchmesser;
-                    toolToUpdate.Breite = EditingTool.Breite;
-                    toolToUpdate.MaxStechtiefe = EditingTool.MaxStechtiefe;
-                    // --- ENDE ---
-                    toolToUpdate.WerkzeugUnterkategorieID = SelectedUnterkategorie.WerkzeugUnterkategorieID;
+                    EditingTool.WerkzeugUnterkategorieID = SelectedUnterkategorie.WerkzeugUnterkategorieID;
+                    EditingTool.Unterkategorie = null!; // Navigationseigenschaft nullen
+                    context.Werkzeuge.Add(EditingTool);
                 }
-            }
+                else
+                {
+                    var toolToUpdate = context.Werkzeuge.Find(EditingTool.WerkzeugID);
+                    if (toolToUpdate != null)
+                    {
+                        toolToUpdate.Name = EditingTool.Name;
+                        toolToUpdate.Beschreibung = EditingTool.Beschreibung;
+                        toolToUpdate.Steigung = EditingTool.Steigung;
+                        toolToUpdate.Spitzenwinkel = EditingTool.Spitzenwinkel;
+                        toolToUpdate.Radius = EditingTool.Radius;
+                        toolToUpdate.Durchmesser = EditingTool.Durchmesser;
+                        toolToUpdate.Breite = EditingTool.Breite;
+                        toolToUpdate.MaxStechtiefe = EditingTool.MaxStechtiefe;
+                        toolToUpdate.WerkzeugUnterkategorieID = SelectedUnterkategorie.WerkzeugUnterkategorieID;
+                    }
+                }
 
-            context.SaveChanges();
-            LoadTools();
-            IsInEditMode = false;
-            EditingTool = null;
-            ToolName = string.Empty;
-            SelectedTool = null;
-            Cancel(); // Setzt Filter und Bearbeitungsstatus zurück
+                context.SaveChanges();
+                LoadTools(); // Diese Methode hat jetzt ein try-catch
+                IsInEditMode = false;
+                EditingTool = null;
+                ToolName = string.Empty;
+                SelectedTool = null;
+                Cancel(); // Setzt Filter und Bearbeitungsstatus zurück
+            }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Speichern eines Werkzeugs");
+                MessageBox.Show($"Fehler beim Speichern des Werkzeugs:\n{ex.Message}", "Speicherfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
+        // ... (Cancel bleibt gleich) ...
         [RelayCommand]
         private void Cancel()
         {
             EditingTool = null;
             IsInEditMode = false;
 
-            // --- ALLE FELDER ZURÜCKSETZEN ---
             IsRadiusRequired = false;
             IsPitchRequired = false;
             IsSpitzenwinkelRequired = false;
@@ -650,14 +636,12 @@ namespace NC_Setup_Assist.ViewModels
             DurchmesserInputString = string.Empty;
             BreiteInputString = string.Empty;
             MaxStechtiefeInputString = string.Empty;
-            // --- ENDE ---
 
             ToolName = string.Empty;
 
             IsUnterkategorieEnabled = false;
             IsToolDetailsEnabled = false;
 
-            // Wende den Initialfilter (z.B. Favoriten) wieder an, falls wir im Auswahlmodus sind
             if (IsSelectionMode)
             {
                 ApplyFavoritFilter(_initialFavoritKategorie, _initialFavoritUnterkategorie);
@@ -668,6 +652,7 @@ namespace NC_Setup_Assist.ViewModels
                 SelectedUnterkategorie = null;
             }
         }
+
 
         [RelayCommand]
         private void DeleteTool()
@@ -687,23 +672,32 @@ namespace NC_Setup_Assist.ViewModels
 
             if (result == MessageBoxResult.Yes)
             {
-                using var context = new NcSetupContext();
-
-                bool isStandardTool = context.StandardWerkzeugZuweisungen.Any(z => z.WerkzeugID == SelectedTool.WerkzeugID);
-                if (isStandardTool)
+                // --- NEU: try-catch ---
+                try
                 {
-                    MessageBox.Show($"Das Werkzeug '{SelectedTool.Name}' kann nicht gelöscht werden, da es einer Maschine als Standardwerkzeug zugewiesen ist.",
-                                    "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+                    using var context = new NcSetupContext();
 
-                var toolToDelete = context.Werkzeuge.Find(SelectedTool.WerkzeugID);
-                if (toolToDelete != null)
-                {
-                    context.Werkzeuge.Remove(toolToDelete);
-                    context.SaveChanges();
+                    bool isStandardTool = context.StandardWerkzeugZuweisungen.Any(z => z.WerkzeugID == SelectedTool.WerkzeugID);
+                    if (isStandardTool)
+                    {
+                        MessageBox.Show($"Das Werkzeug '{SelectedTool.Name}' kann nicht gelöscht werden, da es einer Maschine als Standardwerkzeug zugewiesen ist.",
+                                        "Löschen nicht möglich", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    var toolToDelete = context.Werkzeuge.Find(SelectedTool.WerkzeugID);
+                    if (toolToDelete != null)
+                    {
+                        context.Werkzeuge.Remove(toolToDelete);
+                        context.SaveChanges();
+                    }
+                    LoadTools();
                 }
-                LoadTools();
+                catch (Exception ex)
+                {
+                    LoggingService.LogException(ex, "Fehler beim Löschen eines Werkzeugs");
+                    MessageBox.Show($"Fehler beim Löschen des Werkzeugs:\n{ex.Message}", "Löschfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 

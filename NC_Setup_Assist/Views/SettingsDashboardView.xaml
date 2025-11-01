@@ -7,70 +7,95 @@
              xmlns:vm="clr-namespace:NC_Setup_Assist.ViewModels"
              mc:Ignorable="d">
     <Grid>
+
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
 
             <TextBlock Text="Einstellungen" 
                        FontSize="36" 
                        FontWeight="Bold" 
                        Margin="0,0,0,30" 
+        
                        HorizontalAlignment="Center"
                        Foreground="#333333"/>
 
             <UniformGrid Columns="3" 
-                         Rows="1" 
+                         Rows="2" 
+                      
                          HorizontalAlignment="Center" 
                          VerticalAlignment="Center" 
                          Width="650"
-                         Height="150">
+                         Height="300">
 
                 <Button Command="{Binding OpenToolManagementCommand}" 
+ 
                         Style="{StaticResource ModernTileButton}" 
                         Margin="10"
                         ToolTip="Werkzeugdatenbank verwalten (Werkzeuge, Kategorien).">
                     <StackPanel>
-                        <TextBlock Text="&#x2692;" 
-                                   FontSize="32" 
-                                   Margin="0,0,0,10" 
-                                   HorizontalAlignment="Center"
-                                   Foreground="#007ACC"/>
+
+                        <TextBlock Text="&#xE713;" Style="{StaticResource TileIconStyle}"/>
                         <TextBlock Text ="Werkzeuge" 
                                    HorizontalAlignment="Center" 
-                                   FontWeight="SemiBold"/>
+                              
+                            FontWeight="SemiBold"/>
                     </StackPanel>
                 </Button>
 
                 <Button Command="{Binding OpenMachineManagementCommand}" 
                         Style="{StaticResource ModernTileButton}" 
+              
                         Margin="10"
                         ToolTip="Maschinen und deren Standardwerkzeuge verwalten.">
                     <StackPanel>
-                        <TextBlock Text="&#x25B2;" 
-                                   FontSize="32" 
-                                   FontWeight="Bold"
-                                   Margin="0,0,0,10" 
-                                   HorizontalAlignment="Center"
-                                   Foreground="#007ACC"/>
+                        <TextBlock Text="&#xE91F;" Style="{StaticResource TileIconStyle}"/>
                         <TextBlock Text ="Maschinen" 
-                                   HorizontalAlignment="Center" 
+                               
+                            HorizontalAlignment="Center" 
                                    FontWeight="SemiBold"/>
                     </StackPanel>
                 </Button>
 
                 <Button Command="{Binding OpenStandortManagementCommand}" 
+     
                         Style="{StaticResource ModernTileButton}" 
                         Margin="10"
                         ToolTip="Standorte und deren Adressinformationen verwalten.">
                     <StackPanel>
-                        <TextBlock Text="&#x2302;" 
-                                   FontSize="32" 
-                                   Margin="0,0,0,10" 
-                                   HorizontalAlignment="Center"
-                                   Foreground="#007ACC"/>
+
+                        <TextBlock Text="&#xE8B9;" Style="{StaticResource TileIconStyle}"/>
                         <TextBlock Text ="Standorte" 
+                                   HorizontalAlignment="Center" 
+                              
+                            FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding BackupDatabaseCommand}" 
+                        Style="{StaticResource ModernTileButton}" 
+                        Margin="10"
+                        ToolTip="Speichert die gesamte Datenbank (Werkzeuge, Maschinen...) in einer Backup-Datei.">
+                    <StackPanel>
+                        <TextBlock Text="&#xE78C;" Style="{StaticResource TileIconStyle}"/>
+                        <TextBlock Text ="Datenbank Sichern" 
                                    HorizontalAlignment="Center" 
                                    FontWeight="SemiBold"/>
                     </StackPanel>
                 </Button>
+
+                <Button Command="{Binding RestoreDatabaseCommand}" 
+                        Style="{StaticResource ModernTileButton}" 
+                        Margin="10"
+                        ToolTip="Stellt die Datenbank aus einer Backup-Datei wieder her. Alle aktuellen Daten werden überschrieben!">
+                    <StackPanel>
+                        <TextBlock Text="&#xE7A7;" Style="{StaticResource TileIconStyle}"/>
+                        <TextBlock Text ="Datenbank Wiederherstellen" 
+                                   HorizontalAlignment="Center" 
+                                   FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+
+                <Border/>
+
             </UniformGrid>
         </StackPanel>
     </Grid>

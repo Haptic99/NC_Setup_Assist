@@ -5,10 +5,9 @@ namespace NC_Setup_Assist.ViewModels
 {
     public partial class MainMenuViewModel : ViewModelBase
     {
-        // Eine private Referenz auf den "Dirigenten"
+        // ... (MainViewModel Referenz und Konstruktor bleiben gleich) ...
         private readonly MainViewModel _mainViewModel;
 
-        // Der Konstruktor empfängt jetzt den MainViewModel, um mit ihm reden zu können
         public MainMenuViewModel(MainViewModel mainViewModel)
         {
             _mainViewModel = mainViewModel;
@@ -23,7 +22,6 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void ManageProjects()
         {
-            // NEU: Navigation zur Projektverwaltung
             _mainViewModel.NavigateTo(new ProjectManagementViewModel(_mainViewModel));
         }
 
@@ -31,6 +29,13 @@ namespace NC_Setup_Assist.ViewModels
         private void OpenSettings()
         {
             _mainViewModel.NavigateTo(new SettingsDashboardViewModel(_mainViewModel));
+        }
+
+        // --- NEUE METHODE ---
+        [RelayCommand]
+        private void OpenAbout()
+        {
+            _mainViewModel.NavigateTo(new AboutViewModel());
         }
     }
 }

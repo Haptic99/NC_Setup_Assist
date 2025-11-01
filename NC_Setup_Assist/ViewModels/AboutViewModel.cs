@@ -9,7 +9,8 @@ namespace NC_Setup_Assist.ViewModels
 
         public string AppVersion { get; }
 
-        public string Copyright => $"© {DateTime.Now.Year} STB Maschinenbau AG";
+        // KORREKTUR HIER:
+        public string Copyright => $"© {DateTime.Now.Year} Daniel Martinez";
 
         public AboutViewModel()
         {

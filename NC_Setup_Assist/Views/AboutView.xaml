@@ -6,29 +6,32 @@
              xmlns:vm="clr-namespace:NC_Setup_Assist.ViewModels"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance vm:AboutViewModel}"
-             d:DesignHeight="300" d:DesignWidth="400"
+    
+         d:DesignHeight="300" d:DesignWidth="400"
              HorizontalAlignment="Center" VerticalAlignment="Center">
     <StackPanel Margin="25">
         <TextBlock Text="{Binding AppName}" 
                    FontSize="24" 
                    FontWeight="Bold" 
                    HorizontalAlignment="Center"
-                   Foreground="#333333"/>
+ 
+                  Foreground="#333333"/>
 
         <TextBlock HorizontalAlignment="Center" Margin="0,5,0,20" Foreground="#555555">
             <Run Text="Version:"/>
-            <Run Text="{Binding AppVersion}"/>
+            <Run Text="{Binding AppVersion, Mode=OneWay}"/>
         </TextBlock>
 
         <TextBlock Text="Diese Anwendung dient der Analyse von NC-Programmen und der Verwaltung von Werkzeug-Setups."
-                   TextWrapping="Wrap"
+TextWrapping="Wrap"
                    HorizontalAlignment="Center"
                    TextAlignment="Center"
                    Margin="0,0,0,20"/>
 
         <TextBlock Text="{Binding Copyright}" 
                    HorizontalAlignment="Center" 
-                   FontSize="12" 
+            
+       FontSize="12" 
                    Foreground="#888888"/>
     </StackPanel>
 </UserControl>

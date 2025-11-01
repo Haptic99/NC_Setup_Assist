@@ -8,9 +8,8 @@
         xmlns:viewmodels="clr-namespace:NC_Setup_Assist.ViewModels"
         mc:Ignorable="d"
         Title="NC-Setup-Assist" 
-        Height="600" 
-        Width="900" 
-        WindowStartupLocation="CenterScreen">
+        
+        WindowState="Maximized">
 
     <Window.DataContext>
         <viewmodels:MainViewModel/>
@@ -26,6 +25,7 @@
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type viewmodels:ToolManagementViewModel}">
+
             <views:ToolManagementView/>
         </DataTemplate>
 
@@ -39,6 +39,7 @@
 
         <DataTemplate DataType="{x:Type viewmodels:MachineManagementViewModel}">
             <views:MachineManagementView/>
+
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type viewmodels:AddMachineViewModel}">
@@ -53,7 +54,8 @@
             <views:KategorieManagementView/>
         </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:UnterkategorieManagementViewModel}">
+        <DataTemplate DataType="{x:Type 
+viewmodels:UnterkategorieManagementViewModel}">
             <views:UnterkategorieManagementView/>
         </DataTemplate>
         <DataTemplate DataType="{x:Type viewmodels:StandardToolsManagementViewModel}">
@@ -65,6 +67,7 @@
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type viewmodels:ToolAssignmentComparisonViewModel}">
+
             <views:ToolAssignmentComparisonView/>
         </DataTemplate>
 
@@ -75,11 +78,12 @@
         <DataTemplate DataType="{x:Type viewmodels:AboutViewModel}">
             <views:AboutView/>
         </DataTemplate>
-        
+
     </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
+
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -89,7 +93,8 @@
         <Button Grid.Row="1" 
                 Content="Zurück" 
                 Command="{Binding NavigateBackCommand}" 
-                HorizontalAlignment="Right" 
+               
+ HorizontalAlignment="Right" 
                 Margin="10" 
                 Width="100"/>
     </Grid>

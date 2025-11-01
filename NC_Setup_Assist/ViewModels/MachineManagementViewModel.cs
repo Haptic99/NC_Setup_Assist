@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using NC_Setup_Assist.Services; // <-- NEU
 
 namespace NC_Setup_Assist.ViewModels
 {
@@ -55,33 +56,43 @@ namespace NC_Setup_Assist.ViewModels
 
         private void LoadData()
         {
-            _allMaschinen.Clear();
-            FilteredMaschinen.Clear();
-
-            using var context = new NcSetupContext();
-            var maschinenFromDb = context.Maschinen
-                                         .Include(m => m.Hersteller)
-                                         .Include(m => m.ZugehoerigerStandort)
-                                         .ToList();
-
-            _allMaschinen.AddRange(maschinenFromDb);
-
-            // Hersteller und Standorte laden (unverändert)
-            Hersteller.Clear();
-            var herstellerFromDb = context.Hersteller.OrderBy(h => h.Name).ToList();
-            foreach (var herst in herstellerFromDb)
+            // --- NEU: try-catch für Ladeoperationen ---
+            try
             {
-                Hersteller.Add(herst);
-            }
+                _allMaschinen.Clear();
+                FilteredMaschinen.Clear();
 
-            Standorte.Clear();
-            var standorteFromDb = context.Standorte.ToList();
-            foreach (var standort in standorteFromDb)
+                using var context = new NcSetupContext();
+                var maschinenFromDb = context.Maschinen
+                                             .Include(m => m.Hersteller)
+                                             .Include(m => m.ZugehoerigerStandort)
+                                             .ToList();
+
+                _allMaschinen.AddRange(maschinenFromDb);
+
+                // Hersteller und Standorte laden (unverändert)
+                Hersteller.Clear();
+                var herstellerFromDb = context.Hersteller.OrderBy(h => h.Name).ToList();
+                foreach (var herst in herstellerFromDb)
+                {
+                    Hersteller.Add(herst);
+                }
+
+                Standorte.Clear();
+                var standorteFromDb = context.Standorte.ToList();
+                foreach (var standort in standorteFromDb)
+                {
+                    Standorte.Add(standort);
+                }
+
+                ApplyFilter(); // Filter anwenden
+            }
+            catch (Exception ex)
             {
-                Standorte.Add(standort);
+                LoggingService.LogException(ex, "Fehler beim Laden der Maschinendaten");
+                MessageBox.Show($"Ein Fehler ist beim Laden der Daten aufgetreten:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            ApplyFilter(); // Filter anwenden
+            // --- ENDE NEU ---
         }
 
         private void ApplyFilter()
@@ -188,7 +199,6 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void SaveMachine()
         {
-            // ... (unveränderte Logik)
             if (EditingMaschine == null ||
                 string.IsNullOrWhiteSpace(EditingMaschine.Name) ||
                 EditingMaschine.Hersteller == null ||
@@ -198,97 +208,107 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            using var context = new NcSetupContext();
-            Maschine machineToSave;
-            bool isNewMachine = EditingMaschine.MaschineID == 0;
-
-            if (isNewMachine)
+            // --- NEU: try-catch um die gesamte Datenbankoperation ---
+            try
             {
-                machineToSave = new Maschine
+                using var context = new NcSetupContext();
+                Maschine machineToSave;
+                bool isNewMachine = EditingMaschine.MaschineID == 0;
+
+                if (isNewMachine)
                 {
-                    Name = EditingMaschine.Name,
-                    Seriennummer = EditingMaschine.Seriennummer,
-                    AnzahlStationen = _pendingAnzahlStationen ?? 0,
-                    HerstellerID = EditingMaschine.Hersteller.HerstellerID,
-                    StandortID = EditingMaschine.ZugehoerigerStandort.StandortID
-                };
-                context.Maschinen.Add(machineToSave);
-                context.SaveChanges();
-
-                EditingMaschine.MaschineID = machineToSave.MaschineID;
-            }
-            else
-            {
-                machineToSave = context.Maschinen.Find(EditingMaschine.MaschineID)!;
-
-                if (machineToSave == null) return;
-
-                machineToSave.Name = EditingMaschine.Name;
-                machineToSave.Seriennummer = EditingMaschine.Seriennummer;
-                machineToSave.HerstellerID = EditingMaschine.Hersteller.HerstellerID;
-                machineToSave.StandortID = EditingMaschine.ZugehoerigerStandort.StandortID;
-
-                machineToSave.AnzahlStationen = _pendingAnzahlStationen ?? EditingMaschine.AnzahlStationen;
-            }
-
-            EditingMaschine.AnzahlStationen = machineToSave.AnzahlStationen;
-
-            if (_pendingStandardToolChanges != null)
-            {
-                var existingAssignments = context.StandardWerkzeugZuweisungen
-                    .Where(z => z.MaschineID == machineToSave.MaschineID);
-                context.StandardWerkzeugZuweisungen.RemoveRange(existingAssignments);
-
-                var toolIds = _pendingStandardToolChanges.Select(a => a.WerkzeugID).Distinct();
-
-                var minimalKategorieStub = new WerkzeugKategorie { WerkzeugKategorieID = 0, Name = "Stub" };
-                var minimalUnterkategorieStub = new WerkzeugUnterkategorie
-                {
-                    WerkzeugUnterkategorieID = 0,
-                    Name = "Stub",
-                    Kategorie = minimalKategorieStub
-                };
-
-                context.Entry(minimalKategorieStub).State = EntityState.Detached;
-                context.Entry(minimalUnterkategorieStub).State = EntityState.Detached;
-
-                foreach (var toolId in toolIds)
-                {
-                    var werkzeugStub = new Werkzeug
+                    machineToSave = new Maschine
                     {
-                        WerkzeugID = toolId,
-                        Name = "PLACEHOLDER",
-                        WerkzeugUnterkategorieID = minimalUnterkategorieStub.WerkzeugUnterkategorieID,
-                        Unterkategorie = minimalUnterkategorieStub
+                        Name = EditingMaschine.Name,
+                        Seriennummer = EditingMaschine.Seriennummer,
+                        AnzahlStationen = _pendingAnzahlStationen ?? 0,
+                        HerstellerID = EditingMaschine.Hersteller.HerstellerID,
+                        StandortID = EditingMaschine.ZugehoerigerStandort.StandortID
                     };
+                    context.Maschinen.Add(machineToSave);
+                    context.SaveChanges(); // <-- Riskanter Aufruf
 
-                    context.Werkzeuge.Attach(werkzeugStub);
-                    context.Entry(werkzeugStub).State = EntityState.Unchanged;
+                    EditingMaschine.MaschineID = machineToSave.MaschineID;
+                }
+                else
+                {
+                    machineToSave = context.Maschinen.Find(EditingMaschine.MaschineID)!;
+
+                    if (machineToSave == null) return; // Sollte nicht passieren, aber sicher ist sicher
+
+                    machineToSave.Name = EditingMaschine.Name;
+                    machineToSave.Seriennummer = EditingMaschine.Seriennummer;
+                    machineToSave.HerstellerID = EditingMaschine.Hersteller.HerstellerID;
+                    machineToSave.StandortID = EditingMaschine.ZugehoerigerStandort.StandortID;
+
+                    machineToSave.AnzahlStationen = _pendingAnzahlStationen ?? EditingMaschine.AnzahlStationen;
                 }
 
-                context.StandardWerkzeugZuweisungen.AddRange(_pendingStandardToolChanges);
-            }
+                EditingMaschine.AnzahlStationen = machineToSave.AnzahlStationen;
 
-            if (context.ChangeTracker.HasChanges())
+                if (_pendingStandardToolChanges != null)
+                {
+                    var existingAssignments = context.StandardWerkzeugZuweisungen
+                        .Where(z => z.MaschineID == machineToSave.MaschineID);
+                    context.StandardWerkzeugZuweisungen.RemoveRange(existingAssignments);
+
+                    var toolIds = _pendingStandardToolChanges.Select(a => a.WerkzeugID).Distinct();
+
+                    var minimalKategorieStub = new WerkzeugKategorie { WerkzeugKategorieID = 0, Name = "Stub" };
+                    var minimalUnterkategorieStub = new WerkzeugUnterkategorie
+                    {
+                        WerkzeugUnterkategorieID = 0,
+                        Name = "Stub",
+                        Kategorie = minimalKategorieStub
+                    };
+
+                    context.Entry(minimalKategorieStub).State = EntityState.Detached;
+                    context.Entry(minimalUnterkategorieStub).State = EntityState.Detached;
+
+                    foreach (var toolId in toolIds)
+                    {
+                        var werkzeugStub = new Werkzeug
+                        {
+                            WerkzeugID = toolId,
+                            Name = "PLACEHOLDER",
+                            WerkzeugUnterkategorieID = minimalUnterkategorieStub.WerkzeugUnterkategorieID,
+                            Unterkategorie = minimalUnterkategorieStub
+                        };
+
+                        context.Werkzeuge.Attach(werkzeugStub);
+                        context.Entry(werkzeugStub).State = EntityState.Unchanged;
+                    }
+
+                    context.StandardWerkzeugZuweisungen.AddRange(_pendingStandardToolChanges);
+                }
+
+                if (context.ChangeTracker.HasChanges())
+                {
+                    context.SaveChanges(); // <-- Riskanter Aufruf
+                }
+
+                // Diese Logik wird nur bei Erfolg ausgeführt:
+                _pendingStandardToolChanges = null;
+                _pendingAnzahlStationen = null;
+                _originalAnzahlStationen = EditingMaschine!.AnzahlStationen;
+
+                _machineToDeleteOnCancel = null;
+
+                IsInEditMode = false;
+                EditingMaschine = null;
+                LoadData();
+            }
+            catch (Exception ex)
             {
-                context.SaveChanges();
+                LoggingService.LogException(ex, "Fehler beim Speichern der Maschine");
+                MessageBox.Show($"Die Maschine konnte nicht gespeichert werden:\n{ex.Message}\n\nEin Fehlerbericht wurde in 'error_log.txt' gespeichert.", "Speicherfehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            _pendingStandardToolChanges = null;
-            _pendingAnzahlStationen = null;
-            _originalAnzahlStationen = EditingMaschine!.AnzahlStationen;
-
-            _machineToDeleteOnCancel = null;
-
-            IsInEditMode = false;
-            EditingMaschine = null;
-            LoadData();
+            // --- ENDE NEU ---
         }
 
         [RelayCommand(CanExecute = nameof(CanExecuteMachineCommand))]
         private void DeleteMachine()
         {
-            // ... (unveränderte Logik)
             if (SelectedMaschine == null) return;
 
             var result = MessageBox.Show($"Möchten Sie die Maschine '{SelectedMaschine.Name}' wirklich löschen?",
@@ -296,21 +316,30 @@ namespace NC_Setup_Assist.ViewModels
 
             if (result == MessageBoxResult.Yes)
             {
-                using var context = new NcSetupContext();
-                var machineToDelete = context.Maschinen.Find(SelectedMaschine.MaschineID);
-                if (machineToDelete != null)
+                // --- NEU: try-catch für Löschoperation ---
+                try
                 {
-                    context.Maschinen.Remove(machineToDelete);
-                    context.SaveChanges();
+                    using var context = new NcSetupContext();
+                    var machineToDelete = context.Maschinen.Find(SelectedMaschine.MaschineID);
+                    if (machineToDelete != null)
+                    {
+                        context.Maschinen.Remove(machineToDelete);
+                        context.SaveChanges(); // <-- Riskanter Aufruf
+                    }
+                    LoadData();
                 }
-                LoadData();
+                catch (Exception ex)
+                {
+                    LoggingService.LogException(ex, "Fehler beim Löschen der Maschine");
+                    MessageBox.Show($"Die Maschine konnte nicht gelöscht werden:\n{ex.Message}\n\nDies kann passieren, wenn die Maschine noch in Projekten verwendet wird.", "Löschfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                // --- ENDE NEU ---
             }
         }
 
         [RelayCommand]
         private void ManageStandardTools()
         {
-            // ... (unveränderte Logik)
             if (EditingMaschine == null ||
                 string.IsNullOrWhiteSpace(EditingMaschine.Name) ||
                 EditingMaschine.Hersteller == null ||
@@ -320,27 +349,38 @@ namespace NC_Setup_Assist.ViewModels
                 return;
             }
 
-            if (EditingMaschine.MaschineID == 0)
+            // --- NEU: try-catch für das temporäre Speichern ---
+            try
             {
-                using var context = new NcSetupContext();
+                if (EditingMaschine.MaschineID == 0)
+                {
+                    using var context = new NcSetupContext();
 
-                EditingMaschine.HerstellerID = EditingMaschine.Hersteller.HerstellerID;
-                EditingMaschine.StandortID = EditingMaschine.ZugehoerigerStandort.StandortID;
+                    EditingMaschine.HerstellerID = EditingMaschine.Hersteller.HerstellerID;
+                    EditingMaschine.StandortID = EditingMaschine.ZugehoerigerStandort.StandortID;
 
-                var tempHersteller = EditingMaschine.Hersteller;
-                var tempStandort = EditingMaschine.ZugehoerigerStandort;
+                    var tempHersteller = EditingMaschine.Hersteller;
+                    var tempStandort = EditingMaschine.ZugehoerigerStandort;
 
-                EditingMaschine.Hersteller = null!;
-                EditingMaschine.ZugehoerigerStandort = null!;
+                    EditingMaschine.Hersteller = null!;
+                    EditingMaschine.ZugehoerigerStandort = null!;
 
-                context.Maschinen.Add(EditingMaschine);
-                context.SaveChanges();
+                    context.Maschinen.Add(EditingMaschine);
+                    context.SaveChanges(); // <-- Riskanter Aufruf
 
-                EditingMaschine.Hersteller = tempHersteller;
-                EditingMaschine.ZugehoerigerStandort = tempStandort;
+                    EditingMaschine.Hersteller = tempHersteller;
+                    EditingMaschine.ZugehoerigerStandort = tempStandort;
 
-                _machineToDeleteOnCancel = EditingMaschine;
+                    _machineToDeleteOnCancel = EditingMaschine;
+                }
             }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim temporären Speichern der Maschine für Standardwerkzeuge");
+                MessageBox.Show($"Ein Fehler ist aufgetreten:\n{ex.Message}", "Speicherfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                return; // Navigation nicht ausführen, wenn Speichern fehlschlägt
+            }
+            // --- ENDE NEU ---
 
             Action<List<StandardWerkzeugZuweisung>, int> onToolsSaved = (updatedAssignments, newStationCount) =>
             {
@@ -365,17 +405,26 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void Cancel()
         {
-            // ... (unveränderte Logik)
-            if (_machineToDeleteOnCancel != null)
+            // --- NEU: try-catch für das Löschen der temporären Maschine ---
+            try
             {
-                using var context = new NcSetupContext();
-                var machineToDelete = context.Maschinen.Find(_machineToDeleteOnCancel.MaschineID);
-                if (machineToDelete != null)
+                if (_machineToDeleteOnCancel != null)
                 {
-                    context.Maschinen.Remove(machineToDelete);
-                    context.SaveChanges();
+                    using var context = new NcSetupContext();
+                    var machineToDelete = context.Maschinen.Find(_machineToDeleteOnCancel.MaschineID);
+                    if (machineToDelete != null)
+                    {
+                        context.Maschinen.Remove(machineToDelete);
+                        context.SaveChanges(); // <-- Riskanter Aufruf
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                LoggingService.LogException(ex, "Fehler beim Abbrechen/Löschen der temporären Maschine");
+                // Hier ist eine MessageBox optional, da der Benutzer abbricht.
+            }
+            // --- ENDE NEU ---
 
             if (EditingMaschine != null && EditingMaschine.MaschineID != 0)
             {
@@ -387,7 +436,7 @@ namespace NC_Setup_Assist.ViewModels
             EditingMaschine = null;
             IsInEditMode = false;
             _machineToDeleteOnCancel = null;
-            LoadData();
+            LoadData(); // LoadData hat bereits sein eigenes try-catch
         }
 
         [RelayCommand]

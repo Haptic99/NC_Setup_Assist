@@ -7,6 +7,9 @@ using System.Linq;
 using System.Windows;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Windows.Threading; // <-- NEU
+using NC_Setup_Assist.Services; // <-- NEU
+using System.IO; // <-- NEU
 
 namespace NC_Setup_Assist
 {
@@ -15,6 +18,11 @@ namespace NC_Setup_Assist
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            // --- NEU: Globalen Handler registrieren ---
+            Application.Current.DispatcherUnhandledException += App_DispatcherUnhandledException;
+            // ------------------------------------------
+
 
             using (var context = new NcSetupContext())
             {
@@ -28,7 +36,17 @@ namespace NC_Setup_Assist
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ein Fehler ist beim Initialisieren der Datenbank aufgetreten:\n{ex.Message}\n\nDie Anwendung wird möglicherweise nicht korrekt funktionieren.", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    // --- NEU: Verbessertes Fehlerhandling beim Start ---
+                    LoggingService.LogException(ex, "Kritischer Datenbank-Migrationsfehler beim Start");
+                    MessageBox.Show($"Ein kritischer Datenbankfehler ist aufgetreten:\n{ex.Message}\n\n" +
+                                    $"Ein Fehlerbericht wurde in 'error_log.txt' gespeichert.\n" +
+                                    $"Die Anwendung wird beendet.",
+                                    "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                    // Bei einem DB-Fehler beim Start ist ein Shutdown sinnvoll
+                    Application.Current.Shutdown(1);
+                    return; // Beendet die Methode hier
+                    // --- ENDE NEU ---
                 }
             }
 
@@ -39,5 +57,29 @@ namespace NC_Setup_Assist
             mainWindow.Show();
         }
 
+
+        // --- NEUE METHODE: Der globale "Safety Net"-Handler ---
+        private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            // 1. Den Fehler sofort loggen
+            LoggingService.LogException(e.Exception, "Global Unhandled Exception (Dispatcher)");
+
+            // 2. Benutzer freundlich informieren
+            MessageBox.Show(
+                "Ein unerwarteter Fehler ist aufgetreten.\n\n" +
+                "Ein Fehlerbericht wurde gespeichert in:\n" +
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error_log.txt") +
+                $"\n\nFehler: {e.Exception.Message}",
+                "Unerwarteter Fehler",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+
+            // 3. Verhindern, dass Windows den "Programm abstürzen"-Dialog zeigt
+            e.Handled = true;
+
+            // Optional: Anwendung kontrolliert beenden, um Datenkorruption zu vermeiden
+            // Application.Current.Shutdown(1);
+        }
+        // --- ENDE NEUE METHODE ---
     }
 }

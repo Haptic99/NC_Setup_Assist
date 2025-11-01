@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36414.22 d17.14
+VisualStudioVersion = 17.14.36414.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NC_Setup_Assist", "NC_Setup_Assist\NC_Setup_Assist.csproj", "{F5D743A4-E6E2-4F67-A686-9308B4F6AB04}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "NC_Setup_Assist_Installer", "NC_Setup_Assist_Installer\NC_Setup_Assist_Installer.vdproj", "{3E3AC9D0-4DB6-B20E-93D3-CF46CF3FAF73}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,8 @@ Global
 		{F5D743A4-E6E2-4F67-A686-9308B4F6AB04}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5D743A4-E6E2-4F67-A686-9308B4F6AB04}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5D743A4-E6E2-4F67-A686-9308B4F6AB04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E3AC9D0-4DB6-B20E-93D3-CF46CF3FAF73}.Debug|Any CPU.ActiveCfg = Debug
+		{3E3AC9D0-4DB6-B20E-93D3-CF46CF3FAF73}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

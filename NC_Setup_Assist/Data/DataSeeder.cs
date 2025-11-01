@@ -19,9 +19,6 @@ namespace NC_Setup_Assist.Data
                 return;
             }
 
-            // Sicherstellen, dass die Kultur für Dezimal-Parsing (z.B. "0.2") stimmt
-            System.Threading.Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-
             // --- Schritt 2: Kategorien erstellen ---
             var katDreh = new WerkzeugKategorie { Name = "Drehwerkzeuge" };
             var katFraes = new WerkzeugKategorie { Name = "Fräswerkzeuge" };
@@ -118,7 +115,7 @@ namespace NC_Setup_Assist.Data
                 foreach (var t in ParseArray("[3.0, 5.0, 8.0, 10.0, 12.0]"))
                     werkzeuge.Add(new Werkzeug { Name = $"Einstechstahl Innen B{b} Tmax{t}", Unterkategorie = subEinstechI, Breite = b, MaxStechtiefe = t });
 
-            foreach (var s in ParseArray("[0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0]"))
+            foreach (var s in ParseArray("[0.5, 0.75, 0.8, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0]"))
                 werkzeuge.Add(new Werkzeug { Name = $"Gewindedrehstahl Aussen S{s}", Unterkategorie = subGewindeDrehA, Steigung = s });
 
             foreach (var s in ParseArray("[0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0]"))

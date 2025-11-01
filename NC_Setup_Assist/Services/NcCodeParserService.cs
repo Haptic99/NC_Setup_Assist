@@ -1,11 +1,11 @@
-﻿using NC_Setup_Assist.Models;
+﻿using Microsoft.EntityFrameworkCore; // NEU
+using NC_Setup_Assist.Data; // NEU
+using NC_Setup_Assist.Models;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using NC_Setup_Assist.Data; // NEU
-using Microsoft.EntityFrameworkCore; // NEU
 
 namespace NC_Setup_Assist.Services
 {
@@ -36,7 +36,9 @@ namespace NC_Setup_Assist.Services
             string vlmon2 = string.Empty;
             bool g81 = false;
             bool g41 = false;
+            bool g42 = false;
             bool g73 = false;
+            bool g183 = false;
             bool nat = false;
             bool sb = false;
             bool spindleOn = false;
@@ -65,8 +67,10 @@ namespace NC_Setup_Assist.Services
             var g74Regex = new Regex(@"G74", RegexOptions.IgnoreCase);
             var g81Regex = new Regex(@"G81", RegexOptions.IgnoreCase);
             var g41Regex = new Regex(@"G41", RegexOptions.IgnoreCase);
+            var g42Regex = new Regex(@"G42", RegexOptions.IgnoreCase);
             var g73Regex = new Regex(@"G73", RegexOptions.IgnoreCase);
             var g87Regex = new Regex(@"G87", RegexOptions.IgnoreCase);
+            var g183Regex = new Regex(@"G183", RegexOptions.IgnoreCase);
             #endregion
 
             foreach (var line in lines)
@@ -92,19 +96,6 @@ namespace NC_Setup_Assist.Services
                 var callOlns5Match = callOlns5Regex.Match(line);
                 if (callOlns5Match.Success && !string.IsNullOrEmpty(abstechwerkzeugStangenanfang))
                 {
-                    string abstechStation = abstechwerkzeugStangenanfang.Substring(0, 2);
-                    string abstechkorrektur = abstechwerkzeugStangenanfang.Substring(2, 2);
-                    werkzeugEinsaetze.Add(new WerkzeugEinsatz
-                    {
-                        Anzahl = 1,
-                        RevolverStation = abstechStation,
-                        KorrekturNummer = (abstechStation != abstechkorrektur) ? abstechkorrektur : null,
-                        Kommentar = $"Teil abstechen",
-                        Reihenfolge = reihenfolgeCounter++,
-                        FavoritKategorie = "Drehwerkzeuge",
-                        FavoritUnterkategorie = "Einstechstahl Aussen",
-                    });
-
                     string anschlagStation = anschlagWerkzeug.Substring(0, 2);
                     string anschlagKorrektur = anschlagWerkzeug.Substring(2, 2);
                     werkzeugEinsaetze.Add(new WerkzeugEinsatz
@@ -172,48 +163,66 @@ namespace NC_Setup_Assist.Services
                     vlmon2 = vlmonMatch.Groups[2].Value;
                 }
 
+
                 var xValueMatch = xValueRegex.Match(line);
                 if (xValueMatch.Success)
                 {
                     var g71Match = g71Regex.Match(line);
                     if (g71Match.Success) // G71 (Gewinde) gefunden
-                    {
+                    {
                         var fMatch = fRegex.Match(line);
                         double currentXValue = double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture);
                         var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
 
-                        // Prüfen, ob alle nötigen Infos da sind (letztes Werkzeug, F-Wert für Steigung)
-                        if (lastTool != null && fMatch.Success)
+                        // Prüfen, ob alle nötigen Infos da sind (letztes Werkzeug, F-Wert für Steigung)
+                        if (lastTool != null && fMatch.Success)
                         {
-                            // 1. Steigung (Pitch) aus F-Wert parsen
-                            if (double.TryParse(fMatch.Groups[1].Value, System.Globalization.NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double parsedPitch))
+                            // 1. Steigung (Pitch) aus F-Wert parsen
+                            if (double.TryParse(fMatch.Groups[1].Value, System.Globalization.NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double parsedPitch))
                             {
                                 Werkzeug? foundTool = null;
 
-                                // 2. Bestimmen, ob Aussen- oder Innengewinde (basierend auf deiner X-Wert-Logik)
-                                if (currentXValue < xValue)
+                                // 2. Bestimmen, ob Aussen- oder Innengewinde (basierend auf deiner X-Wert-Logik)
+                                if (currentXValue < xValue)
                                 {
-                                    // AUSSENGEWINDE suchen
-                                    // WICHTIG: .Include(w => w.Unterkategorie.Kategorie) um beide Namen zu haben
-                                    foundTool = context.Werkzeuge
-                                        .Include(w => w.Unterkategorie.Kategorie)
-                                        .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Aussen" && w.Steigung == parsedPitch);
+                                    // AUSSENGEWINDE suchen
+                                    // WICHTIG: .Include(w => w.Unterkategorie.Kategorie) um beide Namen zu haben
+                                    foundTool = context.Werkzeuge
+                    .Include(w => w.Unterkategorie.Kategorie)
+                    .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Aussen" && w.Steigung == parsedPitch);
+
+                                    if (foundTool != null)
+                                    {
+                                        // Setze die Favoriten basierend auf dem gefundenen Werkzeug
+                                        lastTool.WerkzeugID = foundTool.WerkzeugID;
+                                        lastTool.FavoritKategorie = foundTool.Unterkategorie.Kategorie.Name; // z.B. "Drehwerkzeug"
+                                        lastTool.FavoritUnterkategorie = foundTool.Unterkategorie.Name; // z.B. "Gewindedrehstahl Aussen"
+                                    }
+                                    else
+                                    {
+                                        ; lastTool.FavoritKategorie = "Drehwerkzeuge";
+                                        lastTool.FavoritUnterkategorie = "Gewindedrehstahl Aussen";
+                                    }
                                 }
                                 else if (currentXValue >= xValue)
                                 {
-                                    // INNENGEWINDE suchen
-                                    foundTool = context.Werkzeuge
-                                        .Include(w => w.Unterkategorie.Kategorie)
-                                        .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Innen" && w.Steigung == parsedPitch);
-                                }
+                                    // INNENGEWINDE suchen
+                                    foundTool = context.Werkzeuge
+                    .Include(w => w.Unterkategorie.Kategorie)
+                    .FirstOrDefault(w => w.Unterkategorie.Name == "Gewindedrehstahl Innen" && w.Steigung == parsedPitch);
 
-                                // 3. Favoriten setzen, wenn ein Werkzeug mit EXAKT passender Steigung gefunden wurde
-                                if (foundTool != null)
-                                {
-                                    // Setze die Favoriten basierend auf dem gefundenen Werkzeug
-                                    lastTool.WerkzeugID = foundTool.WerkzeugID;
-                                    lastTool.FavoritKategorie = foundTool.Unterkategorie.Kategorie.Name; // z.B. "Drehwerkzeug"
-                                    lastTool.FavoritUnterkategorie = foundTool.Unterkategorie.Name; // z.B. "Gewindedrehstahl Aussen"
+                                    if (foundTool != null)
+                                    {
+                                        // Setze die Favoriten basierend auf dem gefundenen Werkzeug
+                                        lastTool.WerkzeugID = foundTool.WerkzeugID;
+                                        lastTool.FavoritKategorie = foundTool.Unterkategorie.Kategorie.Name; // z.B. "Drehwerkzeug"
+                                        lastTool.FavoritUnterkategorie = foundTool.Unterkategorie.Name; // z.B. "Gewindedrehstahl Aussen"
+                                    }
+                                    else
+                                    {
+                                        ; lastTool.FavoritKategorie = "Drehwerkzeuge";
+                                        lastTool.FavoritUnterkategorie = "Gewindedrehstahl Innen";
+                                    }
                                 }
                             }
                         }
@@ -221,35 +230,31 @@ namespace NC_Setup_Assist.Services
 
                     var g73Match = g73Regex.Match(line);
                     if (g73Match.Success) // G71 (Gewinde) gefunden
-                    {
+                    {
                         var fMatch = fRegex.Match(line);
                         double currentXValue = double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture);
                         var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
 
-                        // Prüfen, ob alle nötigen Infos da sind (letztes Werkzeug, F-Wert für Steigung)
-                        if (lastTool != null && fMatch.Success && spindleOn == true)
+                        // Prüfen, ob alle nötigen Infos da sind (letztes Werkzeug, F-Wert für Steigung)
+                        if (lastTool != null && fMatch.Success && spindleOn == true)
                         {
                             Werkzeug? foundTool = null;
 
-                            // 2. Bestimmen, ob Aussen- oder Innengewinde (basierend auf deiner X-Wert-Logik)
-                            if (currentXValue < xValue)
+                            // 2. Bestimmen, ob Aussen- oder Innengewinde (basierend auf deiner X-Wert-Logik)
+                            if (currentXValue < xValue)
                             {
-                                // AUSSENEINSTICH suchen
-                                ; lastTool.FavoritKategorie = "Drehwerkzeuge";
+                                // AUSSENEINSTICH suchen
+                                ; lastTool.FavoritKategorie = "Drehwerkzeuge";
                                 lastTool.FavoritUnterkategorie = "Einstechstahl Aussen";
                             }
                             else if (currentXValue >= xValue)
                             {
-                                // INNENEINSTICH suchen
-                                ; lastTool.FavoritKategorie = "Drehwerkzeuge";
+                                // INNENEINSTICH suchen
+                                ; lastTool.FavoritKategorie = "Drehwerkzeuge";
                                 lastTool.FavoritUnterkategorie = "Einstechstahl Innen";
                             }
                         }
                     }
-
-
-
-
                     xValue = double.Parse(xValueMatch.Groups[1].Value, CultureInfo.InvariantCulture);
                 }
 
@@ -260,7 +265,7 @@ namespace NC_Setup_Assist.Services
                 }
 
                 var g101Match = g101Regex.Match(line);
-                if (g101Match.Success && sb == true)
+                if (g101Match.Success && sb == true && spindleOn == false)
                 {
                     // HINZUGEFÜGT: Setze FräserAusrichtung und FavoritKategorie
                     var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
@@ -268,7 +273,18 @@ namespace NC_Setup_Assist.Services
                     {
                         lastTool.FräserAusrichtung = "←";
                         lastTool.FavoritKategorie = "Fräswerkzeuge";
-                        lastTool.FavoritUnterkategorie = null; // Es ist nur "Fräsen", nicht spezifisch
+                    }
+                }
+
+                var g183Match = g183Regex.Match(line);
+                if (g183Match.Success && sb == true && spindleOn == false)
+                {
+                    // HINZUGEFÜGT: Setze FräserAusrichtung und FavoritKategorie
+                    var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
+                    if (lastTool != null)
+                    {
+                        lastTool.FräserAusrichtung = "↓";
+                        lastTool.FavoritKategorie = "Bohrwerkzeuge";
                     }
                 }
 
@@ -324,6 +340,22 @@ namespace NC_Setup_Assist.Services
                     g41 = true;
                 }
 
+                var g42Match = g42Regex.Match(line);
+                if (g42Match.Success)
+                {
+                    g42 = true;
+                }
+
+                if (g42 == true && g81 == true && spindleOn == true)
+                {
+                    var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
+                    if (lastTool != null)
+                    {
+                        lastTool.FavoritKategorie = "Drehwerkzeuge";
+                        lastTool.FavoritUnterkategorie = "Aussendrehstahl";
+                    }
+                }
+
                 if (g41 == true && g81 == true && spindleOn == true)
                 {
                     var lastTool = werkzeugEinsaetze.LastOrDefault(w => !string.IsNullOrEmpty(w.RevolverStation));
@@ -345,6 +377,8 @@ namespace NC_Setup_Assist.Services
                     sb = false;
                     g81 = false;
                     g41 = false;
+                    g42 = false;
+                    g183 = false;
                 }
 
                 // --- ZULETZT DIE WERKZEUGVERARBEITUNG ---
@@ -392,7 +426,8 @@ namespace NC_Setup_Assist.Services
                             nat = false;
                             natAnzahl = 0;
                             g81 = false;
-                            g41 = true;
+                            g41 = false;
+                            g41 = false;
                             continue;
                         }
                         else if (lastTool != null && toolMatch.Groups[2].Value == lastTool.RevolverStation)
@@ -450,6 +485,8 @@ namespace NC_Setup_Assist.Services
                     {
                         g81 = false;
                         g41 = false;
+                        g42 = false;
+                        g183 = false;
                     }
                 }
             }

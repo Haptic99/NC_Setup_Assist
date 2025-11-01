@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using NC_Setup_Assist.Data;
+using NC_Setup_Assist.Helpers;
 using NC_Setup_Assist.Models;
 using System;
 using System.Collections.Generic;
@@ -104,21 +105,11 @@ namespace NC_Setup_Assist.ViewModels
 
         private void LoadNcFileContent()
         {
-            // Pfad aus der Benutzereingabe verwenden, wenn die Datei nicht am ursprünglichen Ort ist
-            string filePath = _currentProgramm.DateiPfad;
-            if (!File.Exists(filePath))
-            {
-                filePath = @"C:\Users\dmart\OneDrive\Arbeit\Firmen\STB Maschinenbau AG\Einrichtblatt Dreherei\Automatisch Einrichtblatt Dreherei\Programme\SC02312006.nc";
-            }
-
-            if (File.Exists(filePath))
-            {
-                NcCodeContent = File.ReadAllText(filePath);
-            }
-            else
-            {
-                NcCodeContent = $"Fehler: Die Datei konnte in keinem der Pfade gefunden werden:\n1. {_currentProgramm.DateiPfad}\n2. {filePath}";
-            }
+            // ALTE VERSION KOMPLETT ERSETZEN durch:
+            NcCodeContent = FileHelper.LoadNcFileContent(
+                _currentProgramm.DateiPfad,
+                _currentProgramm.Bezeichnung
+            );
         }
 
         private void LoadWerkzeugEinsaetze()
@@ -127,10 +118,12 @@ namespace NC_Setup_Assist.ViewModels
             using var context = new NcSetupContext();
 
             // 1. Lade Standardwerkzeuge der Maschine in einen Lookup
+            // --- ÄNDERUNG 1: .ThenInclude(u => u.Kategorie) hinzugefügt ---
             var standardTools = context.StandardWerkzeugZuweisungen
                                         .Where(z => z.MaschineID == _currentProgramm.MaschineID)
                                         .Include(z => z.ZugehoerigesWerkzeug)
                                             .ThenInclude(w => w!.Unterkategorie)
+                                                .ThenInclude(u => u.Kategorie) // <-- HIER ERWEITERT
                                         .ToList();
 
             // Erstelle ein Lookup (Schlüssel: RevolverStation als string "1", "2", ...)
@@ -142,11 +135,13 @@ namespace NC_Setup_Assist.ViewModels
 
 
             // 2. Lade die durch den Parser gefundenen Werkzeugeinsätze
+            // --- (Optionale, aber empfohlene) ÄNDERUNG: Auch hier .ThenInclude(u => u.Kategorie) hinzugefügt ---
             var einsaetzeFromDb = context.WerkzeugEinsaetze
                                         .Where(e => e.NCProgrammID == _currentProgramm.NCProgrammID)
                                         // Laden Sie das Werkzeug, falls es schon manuell zugewiesen wurde
                                         .Include(e => e.ZugehoerigesWerkzeug)
                                             .ThenInclude(w => w!.Unterkategorie)
+                                                .ThenInclude(u => u.Kategorie) // <-- HIER ERWEITERT
                                         .OrderBy(e => e.Reihenfolge)
                                         .ToList();
 
@@ -160,11 +155,22 @@ namespace NC_Setup_Assist.ViewModels
                     // Versuche, das passende Standardwerkzeug zu finden
                     // Der RevolverStation-String des Parsers kann z.B. "01" oder "1" sein. Wir trimmen führende Nullen für den Match mit dem Int-Key.
                     string stationKey = einsatz.RevolverStation.TrimStart('0');
+
+                    // --- ÄNDERUNG 2: Logik in diesem if-Block erweitert ---
                     if (standardToolLookup.TryGetValue(stationKey, out var stdToolAssignment))
                     {
                         // Standardwerkzeug gefunden -> Verknüpfung in memory setzen
                         // Der WerkzeugID-Wert in der Datenbank bleibt NULL, solange der Benutzer das Werkzeug nicht manuell zuweist.
                         einsatz.ZugehoerigesWerkzeug = stdToolAssignment.ZugehoerigesWerkzeug;
+
+                        // --- NEU: Favoriten-Vorschläge vom Standardwerkzeug übernehmen ---
+                        if (einsatz.ZugehoerigesWerkzeug != null && einsatz.ZugehoerigesWerkzeug.Unterkategorie != null)
+                        {
+                            // Durch .ThenInclude(u => u.Kategorie) in der Query oben ist .Kategorie jetzt verfügbar
+                            einsatz.FavoritKategorie = einsatz.ZugehoerigesWerkzeug.Unterkategorie.Kategorie?.Name;
+                            einsatz.FavoritUnterkategorie = einsatz.ZugehoerigesWerkzeug.Unterkategorie.Name;
+                        }
+                        // --- ENDE NEU ---
                     }
                 }
 

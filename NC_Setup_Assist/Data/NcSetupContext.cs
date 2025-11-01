@@ -19,11 +19,34 @@ namespace NC_Setup_Assist.Data
         public DbSet<Hersteller> Hersteller { get; set; } = null!;
         public DbSet<StandardWerkzeugZuweisung> StandardWerkzeugZuweisungen { get; set; } = null!;
 
+        // --- HILFSMETHODE FÜR DEN PFAD ---
+        private static string GetAppDataPath(string fileName)
+        {
+            string appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string appSpecificDir = Path.Combine(appDataDir, "NC_Setup_Assist");
+
+            // Sicherstellen, dass das Verzeichnis existiert
+            if (!Directory.Exists(appSpecificDir))
+            {
+                Directory.CreateDirectory(appSpecificDir);
+            }
+
+            return Path.Combine(appSpecificDir, fileName);
+        }
+
+        // Öffentliche Eigenschaft, damit andere Teile der App den Pfad finden können
+        public static string DatabasePath => GetAppDataPath("nc_setup.db");
+        // ----------------------------------
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            // Stellt sicher, dass die Datenbank im Anwendungsordner gespeichert wird
-            string dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nc_setup.db");
+            // --- ÄNDERUNG HIER ---
+            // Stellt sicher, dass die Datenbank im lokalen AppData-Ordner gespeichert wird
+            // string dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nc_setup.db"); // ALT
+
+            string dbPath = DatabasePath; // NEU
             optionsBuilder.UseSqlite($"Data Source={dbPath}");
+            // --- ENDE ÄNDERUNG ---
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

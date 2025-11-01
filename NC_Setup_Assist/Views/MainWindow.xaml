@@ -7,95 +7,97 @@
         xmlns:views="clr-namespace:NC_Setup_Assist.Views"
         xmlns:viewmodels="clr-namespace:NC_Setup_Assist.ViewModels"
         mc:Ignorable="d"
-        Title="NC-Setup-Assist" 
-        
+        Title="NC-Setup-Assist"
+        Icon="/NC_Setup_Assist.ico"
+
         WindowState="Maximized">
 
-    <Window.DataContext>
-        <viewmodels:MainViewModel/>
-    </Window.DataContext>
+<Window.DataContext>
+    <viewmodels:MainViewModel/>
+</Window.DataContext>
 
-    <Window.Resources>
-        <DataTemplate DataType="{x:Type viewmodels:MainMenuViewModel}">
-            <views:MainMenuView/>
-        </DataTemplate>
+<Window.Resources>
+    <DataTemplate DataType="{x:Type viewmodels:MainMenuViewModel}">
+        <views:MainMenuView/>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:SettingsDashboardViewModel}">
-            <views:SettingsDashboardView/>
-        </DataTemplate>
+    <DataTemplate DataType="{x:Type viewmodels:SettingsDashboardViewModel}">
+        <views:SettingsDashboardView/>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:ToolManagementViewModel}">
+    <DataTemplate DataType="{x:Type viewmodels:ToolManagementViewModel}">
 
-            <views:ToolManagementView/>
-        </DataTemplate>
+        <views:ToolManagementView/>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:NewProjectViewModel}">
-            <views:NewProjectView/>
-        </DataTemplate>
+    <DataTemplate DataType="{x:Type viewmodels:NewProjectViewModel}">
+        <views:NewProjectView/>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:AnalysisViewModel}">
-            <views:AnalysisView/>
-        </DataTemplate>
+    <DataTemplate DataType="{x:Type viewmodels:AnalysisViewModel}">
+        <views:AnalysisView/>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:MachineManagementViewModel}">
-            <views:MachineManagementView/>
+    <DataTemplate DataType="{x:Type viewmodels:MachineManagementViewModel}">
+        <views:MachineManagementView/>
 
-        </DataTemplate>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:AddMachineViewModel}">
-            <views:AddMachineView/>
-        </DataTemplate>
+    <DataTemplate DataType="{x:Type 
+viewmodels:AddMachineViewModel}">
+        <views:AddMachineView/>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:HerstellerManagementViewModel}">
-            <views:HerstellerManagementView/>
-        </DataTemplate>
+    <DataTemplate DataType="{x:Type viewmodels:HerstellerManagementViewModel}">
+        <views:HerstellerManagementView/>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:KategorieManagementViewModel}">
-            <views:KategorieManagementView/>
-        </DataTemplate>
+    <DataTemplate DataType="{x:Type viewmodels:KategorieManagementViewModel}">
+        <views:KategorieManagementView/>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type 
+    <DataTemplate DataType="{x:Type 
 viewmodels:UnterkategorieManagementViewModel}">
-            <views:UnterkategorieManagementView/>
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type viewmodels:StandardToolsManagementViewModel}">
-            <views:StandardToolsManagementView/>
-        </DataTemplate>
+        <views:UnterkategorieManagementView/>
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type viewmodels:StandardToolsManagementViewModel}">
+        <views:StandardToolsManagementView/>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:StandortManagementViewModel}">
-            <views:StandortManagementView/>
-        </DataTemplate>
+    <DataTemplate DataType="{x:Type viewmodels:StandortManagementViewModel}">
+        <views:StandortManagementView/>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:ToolAssignmentComparisonViewModel}">
+    <DataTemplate DataType="{x:Type viewmodels:ToolAssignmentComparisonViewModel}">
 
-            <views:ToolAssignmentComparisonView/>
-        </DataTemplate>
+        <views:ToolAssignmentComparisonView/>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:ProjectManagementViewModel}">
-            <views:ProjectManagementView/>
-        </DataTemplate>
+    <DataTemplate DataType="{x:Type viewmodels:ProjectManagementViewModel}">
+        <views:ProjectManagementView/>
+    </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewmodels:AboutViewModel}">
-            <views:AboutView/>
-        </DataTemplate>
+    <DataTemplate DataType="{x:Type viewmodels:AboutViewModel}">
+        <views:AboutView/>
+    </DataTemplate>
 
-    </Window.Resources>
+</Window.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
+<Grid>
+    <Grid.RowDefinitions>
 
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
 
-        <ContentControl Grid.Row="0" Content="{Binding CurrentViewModel}" Margin="10"/>
+    <ContentControl Grid.Row="0" Content="{Binding CurrentViewModel}" Margin="10"/>
 
-        <Button Grid.Row="1" 
+    <Button Grid.Row="1" 
                 Content="Zurück" 
                 Command="{Binding NavigateBackCommand}" 
-               
+                
  HorizontalAlignment="Right" 
-                Margin="10" 
+Margin="10" 
                 Width="100"/>
-    </Grid>
+</Grid>
 </Window>

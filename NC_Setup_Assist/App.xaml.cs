@@ -37,11 +37,13 @@ namespace NC_Setup_Assist
                 catch (Exception ex)
                 {
                     // --- NEU: Verbessertes Fehlerhandling beim Start ---
+                    // --- ÄNDERUNG HIER: Verwende LoggingService.LogFilePath ---
                     LoggingService.LogException(ex, "Kritischer Datenbank-Migrationsfehler beim Start");
                     MessageBox.Show($"Ein kritischer Datenbankfehler ist aufgetreten:\n{ex.Message}\n\n" +
-                                    $"Ein Fehlerbericht wurde in 'error_log.txt' gespeichert.\n" +
+                                    $"Ein Fehlerbericht wurde in '{LoggingService.LogFilePath}' gespeichert.\n" + // NEU
                                     $"Die Anwendung wird beendet.",
                                     "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    // --- ENDE ÄNDERUNG ---
 
                     // Bei einem DB-Fehler beim Start ist ein Shutdown sinnvoll
                     Application.Current.Shutdown(1);
@@ -64,15 +66,17 @@ namespace NC_Setup_Assist
             // 1. Den Fehler sofort loggen
             LoggingService.LogException(e.Exception, "Global Unhandled Exception (Dispatcher)");
 
+            // --- ÄNDERUNG HIER: Verwende LoggingService.LogFilePath ---
             // 2. Benutzer freundlich informieren
             MessageBox.Show(
                 "Ein unerwarteter Fehler ist aufgetreten.\n\n" +
                 "Ein Fehlerbericht wurde gespeichert in:\n" +
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error_log.txt") +
+                LoggingService.LogFilePath + // NEU
                 $"\n\nFehler: {e.Exception.Message}",
                 "Unerwarteter Fehler",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
+            // --- ENDE ÄNDERUNG ---
 
             // 3. Verhindern, dass Windows den "Programm abstürzen"-Dialog zeigt
             e.Handled = true;

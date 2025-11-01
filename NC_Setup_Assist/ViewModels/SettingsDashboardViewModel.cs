@@ -6,13 +6,19 @@ using System; // <-- NEU
 using System.Diagnostics; // <-- NEU
 using System.IO; // <-- NEU
 using System.Windows; // <-- NEU
+// --- NEUER IMPORT ---
+using NC_Setup_Assist.Data;
 
 namespace NC_Setup_Assist.ViewModels
 {
     public partial class SettingsDashboardViewModel : ViewModelBase
     {
         private readonly MainViewModel _mainViewModel;
-        private readonly string _dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nc_setup.db"); // <-- NEU
+
+        // --- ÄNDERUNG HIER ---
+        // private readonly string _dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nc_setup.db"); // ALT
+        private readonly string _dbPath = NcSetupContext.DatabasePath; // NEU
+        // --- ENDE ÄNDERUNG ---
 
         public SettingsDashboardViewModel(MainViewModel mainViewModel)
         {

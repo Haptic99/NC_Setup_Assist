@@ -21,7 +21,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_67C2BC8A4DB74AEB8B2A456D5671FFCE"
+        "MsmKey" = "8:_76893C4FB8834319A0EC7429B14DDBEE"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -34,12 +34,6 @@
         "Entry"
         {
         "MsmKey" = "8:_EA873AE90C25436FABBF0C0539A8DE2B"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_F2CEFA7F3C0948EB8CD8EC3709A79A82"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -160,26 +154,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_67C2BC8A4DB74AEB8B2A456D5671FFCE"
-            {
-            "SourcePath" = "8:..\\..\\..\\..\\Downloads\\Logo.ico"
-            "TargetName" = "8:Logo.ico"
-            "Tag" = "8:"
-            "Folder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A9F4EF4F51A34EC39DAE55C42DE356E8"
             {
             "SourcePath" = "8:..\\NC_Setup_Assist\\bin\\Debug\\net8.0-windows\\runtimes\\win-x64\\native\\e_sqlite3.dll"
@@ -187,37 +161,6 @@
             "Tag" = "8:"
             "Folder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
             "Condition" = "8:VersionNT64"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_F2CEFA7F3C0948EB8CD8EC3709A79A82"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:System.Diagnostics.DiagnosticSource, Version=9.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_F2CEFA7F3C0948EB8CD8EC3709A79A82"
-                    {
-                    "Name" = "8:System.Diagnostics.DiagnosticSource.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:..\\NC_Setup_Assist\\bin\\Debug\\net8.0-windows\\System.Diagnostics.DiagnosticSource.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
-            "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
             "ReadOnly" = "11:FALSE"
@@ -288,7 +231,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:NC Setup Assist"
         "ProductCode" = "8:{DBF3D178-73DC-4D4E-B6AD-3F253DF42E96}"
-        "PackageCode" = "8:{ADE8D6C8-CB54-419E-ACC3-579A6B67B0DB}"
+        "PackageCode" = "8:{9D390E6F-E1B0-4E7D-96A8-04F8F02DD22A}"
         "UpgradeCode" = "8:{E0158803-FEFF-4509-94A0-4F036E1FB98B}"
         "AspNetVersion" = "8:"
         "RestartWWWService" = "11:FALSE"
@@ -414,12 +357,12 @@
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
-            "IconIndex" = "3:0"
+            "IconIndex" = "3:32512"
             "Transitive" = "11:FALSE"
             "Target" = "8:_EA873AE90C25436FABBF0C0539A8DE2B"
             "Folder" = "8:_8ED9F9FA9566444EB4FAB30874346C4A"
             "WorkingFolder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
-            "Icon" = "8:_67C2BC8A4DB74AEB8B2A456D5671FFCE"
+            "Icon" = "8:_76893C4FB8834319A0EC7429B14DDBEE"
             "Feature" = "8:"
             }
         }
@@ -821,6 +764,34 @@
         }
         "ProjectOutput"
         {
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_76893C4FB8834319A0EC7429B14DDBEE"
+            {
+            "SourcePath" = "8:..\\NC_Setup_Assist\\obj\\Release\\net8.0-windows\\NC_Setup_Assist.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:Built"
+            "OutputProjectGuid" = "8:{F5D743A4-E6E2-4F67-A686-9308B4F6AB04}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_EA873AE90C25436FABBF0C0539A8DE2B"
             {
             "SourcePath" = "8:..\\NC_Setup_Assist\\obj\\Release\\net8.0-windows\\apphost.exe"
@@ -843,6 +814,34 @@
             "ProjectOutputGroupRegister" = "3:1"
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:PublishItems"
+            "OutputProjectGuid" = "8:{F5D743A4-E6E2-4F67-A686-9308B4F6AB04}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_F064558A77494BE38DA428AAAC55EE2F"
+            {
+            "SourcePath" = "8:"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:LocalizedResourceDlls"
             "OutputProjectGuid" = "8:{F5D743A4-E6E2-4F67-A686-9308B4F6AB04}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"

@@ -15,13 +15,13 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_94C072EB0734408E87DA3A4AFB51D486"
+        "MsmKey" = "8:_2FA2DF2B5469484E9C319A320A533C42"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_A11A51EC8AE84B9A8EA42AFBBC5FFBE7"
+        "MsmKey" = "8:_A9F4EF4F51A34EC39DAE55C42DE356E8"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -62,6 +62,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
             }
         }
         "Release"
@@ -126,13 +134,13 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_94C072EB0734408E87DA3A4AFB51D486"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2FA2DF2B5469484E9C319A320A533C42"
             {
-            "SourcePath" = "8:..\\NC_Setup_Assist\\bin\\Release\\net8.0-windows\\runtimes\\win-x86\\native\\e_sqlite3.dll"
+            "SourcePath" = "8:..\\NC_Setup_Assist\\bin\\Debug\\net8.0-windows\\runtimes\\win-x86\\native\\e_sqlite3.dll"
             "TargetName" = "8:e_sqlite3.dll"
             "Tag" = "8:"
-            "Folder" = "8:_69735105B5B7472F8F862F964B8F5355"
-            "Condition" = "8:"
+            "Folder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
+            "Condition" = "8:NOT VersionNT64"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
             "ReadOnly" = "11:FALSE"
@@ -146,13 +154,13 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A11A51EC8AE84B9A8EA42AFBBC5FFBE7"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A9F4EF4F51A34EC39DAE55C42DE356E8"
             {
-            "SourcePath" = "8:..\\NC_Setup_Assist\\bin\\Release\\net8.0-windows\\runtimes\\win-x64\\native\\e_sqlite3.dll"
+            "SourcePath" = "8:..\\NC_Setup_Assist\\bin\\Debug\\net8.0-windows\\runtimes\\win-x64\\native\\e_sqlite3.dll"
             "TargetName" = "8:e_sqlite3.dll"
             "Tag" = "8:"
-            "Folder" = "8:_6D9F782F7FED43CEAAF5D5DCC5C2FC0B"
-            "Condition" = "8:"
+            "Folder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
+            "Condition" = "8:VersionNT64"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
             "ReadOnly" = "11:FALSE"
@@ -235,61 +243,6 @@
             "Property" = "8:TARGETDIR"
                 "Folders"
                 {
-                    "{9EF0B969-E518-4E46-987F-47570745A589}:_41F0514136604C4799CE459DC76AC8F4"
-                    {
-                    "Name" = "8:runtimes"
-                    "AlwaysCreate" = "11:FALSE"
-                    "Condition" = "8:"
-                    "Transitive" = "11:FALSE"
-                    "Property" = "8:_C836BA120F1E464383C52F02CC4AD35F"
-                        "Folders"
-                        {
-                            "{9EF0B969-E518-4E46-987F-47570745A589}:_11892E3BB6E0464C944A34266F9686C0"
-                            {
-                            "Name" = "8:win-x86"
-                            "AlwaysCreate" = "11:FALSE"
-                            "Condition" = "8:"
-                            "Transitive" = "11:FALSE"
-                            "Property" = "8:_D889833EDAD7475E85663488144D2335"
-                                "Folders"
-                                {
-                                    "{9EF0B969-E518-4E46-987F-47570745A589}:_69735105B5B7472F8F862F964B8F5355"
-                                    {
-                                    "Name" = "8:native"
-                                    "AlwaysCreate" = "11:FALSE"
-                                    "Condition" = "8:"
-                                    "Transitive" = "11:FALSE"
-                                    "Property" = "8:_4059AFC587974D8696EAEE5943CD0694"
-                                        "Folders"
-                                        {
-                                        }
-                                    }
-                                }
-                            }
-                            "{9EF0B969-E518-4E46-987F-47570745A589}:_7263B7CCA1754A6EB1029334B09AD840"
-                            {
-                            "Name" = "8:win-x64"
-                            "AlwaysCreate" = "11:FALSE"
-                            "Condition" = "8:"
-                            "Transitive" = "11:FALSE"
-                            "Property" = "8:_96654445CBDE493FAA5EF1D14373425E"
-                                "Folders"
-                                {
-                                    "{9EF0B969-E518-4E46-987F-47570745A589}:_6D9F782F7FED43CEAAF5D5DCC5C2FC0B"
-                                    {
-                                    "Name" = "8:native"
-                                    "AlwaysCreate" = "11:FALSE"
-                                    "Condition" = "8:"
-                                    "Transitive" = "11:FALSE"
-                                    "Property" = "8:_B0EC3D9749BD4CADA47CD47117850DB3"
-                                        "Folders"
-                                        {
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }

@@ -21,6 +21,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_39576A892EDB4D2880DF9C627C2BA64D"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_A9F4EF4F51A34EC39DAE55C42DE356E8"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -154,6 +160,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_39576A892EDB4D2880DF9C627C2BA64D"
+            {
+            "SourcePath" = "8:..\\NC_Setup_Assist\\NC_Setup_Assist.ico"
+            "TargetName" = "8:NC_Setup_Assist.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A9F4EF4F51A34EC39DAE55C42DE356E8"
             {
             "SourcePath" = "8:..\\NC_Setup_Assist\\bin\\Debug\\net8.0-windows\\runtimes\\win-x64\\native\\e_sqlite3.dll"
@@ -262,7 +288,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:NC_Setup_Assist_Installer"
         "ProductCode" = "8:{DBF3D178-73DC-4D4E-B6AD-3F253DF42E96}"
-        "PackageCode" = "8:{6B9C1866-8679-4DE9-9F22-D82A4DF8B105}"
+        "PackageCode" = "8:{873D02D4-0DB0-49F9-8A8B-1EC5163DC896}"
         "UpgradeCode" = "8:{E0158803-FEFF-4509-94A0-4F036E1FB98B}"
         "AspNetVersion" = "8:"
         "RestartWWWService" = "11:FALSE"
@@ -393,7 +419,7 @@
             "Target" = "8:_EA873AE90C25436FABBF0C0539A8DE2B"
             "Folder" = "8:_8ED9F9FA9566444EB4FAB30874346C4A"
             "WorkingFolder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
-            "Icon" = "8:"
+            "Icon" = "8:_39576A892EDB4D2880DF9C627C2BA64D"
             "Feature" = "8:"
             }
         }

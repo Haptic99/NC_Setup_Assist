@@ -21,7 +21,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_39576A892EDB4D2880DF9C627C2BA64D"
+        "MsmKey" = "8:_67C2BC8A4DB74AEB8B2A456D5671FFCE"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -160,10 +160,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_39576A892EDB4D2880DF9C627C2BA64D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_67C2BC8A4DB74AEB8B2A456D5671FFCE"
             {
-            "SourcePath" = "8:..\\NC_Setup_Assist\\NC_Setup_Assist.ico"
-            "TargetName" = "8:NC_Setup_Assist.ico"
+            "SourcePath" = "8:..\\..\\..\\..\\Downloads\\Logo.ico"
+            "TargetName" = "8:Logo.ico"
             "Tag" = "8:"
             "Folder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
             "Condition" = "8:"
@@ -288,7 +288,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:NC Setup Assist"
         "ProductCode" = "8:{DBF3D178-73DC-4D4E-B6AD-3F253DF42E96}"
-        "PackageCode" = "8:{873D02D4-0DB0-49F9-8A8B-1EC5163DC896}"
+        "PackageCode" = "8:{ADE8D6C8-CB54-419E-ACC3-579A6B67B0DB}"
         "UpgradeCode" = "8:{E0158803-FEFF-4509-94A0-4F036E1FB98B}"
         "AspNetVersion" = "8:"
         "RestartWWWService" = "11:FALSE"
@@ -419,7 +419,7 @@
             "Target" = "8:_EA873AE90C25436FABBF0C0539A8DE2B"
             "Folder" = "8:_8ED9F9FA9566444EB4FAB30874346C4A"
             "WorkingFolder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
-            "Icon" = "8:_39576A892EDB4D2880DF9C627C2BA64D"
+            "Icon" = "8:_67C2BC8A4DB74AEB8B2A456D5671FFCE"
             "Feature" = "8:"
             }
         }

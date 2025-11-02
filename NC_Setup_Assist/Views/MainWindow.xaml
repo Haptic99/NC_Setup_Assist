@@ -8,7 +8,7 @@
         xmlns:viewmodels="clr-namespace:NC_Setup_Assist.ViewModels"
         mc:Ignorable="d"
         Title="NC-Setup-Assist"
-        Icon="/NC_Setup_Assist.ico"
+        Icon="/Logo.ico"
 
         WindowState="Maximized">
 

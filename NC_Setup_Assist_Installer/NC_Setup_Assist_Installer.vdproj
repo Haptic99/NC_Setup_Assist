@@ -286,7 +286,7 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:NC_Setup_Assist_Installer"
+        "ProductName" = "8:NC Setup Assist"
         "ProductCode" = "8:{DBF3D178-73DC-4D4E-B6AD-3F253DF42E96}"
         "PackageCode" = "8:{873D02D4-0DB0-49F9-8A8B-1EC5163DC896}"
         "UpgradeCode" = "8:{E0158803-FEFF-4509-94A0-4F036E1FB98B}"
@@ -410,7 +410,7 @@
         {
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_B089712529A24BFE9DDC30E252285C45"
             {
-            "Name" = "8:NC-Setup-Assist"
+            "Name" = "8:NC Setup Assist"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"

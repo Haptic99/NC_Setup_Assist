@@ -15,19 +15,7 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_2FA2DF2B5469484E9C319A320A533C42"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_76893C4FB8834319A0EC7429B14DDBEE"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_A9F4EF4F51A34EC39DAE55C42DE356E8"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -134,46 +122,6 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2FA2DF2B5469484E9C319A320A533C42"
-            {
-            "SourcePath" = "8:..\\NC_Setup_Assist\\bin\\Debug\\net8.0-windows\\runtimes\\win-x86\\native\\e_sqlite3.dll"
-            "TargetName" = "8:e_sqlite3.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
-            "Condition" = "8:NOT VersionNT64"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A9F4EF4F51A34EC39DAE55C42DE356E8"
-            {
-            "SourcePath" = "8:..\\NC_Setup_Assist\\bin\\Debug\\net8.0-windows\\runtimes\\win-x64\\native\\e_sqlite3.dll"
-            "TargetName" = "8:e_sqlite3.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_DEC1C4038CD14DFABA8E032729A07B5C"
-            "Condition" = "8:VersionNT64"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
         }
         "FileType"
         {
@@ -231,7 +179,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:NC Setup Assist"
         "ProductCode" = "8:{DBF3D178-73DC-4D4E-B6AD-3F253DF42E96}"
-        "PackageCode" = "8:{9D390E6F-E1B0-4E7D-96A8-04F8F02DD22A}"
+        "PackageCode" = "8:{BCE247CB-817C-49D4-BA2A-2BE07381D320}"
         "UpgradeCode" = "8:{E0158803-FEFF-4509-94A0-4F036E1FB98B}"
         "AspNetVersion" = "8:"
         "RestartWWWService" = "11:FALSE"

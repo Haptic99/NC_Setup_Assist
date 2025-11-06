@@ -6,98 +6,132 @@
         xmlns:local="clr-namespace:NC_Setup_Assist"
         xmlns:views="clr-namespace:NC_Setup_Assist.Views"
         xmlns:viewmodels="clr-namespace:NC_Setup_Assist.ViewModels"
+        xmlns:converters="clr-namespace:NC_Setup_Assist.Converters"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="NC-Setup-Assist"
         Icon="/Logo.ico"
+        WindowState="Maximized"
+        Background="#F1F5F9">
+    <Window.DataContext>
+        <viewmodels:MainViewModel/>
+    </Window.DataContext>
 
-        WindowState="Maximized">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type viewmodels:MainMenuViewModel}">
+            <views:MainMenuView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:SettingsDashboardViewModel}">
+            <views:SettingsDashboardView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:ToolManagementViewModel}">
+            <views:ToolManagementView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:NewProjectViewModel}">
+            <views:NewProjectView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:AnalysisViewModel}">
+            <views:AnalysisView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:MachineManagementViewModel}">
+            <views:MachineManagementView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:AddMachineViewModel}">
+            <views:AddMachineView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:HerstellerManagementViewModel}">
+            <views:HerstellerManagementView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:KategorieManagementViewModel}">
+            <views:KategorieManagementView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:UnterkategorieManagementViewModel}">
+            <views:UnterkategorieManagementView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:StandardToolsManagementViewModel}">
+            <views:StandardToolsManagementView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:StandortManagementViewModel}">
+            <views:StandortManagementView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:ToolAssignmentComparisonViewModel}">
+            <views:ToolAssignmentComparisonView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:ProjectManagementViewModel}">
+            <views:ProjectManagementView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:AboutViewModel}">
+            <views:AboutView/>
+        </DataTemplate>
 
-<Window.DataContext>
-    <viewmodels:MainViewModel/>
-</Window.DataContext>
+        <converters:StringEqualsConverter x:Key="StringEqualsConverter" />
 
-<Window.Resources>
-    <DataTemplate DataType="{x:Type viewmodels:MainMenuViewModel}">
-        <views:MainMenuView/>
-    </DataTemplate>
+    </Window.Resources>
 
-    <DataTemplate DataType="{x:Type viewmodels:SettingsDashboardViewModel}">
-        <views:SettingsDashboardView/>
-    </DataTemplate>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="260"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-    <DataTemplate DataType="{x:Type viewmodels:ToolManagementViewModel}">
+        <Border Grid.Column="0" Background="{StaticResource SidebarBackgroundBrush}">
+            <DockPanel>
 
-        <views:ToolManagementView/>
-    </DataTemplate>
+                <Border DockPanel.Dock="Top" 
+                    BorderBrush="{StaticResource SidebarBorderBrush}" 
+                    BorderThickness="0,0,0,1" 
+                    Padding="20">
+                    <StackPanel>
+                        <TextBlock Text="NC-Setup-Assist" 
+                               Foreground="White" 
+                               FontSize="20" 
+                               FontWeight="Bold"/>
+                        <TextBlock Text="Maschinen Setup" 
+                               Foreground="{StaticResource SidebarForegroundBrush}" 
+                               FontSize="12"/>
+                    </StackPanel>
+                </Border>
 
-    <DataTemplate DataType="{x:Type viewmodels:NewProjectViewModel}">
-        <views:NewProjectView/>
-    </DataTemplate>
+                <Button DockPanel.Dock="Bottom" 
+                    Content="Zurück" 
+                    Command="{Binding NavigateBackCommand}" 
+                    Style="{StaticResource SidebarSecondaryButton}"
+                    Margin="15"/>
 
-    <DataTemplate DataType="{x:Type viewmodels:AnalysisViewModel}">
-        <views:AnalysisView/>
-    </DataTemplate>
+                <StackPanel DockPanel.Dock="Top" Margin="10">
+                    <RadioButton Style="{StaticResource SidebarRadioButtonStyle}"
+                             Command="{Binding NavigateDashboardCommand}"
+                             IsChecked="{Binding ActiveViewName, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Dashboard'}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="ViewDashboard" Style="{StaticResource SidebarIconStyle}"/>
+                            <TextBlock Text="Dashboard" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </RadioButton>
 
-    <DataTemplate DataType="{x:Type viewmodels:MachineManagementViewModel}">
-        <views:MachineManagementView/>
+                    <RadioButton Style="{StaticResource SidebarRadioButtonStyle}"
+                             Command="{Binding NavigateProjectsCommand}"
+                             IsChecked="{Binding ActiveViewName, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Projects'}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Folder" Style="{StaticResource SidebarIconStyle}"/>
+                            <TextBlock Text="Projekte" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </RadioButton>
 
-    </DataTemplate>
+                    <RadioButton Style="{StaticResource SidebarRadioButtonStyle}"
+                             Command="{Binding NavigateSettingsCommand}"
+                             IsChecked="{Binding ActiveViewName, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Settings'}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Cog" Style="{StaticResource SidebarIconStyle}"/>
+                            <TextBlock Text="Einstellungen" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+            </DockPanel>
+        </Border>
 
-    <DataTemplate DataType="{x:Type 
-viewmodels:AddMachineViewModel}">
-        <views:AddMachineView/>
-    </DataTemplate>
+        <ContentControl Grid.Column="1" 
+                    Content="{Binding CurrentViewModel}" 
+                    Margin="10"/>
 
-    <DataTemplate DataType="{x:Type viewmodels:HerstellerManagementViewModel}">
-        <views:HerstellerManagementView/>
-    </DataTemplate>
-
-    <DataTemplate DataType="{x:Type viewmodels:KategorieManagementViewModel}">
-        <views:KategorieManagementView/>
-    </DataTemplate>
-
-    <DataTemplate DataType="{x:Type 
-viewmodels:UnterkategorieManagementViewModel}">
-        <views:UnterkategorieManagementView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type viewmodels:StandardToolsManagementViewModel}">
-        <views:StandardToolsManagementView/>
-    </DataTemplate>
-
-    <DataTemplate DataType="{x:Type viewmodels:StandortManagementViewModel}">
-        <views:StandortManagementView/>
-    </DataTemplate>
-
-    <DataTemplate DataType="{x:Type viewmodels:ToolAssignmentComparisonViewModel}">
-
-        <views:ToolAssignmentComparisonView/>
-    </DataTemplate>
-
-    <DataTemplate DataType="{x:Type viewmodels:ProjectManagementViewModel}">
-        <views:ProjectManagementView/>
-    </DataTemplate>
-
-    <DataTemplate DataType="{x:Type viewmodels:AboutViewModel}">
-        <views:AboutView/>
-    </DataTemplate>
-
-</Window.Resources>
-
-<Grid>
-    <Grid.RowDefinitions>
-
-        <RowDefinition Height="*"/>
-        <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
-
-    <ContentControl Grid.Row="0" Content="{Binding CurrentViewModel}" Margin="10"/>
-
-    <Button Grid.Row="1" 
-                Content="Zurück" 
-                Command="{Binding NavigateBackCommand}" 
-                
- HorizontalAlignment="Right" 
-Margin="10" 
-                Width="100"/>
-</Grid>
+    </Grid>
 </Window>

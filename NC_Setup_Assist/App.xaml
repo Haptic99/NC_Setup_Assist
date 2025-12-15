@@ -6,191 +6,25 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Blue.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Blue.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/MaterialDesignColor.Indigo.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/MaterialDesignColor.Lime.xaml" />
+                <ResourceDictionary Source="/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-            <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#1e293b" />
-            <SolidColorBrush x:Key="SidebarForegroundBrush" Color="#cbd5e1" />
-            <SolidColorBrush x:Key="SidebarBorderBrush" Color="#334155" />
-            <SolidColorBrush x:Key="SidebarHoverBrush" Color="#334155" />
-            <SolidColorBrush x:Key="SidebarActiveBrush" Color="#2563eb" />
-            <SolidColorBrush x:Key="SidebarActiveForegroundBrush" Color="White" />
-
-            <Style x:Key="HeaderTextStyle" TargetType="{x:Type TextBlock}">
-                <Setter Property="FontSize" Value="16"/>
-                <Setter Property="FontWeight" Value="Bold"/>
-                <Setter Property="Margin" Value="0,0,0,10"/>
-                <Setter Property="Foreground" Value="#007ACC"/>
+            <!-- Custom Brushes mapped to Material Design -->
+            <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{StaticResource Primary700}"/>
+            <SolidColorBrush x:Key="SidebarForegroundBrush" Color="{StaticResource PrimaryForeground}"/>
+            
+            <!-- Global Text Styles -->
+            <Style x:Key="PageHeaderStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MaterialDesignHeadline4}">
+                <Setter Property="Margin" Value="0,0,0,20"/>
+                <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}"/>
             </Style>
 
-            <Style x:Key="InputTextBoxStyle" TargetType="{x:Type TextBox}">
-                <Setter Property="Padding" Value="5"/>
-                <Setter Property="BorderBrush" Value="#CCCCCC"/>
-                <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="Margin" Value="0,0,0,5"/>
-                <Setter Property="VerticalContentAlignment" Value="Center"/>
-            </Style>
-
-            <Style x:Key="BaseTextBoxStyle" TargetType="{x:Type TextBox}" 
-                   BasedOn="{StaticResource InputTextBoxStyle}"/>
-
-            <Style TargetType="{x:Type ComboBox}">
-                <Setter Property="Padding" Value="5"/>
-                <Setter Property="BorderBrush" Value="#CCCCCC"/>
-                <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="Margin" Value="0,0,0,5"/>
-                <Setter Property="VerticalContentAlignment" Value="Center"/>
-            </Style>
-
-            <Style x:Key="ModernTileButton" TargetType="{x:Type Button}">
-                <Setter Property="Background" Value="White"/>
-                <Setter Property="Foreground" Value="#333333"/>
-                <Setter Property="BorderBrush" Value="#CCCCCC"/>
-                <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="Padding" Value="10"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type Button}">
-                            <Border Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="8">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#F0F0F0"/>
-                                    <Setter Property="BorderBrush" Value="#666666"/>
-                                </Trigger>
-                                <Trigger Property="IsPressed" Value="True">
-                                    <Setter Property="Background" Value="#E0E0E0"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style x:Key="TileIconStyle" TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
-                <Setter Property="FontSize" Value="32"/>
-                <Setter Property="Margin" Value="0,0,0,10"/>
-                <Setter Property="HorizontalAlignment" Value="Center"/>
-                <Setter Property="Foreground" Value="#007ACC"/>
-            </Style>
-
-            <Style x:Key="AccentButton" TargetType="{x:Type Button}">
-                <Setter Property="Background" Value="#007ACC"/>
-                <Setter Property="Foreground" Value="White"/>
-                <Setter Property="Padding" Value="10,8"/>
-                <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="FontWeight" Value="SemiBold"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type Button}">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="3">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#005A9C"/>
-                                </Trigger>
-                                <Trigger Property="IsPressed" Value="True">
-                                    <Setter Property="Background" Value="#003B66"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style x:Key="SecondaryButton" TargetType="{x:Type Button}">
-                <Setter Property="Background" Value="#E0E0E0"/>
-                <Setter Property="Foreground" Value="#333333"/>
-                <Setter Property="Padding" Value="10,8"/>
-                <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type Button}">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="3">
-                                <ContentPresenter HorizontalAlignment="Center" 
-                                VerticalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#D0D0D0"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style x:Key="SmallAddButton" TargetType="{x:Type Button}" BasedOn="{StaticResource AccentButton}">
-                <Setter Property="Width" Value="30"/>
-                <Setter Property="Height" Value="25"/>
-                <Setter Property="Margin" Value="0"/>
-                <Setter Property="Padding" Value="0"/>
-            </Style>
-
-            <Style x:Key="SidebarIconStyle" TargetType="Control">
-                <Setter Property="Foreground" Value="{StaticResource SidebarForegroundBrush}"/>
-                <Setter Property="Width" Value="20" />
-                <Setter Property="Height" Value="20" />
-                <Setter Property="Margin" Value="0,0,12,0" />
-            </Style>
-
-            <Style x:Key="SidebarRadioButtonStyle" TargetType="RadioButton">
-                <Setter Property="Foreground" Value="{StaticResource SidebarForegroundBrush}"/>
-                <Setter Property="Background" Value="Transparent" />
-                <Setter Property="FontSize" Value="14" />
-                <Setter Property="Padding" Value="12" />
-                <Setter Property="Margin" Value="4,2" />
-                <Setter Property="HorizontalAlignment" Value="Stretch" />
-                <Setter Property="HorizontalContentAlignment" Value="Left" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="RadioButton">
-                            <Border Background="{TemplateBinding Background}" 
-                                    CornerRadius="6" 
-                                    Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="{StaticResource SidebarHoverBrush}" />
-                        <Setter Property="Foreground" Value="{StaticResource SidebarActiveForegroundBrush}" />
-                    </Trigger>
-                    <Trigger Property="IsChecked" Value="True">
-                        <Setter Property="Background" Value="{StaticResource SidebarActiveBrush}" />
-                        <Setter Property="Foreground" Value="{StaticResource SidebarActiveForegroundBrush}" />
-                        <Setter Property="FontWeight" Value="SemiBold" />
-                    </Trigger>
-                </Style.Triggers>
-            </Style>
-
-            <Style x:Key="SidebarSecondaryButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
-                <Setter Property="Background" Value="#334155" />
-                <Setter Property="Foreground" Value="#cbd5e1" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type Button}">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="3">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#475569"/>
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
+            <Style x:Key="SectionHeaderStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MaterialDesignHeadline6}">
+                <Setter Property="Margin" Value="0,10,0,10"/>
+                <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}"/>
             </Style>
 
         </ResourceDictionary>

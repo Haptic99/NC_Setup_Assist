@@ -4,34 +4,71 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:vm="clr-namespace:NC_Setup_Assist.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance vm:AboutViewModel}"
-    
-         d:DesignHeight="300" d:DesignWidth="400"
-             HorizontalAlignment="Center" VerticalAlignment="Center">
-    <StackPanel Margin="25">
-        <TextBlock Text="{Binding AppName}" 
-                   FontSize="24" 
-                   FontWeight="Bold" 
-                   HorizontalAlignment="Center"
- 
-                  Foreground="#333333"/>
+             d:DesignHeight="600" d:DesignWidth="900">
+    <Grid>
+        <!-- Background Gradient -->
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#1a237e" Offset="0.0"/>
+                <GradientStop Color="#121212" Offset="1.0"/>
+            </LinearGradientBrush>
+        </Grid.Background>
 
-        <TextBlock HorizontalAlignment="Center" Margin="0,5,0,20" Foreground="#555555">
-            <Run Text="Version:"/>
-            <Run Text="{Binding AppVersion, Mode=OneWay}"/>
-        </TextBlock>
+        <!-- Responsive ViewBox that scales content -->
+        <Viewbox Stretch="Uniform" MaxWidth="900" MaxHeight="700">
+            <StackPanel Width="800" Margin="80">
+                <!-- Logo/Icon -->
+                <materialDesign:PackIcon Kind="InformationOutline" Width="96" Height="96" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,40"/>
 
-        <TextBlock Text="Diese Anwendung dient der Analyse von NC-Programmen und der Verwaltung von Werkzeug-Setups."
-TextWrapping="Wrap"
-                   HorizontalAlignment="Center"
-                   TextAlignment="Center"
-                   Margin="0,0,0,20"/>
+                <!-- App Name -->
+                <TextBlock Text="{Binding AppName}" 
+                           FontSize="56"
+                           Foreground="White"
+                           FontWeight="Bold" 
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,16"/>
 
-        <TextBlock Text="{Binding Copyright}" 
-                   HorizontalAlignment="Center" 
-            
-       FontSize="12" 
-                   Foreground="#888888"/>
-    </StackPanel>
+                <!-- Version -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,48">
+                    <TextBlock Text="Version: " Foreground="#AAFFFFFF" FontSize="22"/>
+                    <TextBlock Text="{Binding AppVersion, Mode=OneWay}" Foreground="#AAFFFFFF" FontSize="22"/>
+                </StackPanel>
+
+                <!-- Description -->
+                <TextBlock Text="Diese Anwendung dient der Analyse von NC-Programmen und der Verwaltung von Werkzeug-Setups."
+                           FontSize="20"
+                           Foreground="#DDFFFFFF"
+                           TextWrapping="Wrap"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
+                           Margin="0,0,0,64"/>
+
+                <!-- Copyright -->
+                <TextBlock Text="{Binding Copyright}" 
+                           HorizontalAlignment="Center" 
+                           FontSize="16" 
+                           Foreground="#88FFFFFF"
+                           Margin="0,0,0,48"/>
+
+                <!-- Back Button with fixed text visibility -->
+                <Button Command="{Binding NavigateBackCommand}"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Background="White"
+                        Foreground="#1a237e"
+                        Content="Zurück zum Hauptmenü"
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Height="50"
+                        MinWidth="300"
+                        Padding="16,8"
+                        VerticalContentAlignment="Center"
+                        HorizontalContentAlignment="Center"
+                        materialDesign:ElevationAssist.Elevation="Dp4"/>
+            </StackPanel>
+        </Viewbox>
+    </Grid>
 </UserControl>

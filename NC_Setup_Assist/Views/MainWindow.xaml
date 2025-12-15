@@ -12,7 +12,10 @@
         Title="NC-Setup-Assist"
         Icon="/Logo.ico"
         WindowState="Maximized"
-        Background="#F1F5F9">
+        Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        FontFamily="{DynamicResource MaterialDesignFont}">
+    
     <Window.DataContext>
         <viewmodels:MainViewModel/>
     </Window.DataContext>
@@ -65,73 +68,87 @@
         </DataTemplate>
 
         <converters:StringEqualsConverter x:Key="StringEqualsConverter" />
-
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Window.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="260"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="0" Background="{StaticResource SidebarBackgroundBrush}">
+        <!-- Sidebar -->
+        <Border Grid.Column="0" 
+                Width="280"
+                Background="{DynamicResource PrimaryHueMidBrush}" 
+                TextElement.Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                Visibility="{Binding IsSidebarVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <DockPanel>
-
-                <Border DockPanel.Dock="Top" 
-                    BorderBrush="{StaticResource SidebarBorderBrush}" 
-                    BorderThickness="0,0,0,1" 
-                    Padding="20">
-                    <StackPanel>
-                        <TextBlock Text="NC-Setup-Assist" 
-                               Foreground="White" 
-                               FontSize="20" 
-                               FontWeight="Bold"/>
-                        <TextBlock Text="Maschinen Setup" 
-                               Foreground="{StaticResource SidebarForegroundBrush}" 
-                               FontSize="12"/>
+                <!-- Header -->
+                <StackPanel DockPanel.Dock="Top" Margin="24">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <materialDesign:PackIcon Kind="Factory" Width="32" Height="32" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock Text="NC-Assist" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
                     </StackPanel>
-                </Border>
-
-                <Button DockPanel.Dock="Bottom" 
-                    Content="Zurück" 
-                    Command="{Binding NavigateBackCommand}" 
-                    Style="{StaticResource SidebarSecondaryButton}"
-                    Margin="15"/>
-
-                <StackPanel DockPanel.Dock="Top" Margin="10">
-                    <RadioButton Style="{StaticResource SidebarRadioButtonStyle}"
-                             Command="{Binding NavigateDashboardCommand}"
-                             IsChecked="{Binding ActiveViewName, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Dashboard'}">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="ViewDashboard" Style="{StaticResource SidebarIconStyle}"/>
-                            <TextBlock Text="Dashboard" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </RadioButton>
-
-                    <RadioButton Style="{StaticResource SidebarRadioButtonStyle}"
-                             Command="{Binding NavigateProjectsCommand}"
-                             IsChecked="{Binding ActiveViewName, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Projects'}">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Folder" Style="{StaticResource SidebarIconStyle}"/>
-                            <TextBlock Text="Projekte" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </RadioButton>
-
-                    <RadioButton Style="{StaticResource SidebarRadioButtonStyle}"
-                             Command="{Binding NavigateSettingsCommand}"
-                             IsChecked="{Binding ActiveViewName, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Settings'}">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Cog" Style="{StaticResource SidebarIconStyle}"/>
-                            <TextBlock Text="Einstellungen" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </RadioButton>
+                    <TextBlock Text="Setup &amp; Tool Management" Opacity="0.8" FontSize="14"/>
                 </StackPanel>
+
+                <!-- Bottom Actions -->
+                <StackPanel DockPanel.Dock="Bottom" Margin="16">
+                    <Button Command="{Binding NavigateBackCommand}" 
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            BorderBrush="{DynamicResource PrimaryHueMidForegroundBrush}"
+                            Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                            Content="Zurück"
+                            HorizontalAlignment="Stretch"/>
+                </StackPanel>
+
+                <!-- Navigation Menu -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <RadioButton Style="{StaticResource MaterialDesignChoiceChipRadioButton}"
+                                     Command="{Binding NavigateDashboardCommand}"
+                                     IsChecked="{Binding ActiveViewName, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Dashboard'}"
+                                     Margin="0,4">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="ViewDashboard" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Dashboard" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Style="{StaticResource MaterialDesignChoiceChipRadioButton}"
+                                     Command="{Binding NavigateProjectsCommand}"
+                                     IsChecked="{Binding ActiveViewName, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Projects'}"
+                                     Margin="0,4">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Folder" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Projekte" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Style="{StaticResource MaterialDesignChoiceChipRadioButton}"
+                                     Command="{Binding NavigateSettingsCommand}"
+                                     IsChecked="{Binding ActiveViewName, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Settings'}"
+                                     Margin="0,4">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Cog" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Einstellungen" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </StackPanel>
+                </ScrollViewer>
             </DockPanel>
         </Border>
 
-        <ContentControl Grid.Column="1" 
-                    Content="{Binding CurrentViewModel}" 
-                    Margin="10"/>
-
+        <!-- Main Content -->
+        <materialDesign:Transitioner Grid.Column="1" SelectedIndex="0" AutoApplyTransitionOrigins="True">
+            <materialDesign:TransitionerSlide>
+                <materialDesign:TransitionerSlide.OpeningEffect>
+                    <materialDesign:TransitionEffect Kind="FadeIn" Duration="0:0:0.4"/>
+                </materialDesign:TransitionerSlide.OpeningEffect>
+                <!-- REMOVED Margin="24" to allow full bleed for Main Menu -->
+                <ContentControl Content="{Binding CurrentViewModel}"/>
+            </materialDesign:TransitionerSlide>
+        </materialDesign:Transitioner>
     </Grid>
 </Window>

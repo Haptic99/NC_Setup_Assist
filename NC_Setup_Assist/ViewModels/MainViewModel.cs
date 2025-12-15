@@ -15,6 +15,9 @@ namespace NC_Setup_Assist.ViewModels
         [ObservableProperty]
         private string _activeViewName = "Dashboard";
 
+        [ObservableProperty]
+        private bool _isSidebarVisible = true; // NEU: Steuert die Sichtbarkeit der Sidebar
+
         private Stack<ViewModelBase> _navigationHistory = new Stack<ViewModelBase>();
 
         public MainViewModel()
@@ -86,9 +89,21 @@ namespace NC_Setup_Assist.ViewModels
         /// <summary>
         /// Aktualisiert die ActiveViewName-Eigenschaft basierend auf dem Typ des ViewModels,
         /// damit die RadioButtons in der Sidebar korrekt synchronisiert werden.
+        /// Aktualisiert auch die Sichtbarkeit der Sidebar.
         /// </summary>
         private void UpdateActiveViewName(ViewModelBase? vm)
         {
+            // 1. Sidebar-Sichtbarkeit steuern
+            if (vm is MainMenuViewModel or AboutViewModel)
+            {
+                IsSidebarVisible = false;
+            }
+            else
+            {
+                IsSidebarVisible = true;
+            }
+
+            // 2. Aktiven Menüpunkt setzen
             if (vm is MainMenuViewModel or NewProjectViewModel or AnalysisViewModel)
             {
                 // Dashboard ist aktiv für das Hauptmenü und untergeordnete Projektansichten

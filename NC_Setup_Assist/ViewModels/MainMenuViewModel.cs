@@ -35,7 +35,7 @@ namespace NC_Setup_Assist.ViewModels
         [RelayCommand]
         private void OpenAbout()
         {
-            _mainViewModel.NavigateTo(new AboutViewModel());
+            _mainViewModel.NavigateTo(new AboutViewModel(_mainViewModel));
         }
     }
 }

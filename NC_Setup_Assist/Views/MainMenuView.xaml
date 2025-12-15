@@ -3,100 +3,93 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800"
-             xmlns:viewmodels="clr-namespace:NC_Setup_Assist.ViewModels">
-
-
-    <UserControl.Resources>
-        <Style x:Key="TileDescriptionStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
-
-            <Setter Property="Foreground" Value="#666666"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,5,0,0"/>
-        </Style>
-    </UserControl.Resources>
+             d:DesignHeight="600" d:DesignWidth="900"
+             TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+             TextElement.FontWeight="Regular"
+             TextElement.FontSize="13"
+             TextOptions.TextFormattingMode="Ideal"
+             FontFamily="{DynamicResource MaterialDesignFont}">
 
     <Grid>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20">
+        <!-- Background Gradient -->
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#1a237e" Offset="0.0"/>
+                <GradientStop Color="#121212" Offset="1.0"/>
+            </LinearGradientBrush>
+        </Grid.Background>
 
-            <StackPanel Margin="0,0,0,30" HorizontalAlignment="Center">
-
-                <TextBlock Text="NC-Setup-Assist" 
-                           FontSize="36" 
-                           FontWeight="Bold" 
-                           HorizontalAlignment="Center"
-      
-                     Foreground="#333333"/>
-                <TextBlock Text="NC Machine Setup Assistant"
-                           FontSize="18"
-                           HorizontalAlignment="Center"
-     
-                      Foreground="#444444"/>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            
+            <!-- Header Content -->
+            <StackPanel HorizontalAlignment="Center" Margin="0,0,0,48">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,16">
+                    <materialDesign:PackIcon Kind="Factory" Width="64" Height="64" Foreground="White" Margin="0,0,24,0"/>
+                    <TextBlock Text="NC-Setup-Assist" 
+                               Style="{StaticResource MaterialDesignHeadline3TextBlock}" 
+                               Foreground="White"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Text="Intelligente Rüstoptimierung für Ihre Fertigung" 
+                           Style="{StaticResource MaterialDesignSubtitle1TextBlock}" 
+                           Foreground="#DDFFFFFF"
+                           HorizontalAlignment="Center"/>
             </StackPanel>
 
-            <UniformGrid Columns="3" 
-                         Rows="1" 
-                         HorizontalAlignment="Center" 
-
-                         VerticalAlignment="Center" 
-                         Width="650"
-                         Height="180">
-
-                <Button Command="{Binding CreateNewProjectCommand}" 
-     
-                   Style="{StaticResource ModernTileButton}"
-                        Margin="10" 
-                        ToolTip="Ein neues Projekt mit NC-Code starten.">
-                    <StackPanel>
-
-                        <TextBlock Text="&#xE7C3;"
-Style="{StaticResource TileIconStyle}"/>
-                        <TextBlock Text="Neues Projekt" HorizontalAlignment="Center" FontWeight="SemiBold"/>
-                    </StackPanel>
-                </Button>
-
-                <Button Command="{Binding ManageProjectsCommand}" 
+            <!-- Action Tiles -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 
-        Style="{StaticResource ModernTileButton}"
-                        Margin="10" 
-                        ToolTip="Bestehende Projekte ansehen und bearbeiten.">
-                    <StackPanel>
-
-                        <TextBlock Text="&#xE8B7;" Style="{StaticResource TileIconStyle}"/>
-                        <TextBlock Text="Projekte verwalten" HorizontalAlignment="Center" FontWeight="SemiBold"/>
-                    </StackPanel>
+                <!-- New Project Card -->
+                <Button Command="{Binding CreateNewProjectCommand}" 
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Height="Auto" Padding="0" Margin="16">
+                    <materialDesign:Card UniformCornerRadius="12" Padding="24" Width="220" Height="200" materialDesign:ElevationAssist.Elevation="Dp4" Background="White">
+                        <StackPanel VerticalAlignment="Center">
+                            <materialDesign:PackIcon Kind="FileDocumentPlus" Width="48" Height="48" HorizontalAlignment="Center" Foreground="#1a237e" Margin="0,0,0,16"/>
+                            <TextBlock Text="Neues Projekt" Style="{StaticResource MaterialDesignHeadline6TextBlock}" HorizontalAlignment="Center" Foreground="Black" Margin="0,0,0,8"/>
+                            <TextBlock Text="NC-Code importieren und analysieren" TextWrapping="Wrap" TextAlignment="Center" Foreground="Gray"/>
+                        </StackPanel>
+                    </materialDesign:Card>
                 </Button>
 
+                <!-- Manage Projects Card -->
+                <Button Command="{Binding ManageProjectsCommand}" 
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Height="Auto" Padding="0" Margin="16">
+                    <materialDesign:Card UniformCornerRadius="12" Padding="24" Width="220" Height="200" materialDesign:ElevationAssist.Elevation="Dp4" Background="White">
+                        <StackPanel VerticalAlignment="Center">
+                            <materialDesign:PackIcon Kind="FolderOpen" Width="48" Height="48" HorizontalAlignment="Center" Foreground="#1a237e" Margin="0,0,0,16"/>
+                            <TextBlock Text="Projekte" Style="{StaticResource MaterialDesignHeadline6TextBlock}" HorizontalAlignment="Center" Foreground="Black" Margin="0,0,0,8"/>
+                            <TextBlock Text="Bestehende Projekte verwalten" TextWrapping="Wrap" TextAlignment="Center" Foreground="Gray"/>
+                        </StackPanel>
+                    </materialDesign:Card>
+                </Button>
+
+                <!-- Settings Card -->
                 <Button Command="{Binding OpenSettingsCommand}" 
-        
-                Style="{StaticResource ModernTileButton}"
-                        Margin="10" 
-                        ToolTip="Einstellungen für Werkzeuge und Maschinen.">
-                    <StackPanel>
-
-                        <TextBlock Text="&#xE713;"
-Style="{StaticResource TileIconStyle}"/>
-                        <TextBlock Text="Einstellungen" HorizontalAlignment="Center" FontWeight="SemiBold"/>
-                    </StackPanel>
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Height="Auto" Padding="0" Margin="16">
+                    <materialDesign:Card UniformCornerRadius="12" Padding="24" Width="220" Height="200" materialDesign:ElevationAssist.Elevation="Dp4" Background="White">
+                        <StackPanel VerticalAlignment="Center">
+                            <materialDesign:PackIcon Kind="Cog" Width="48" Height="48" HorizontalAlignment="Center" Foreground="#1a237e" Margin="0,0,0,16"/>
+                            <TextBlock Text="Einstellungen" Style="{StaticResource MaterialDesignHeadline6TextBlock}" HorizontalAlignment="Center" Foreground="Black" Margin="0,0,0,8"/>
+                            <TextBlock Text="Maschinen und Werkzeuge konfigurieren" TextWrapping="Wrap" TextAlignment="Center" Foreground="Gray"/>
+                        </StackPanel>
+                    </materialDesign:Card>
                 </Button>
-            </UniformGrid>
 
-            <Button Command="{Binding OpenAboutCommand}" 
-         
-           Style="{StaticResource SecondaryButton}" 
-                    HorizontalAlignment="Center"
-                    Width="100"
-                    Margin="0,30,0,0">
-                <StackPanel Orientation="Horizontal">
+            </StackPanel>
+        </StackPanel>
 
-                    <TextBlock Text="&#xE946;"
-FontFamily="Segoe MDL2 Assets" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="Über"/>
-                </StackPanel>
-            </Button>
+        <!-- Footer -->
+        <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="16">
+             <Button Command="{Binding OpenAboutCommand}" 
+                     Style="{StaticResource MaterialDesignFlatButton}"
+                     Content="Über NC-Setup-Assist"
+                     Foreground="#88FFFFFF"/>
         </StackPanel>
     </Grid>
 </UserControl>
